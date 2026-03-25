@@ -1,0 +1,1018 @@
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body,#hq{font-family:system-ui,sans-serif;background:#f1f5f9;}
+#hq{min-height:640px;display:flex;flex-direction:column;}
+#bar{background:#0f172a;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{font-weight:800;font-size:13px;color:#fff;letter-spacing:.03em;}.logo b{color:#f59e0b;}
+.bar-r{display:flex;gap:7px;align-items:center;}
+#api-st{font-size:11px;padding:3px 10px;border-radius:20px;background:#1e293b;color:#94a3b8;cursor:pointer;border:1px solid #334155;}
+#api-st.ok{background:#052e16;color:#4ade80;border-color:#166534;}
+#layout{display:flex;flex:1;min-height:0;}
+#sb{width:192px;background:#fff;border-right:1px solid #e2e8f0;overflow-y:auto;max-height:590px;flex-shrink:0;}
+.slbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;padding:8px 12px 3px;}
+.nb{width:100%;display:flex;align-items:center;gap:7px;padding:7px 10px;border:none;background:transparent;cursor:pointer;text-align:left;border-radius:7px;margin:1px 4px;width:calc(100% - 8px);}
+.nb:hover{background:#f1f5f9;}.nb.on{background:#eff6ff;}
+.nb.on .nl{color:#1d4ed8;font-weight:600;}
+.ni{font-size:14px;flex-shrink:0;}.nl{font-size:12px;color:#374151;line-height:1.2;}.ns{font-size:10px;color:#94a3b8;}
+.nd{width:6px;height:6px;border-radius:50%;background:#10b981;margin-left:auto;flex-shrink:0;}
+.nd.bz{background:#f59e0b;animation:p .8s infinite;}
+.nd.pu{background:#7c3aed;}
+.nd.or{background:#f97316;}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+#ct{flex:1;overflow-y:auto;padding:14px;max-height:590px;}
+.vw{display:none;}.vw.on{display:block;}
+h2{font-size:17px;font-weight:700;color:#0f172a;margin-bottom:3px;}
+.sub{font-size:12px;color:#64748b;margin-bottom:14px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mc{background:#fff;border:1px solid #e2e8f0;border-radius:9px;padding:11px;}
+.ml{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:3px;}
+.mv{font-size:20px;font-weight:800;color:#0f172a;}
+.ms{font-size:10px;color:#10b981;margin-top:2px;}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:11px;overflow:hidden;margin-bottom:12px;}
+.ch{background:#0f172a;padding:11px 15px;color:#fff;}
+.ch h3{font-size:13px;font-weight:700;margin-bottom:1px;}.ch p{font-size:11px;color:#93c5fd;}
+.cb{padding:13px 15px;}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.fg label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;}
+.fg input,.fg select,.fg textarea{border:1.5px solid #e2e8f0;border-radius:7px;padding:7px 10px;font-size:12px;font-family:inherit;color:#0f172a;background:#f8fafc;outline:none;width:100%;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#1d4ed8;background:#fff;}
+.fg textarea{resize:vertical;min-height:65px;}
+.bp{background:#1d4ed8;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit;}
+.bp:hover{background:#1e40af;}.bp:disabled{opacity:.5;cursor:not-allowed;}
+.bs{background:#fff;color:#1d4ed8;border:1.5px solid #1d4ed8;border-radius:7px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
+.bs:hover{background:#eff6ff;}
+.bg{background:#f59e0b;color:#fff;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.bg:hover{background:#d97706;}.bg:disabled{opacity:.5;cursor:not-allowed;}
+.bv{background:#7c3aed;color:#fff;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.bv:hover{background:#6d28d9;}.bv:disabled{opacity:.5;cursor:not-allowed;}
+.think{display:none;align-items:center;gap:7px;padding:9px 11px;background:#eff6ff;border-radius:7px;margin-top:7px;font-size:11px;color:#1d4ed8;}
+.think.on{display:flex;}
+.sp{width:13px;height:13px;border:2px solid #bfdbfe;border-top-color:#1d4ed8;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cl{height:260px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px;}
+.msg{max-width:87%;border-radius:9px;padding:8px 11px;font-size:12px;line-height:1.6;}
+.msg.u{background:#1d4ed8;color:#fff;align-self:flex-end;border-bottom-right-radius:3px;}
+.msg.b{background:#f8fafc;color:#0f172a;align-self:flex-start;border-bottom-left-radius:3px;border:1px solid #e2e8f0;white-space:pre-wrap;}
+.msg.b strong{display:block;font-size:10px;color:#1d4ed8;margin-bottom:3px;}
+.ci{display:flex;gap:7px;padding:9px 11px;border-top:1px solid #e2e8f0;}
+.ci input{flex:1;border:1.5px solid #e2e8f0;border-radius:7px;padding:7px 10px;font-size:12px;font-family:inherit;outline:none;}
+.ci input:focus{border-color:#1d4ed8;}
+.snd{background:#1d4ed8;color:#fff;border:none;border-radius:7px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;}
+.snd:disabled{opacity:.5;cursor:not-allowed;}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.chip{padding:4px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;color:#374151;}
+.chip:hover{background:#eff6ff;border-color:#1d4ed8;color:#1d4ed8;}
+.ag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:9px;margin-bottom:14px;}
+.ac{background:#fff;border:1px solid #e2e8f0;border-radius:11px;padding:12px;cursor:pointer;position:relative;overflow:hidden;}
+.ac::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#1d4ed8,#f59e0b);}
+.ac:hover{border-color:#93c5fd;}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:7px;border:2px solid #e2e8f0;}
+.an{font-size:12px;font-weight:700;color:#0f172a;}.ar{font-size:10px;color:#1d4ed8;font-weight:600;margin-bottom:3px;}.ad{font-size:10px;color:#64748b;line-height:1.4;}
+.tg{display:inline-block;background:#eff6ff;color:#1d4ed8;padding:2px 5px;border-radius:4px;font-size:9px;font-weight:600;margin-top:4px;margin-right:2px;}
+.ahb{border:2px solid #e2e8f0;border-radius:11px;background:#fff;overflow:hidden;margin-bottom:12px;}
+.ahb:focus-within{border-color:#1d4ed8;}
+.ahb textarea{border:none;background:#fff;width:100%;padding:10px 13px;font-size:12px;resize:none;font-family:inherit;outline:none;}
+.ahbar{display:flex;align-items:center;justify-content:space-between;padding:7px 11px;background:#f8fafc;border-top:1px solid #e2e8f0;flex-wrap:wrap;gap:5px;}
+.aht{display:flex;flex-wrap:wrap;gap:3px;}
+.atg{padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;background:#eff6ff;color:#1d4ed8;}
+.bc-grid{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+.bc{background:#fff;border:1px solid #e2e8f0;border-radius:9px;overflow:hidden;}
+.bch{padding:9px 12px;display:flex;align-items:center;gap:7px;border-bottom:1px solid #e2e8f0;flex-wrap:wrap;}
+.bcav{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.bcb{padding:10px 13px;font-size:12px;line-height:1.7;color:#0f172a;white-space:pre-wrap;}
+.tl{display:flex;flex-direction:column;gap:5px;}
+.ti{background:#fff;border:1px solid #e2e8f0;border-radius:9px;padding:10px 12px;display:flex;align-items:flex-start;gap:9px;}
+.ti:hover{border-color:#93c5fd;}.ti.dn{opacity:.5;}
+.ck{width:16px;height:16px;border-radius:4px;border:2px solid #cbd5e1;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:1px;}
+.ck.on{background:#10b981;border-color:#10b981;color:#fff;}
+.tt{font-size:12px;font-weight:600;color:#0f172a;}.ti.dn .tt{text-decoration:line-through;color:#94a3b8;}
+.tm{font-size:10px;color:#94a3b8;margin-top:2px;}
+.bge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;margin-right:2px;}
+.bh{background:#fee2e2;color:#dc2626;}.bm{background:#fef9c3;color:#ca8a04;}.bl{background:#dcfce7;color:#16a34a;}.bd{background:#eff6ff;color:#1d4ed8;}
+.ta{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+.ta input{flex:1;min-width:100px;border:1.5px solid #e2e8f0;border-radius:7px;padding:7px 10px;font-size:12px;font-family:inherit;outline:none;}
+.ta input:focus{border-color:#1d4ed8;}
+.ta select{border:1.5px solid #e2e8f0;border-radius:7px;padding:6px;font-size:11px;font-family:inherit;outline:none;}
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:12px;}
+.pc{background:#fff;border:1px solid #e2e8f0;border-radius:9px;overflow:hidden;min-height:90px;}
+.ph{padding:7px 9px;font-size:10px;font-weight:700;border-bottom:1px solid #e2e8f0;}
+.pl{margin:5px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:7px;font-size:10px;cursor:pointer;}
+.pl:hover{border-color:#93c5fd;}
+.pn{font-weight:600;color:#0f172a;}.pv{color:#1d4ed8;font-weight:700;margin-top:1px;}
+.el{display:flex;flex-direction:column;gap:4px;}
+.ei{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:9px 11px;cursor:pointer;}
+.ei:hover{border-color:#93c5fd;}.ei.unr{border-left:3px solid #1d4ed8;}
+.ef{font-size:11px;font-weight:600;color:#0f172a;}.ef.u{color:#1d4ed8;}.es{font-size:10px;color:#64748b;margin-top:1px;}
+.cff{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid #f1f5f9;}
+.cff label{font-size:10px;font-weight:600;color:#94a3b8;width:42px;flex-shrink:0;}
+.cff input{flex:1;border:none;background:transparent;font-size:12px;font-family:inherit;color:#0f172a;outline:none;}
+.dbox{border:1.5px solid #e2e8f0;border-radius:8px;padding:10px;min-height:110px;font-size:12px;font-family:inherit;color:#0f172a;outline:none;width:100%;margin-top:8px;}
+.dbox:focus{border-color:#1d4ed8;}
+.out{background:#fff;border:1px solid #e2e8f0;border-radius:9px;margin-top:10px;}
+.oh{background:#0f172a;padding:9px 13px;color:#fff;font-size:12px;font-weight:700;border-radius:9px 9px 0 0;display:flex;align-items:center;justify-content:space-between;}
+.ob{padding:13px;font-size:12px;line-height:1.8;white-space:pre-wrap;color:#0f172a;max-height:350px;overflow-y:auto;}
+.of{padding:9px 13px;border-top:1px solid #e2e8f0;display:flex;gap:7px;flex-wrap:wrap;}
+.drop{border:2.5px dashed #cbd5e1;border-radius:11px;padding:28px 16px;text-align:center;cursor:pointer;background:#fff;transition:all .2s;}
+.drop:hover,.drop.over{border-color:#1d4ed8;background:#eff6ff;}
+.drop.ok{border-color:#10b981;background:#f0fdf4;border-style:solid;}
+.fx{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.tb{padding:6px 14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;color:#64748b;font-family:inherit;}
+.tb.on{border-color:#0f172a;color:#0f172a;font-weight:700;}
+.notice{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:9px 12px;font-size:11px;color:#1e40af;margin-bottom:10px;}
+.warn{background:#fefce8;border:1px solid #fef08a;border-radius:8px;padding:9px 12px;font-size:11px;color:#854d0e;margin-bottom:10px;}
+.call-card{background:#fff;border:1px solid #e2e8f0;border-radius:9px;padding:11px 13px;display:flex;align-items:flex-start;gap:10px;margin-bottom:7px;}
+.call-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.call-in{background:#dcfce7;}.call-out{background:#dbeafe;}.call-miss{background:#fee2e2;}
+.sms-card{background:#fff;border:1px solid #e2e8f0;border-radius:9px;padding:10px 13px;margin-bottom:6px;cursor:pointer;}
+.sms-card:hover{border-color:#93c5fd;}
+.img-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px;}
+.img-box{border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;background:#f8fafc;position:relative;}
+.img-box img{width:100%;height:200px;object-fit:cover;display:block;}
+.img-box .img-actions{position:absolute;bottom:0;left:0;right:0;background:rgba(15,23,42,.7);padding:7px 10px;display:flex;gap:6px;opacity:0;transition:opacity .2s;}
+.img-box:hover .img-actions{opacity:1;}
+.img-placeholder{width:100%;height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;gap:6px;}
+.img-status{font-size:24px;}
+.file-list{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+.file-item{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:9px;}
+.file-icon{font-size:20px;flex-shrink:0;}
+.file-name{font-size:12px;font-weight:600;color:#0f172a;flex:1;}
+.file-size{font-size:10px;color:#94a3b8;}
+.file-ai{font-size:10px;color:#10b981;margin-top:1px;}
+.hr-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px;position:relative;overflow:hidden;}
+.hr-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#7c3aed,#ec4899);}
+.est{display:inline-block;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;margin-bottom:6px;}
+.ea{background:#dcfce7;color:#166534;}.eo{background:#fef9c3;color:#854d0e;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:2px;}
+.scroll-x{overflow-x:auto;}
+</style>
+
+<div id="hq">
+<div id="bar">
+  <div class="logo">ELEVATE <b>CONSTRUCTION</b> — TEAM PORTAL</div>
+  <div class="bar-r">
+    <span id="api-st" onclick="openKey()">⚙ Connect AI</span>
+    <span style="font-size:10px;color:#475569;">GaElevate.com · 404-719-1888</span>
+  </div>
+</div>
+
+<div id="layout">
+<div id="sb">
+  <div class="slbl">Main</div>
+  <button class="nb on" onclick="nav('dash',this)"><span class="ni">🏛</span><div><div class="nl">Dashboard</div><div class="ns">Overview</div></div><div class="nd"></div></button>
+  <button class="nb" onclick="nav('allhands',this)"><span class="ni">📢</span><div><div class="nl">All-Hands</div><div class="ns">Broadcast</div></div></button>
+  <button class="nb" onclick="nav('files',this)"><span class="ni">📂</span><div><div class="nl">File Drop</div><div class="ns">Drag & drop docs</div></div><div class="nd" style="background:#f59e0b;"></div></button>
+  <button class="nb" onclick="nav('proposal',this)"><span class="ni">📋</span><div><div class="nl">Proposals</div><div class="ns">Branded bids</div></div></button>
+  <button class="nb" onclick="nav('marketing',this)"><span class="ni">📣</span><div><div class="nl">Marketing</div><div class="ns">Content studio</div></div></button>
+  <button class="nb" onclick="nav('images',this)"><span class="ni">🎨</span><div><div class="nl">AI Images</div><div class="ns">Hyper-realistic ads</div></div><div class="nd" style="background:#ec4899;"></div></button>
+  <button class="nb" onclick="nav('hr',this)"><span class="ni">👥</span><div><div class="nl">HR</div><div class="ns">People & hiring</div></div><div class="nd pu"></div></button>
+  <button class="nb" onclick="nav('tasks',this)"><span class="ni">✅</span><div><div class="nl">Tasks</div><div class="ns">Inbox</div></div><div class="nd or"></div></button>
+  <button class="nb" onclick="nav('email',this)"><span class="ni">📬</span><div><div class="nl">Email</div><div class="ns">Compose & draft</div></div></button>
+  <button class="nb" onclick="nav('dialpad',this)"><span class="ni">📞</span><div><div class="nl">Dialpad</div><div class="ns">Calls & SMS</div></div><div class="nd" style="background:#f97316;"></div></button>
+  <button class="nb" onclick="nav('crm',this)"><span class="ni">💼</span><div><div class="nl">Pipeline</div><div class="ns">Leads & CRM</div></div></button>
+  <div class="slbl">Team</div>
+  <div id="agnav"></div>
+</div>
+
+<div id="ct">
+
+<!-- DASHBOARD -->
+<div id="view-dash" class="vw on">
+  <h2>Command Center</h2>
+  <div class="sub">Elevate Construction LLC — Executive Portal</div>
+  <div class="g4">
+    <div class="mc"><div class="ml">Departments</div><div class="mv">8</div><div class="ms">All active</div></div>
+    <div class="mc"><div class="ml">Open Tasks</div><div class="mv" id="m-tasks">7</div><div class="ms">Pending</div></div>
+    <div class="mc"><div class="ml">Interactions</div><div class="mv" id="m-q">0</div><div class="ms">This session</div></div>
+    <div class="mc"><div class="ml">Pipeline</div><div class="mv">$768k</div><div class="ms">Active leads</div></div>
+  </div>
+  <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:3px;">📢 Message All Departments</div>
+  <div class="sub" style="margin-bottom:7px;">One message — every department head responds simultaneously</div>
+  <div class="ahb">
+    <textarea id="ah-in" rows="2" placeholder="e.g. 'New 5,000 sq ft Buckhead project. What does each department need to prepare?'"></textarea>
+    <div class="ahbar"><div class="aht" id="ah-tags"></div><button class="bg" id="ah-btn" onclick="broadcast('ah-in','ah-out','ah-btn','ah-thk')">📢 Broadcast to All</button></div>
+  </div>
+  <div class="think" id="ah-thk"><div class="sp"></div><span id="ah-thk-t">Consulting all departments...</span></div>
+  <div id="ah-out" class="bc-grid"></div>
+  <div style="font-size:13px;font-weight:700;color:#0f172a;margin:14px 0 3px;">Your Team</div>
+  <div class="ag-grid" id="agcards"></div>
+</div>
+
+<!-- ALL-HANDS -->
+<div id="view-allhands" class="vw">
+  <h2>All-Hands Broadcast</h2>
+  <div class="sub">All 8 department heads respond from their domain simultaneously</div>
+  <div class="chips">
+    <span class="chip" onclick="fillAH('New project kickoff — what does each department need to prepare?')">New project kickoff</span>
+    <span class="chip" onclick="fillAH('How can we improve profitability this quarter?')">Profitability review</span>
+    <span class="chip" onclick="fillAH('Client wants 20% budget cut. How does each dept respond?')">Budget pressure</span>
+    <span class="chip" onclick="fillAH('We just won a large commercial job. What are next steps for each dept?')">Won a big job</span>
+    <span class="chip" onclick="fillAH('We are actively hiring. What does each department need from HR?')">Hiring push</span>
+  </div>
+  <div class="ahb">
+    <textarea id="ah2-in" rows="3" placeholder="Type your company-wide message or question..."></textarea>
+    <div class="ahbar"><div class="aht" id="ah2-tags"></div><button class="bg" id="ah2-btn" onclick="broadcast('ah2-in','ah2-out','ah2-btn','ah2-thk')">📢 Send to All</button></div>
+  </div>
+  <div class="think" id="ah2-thk"><div class="sp"></div><span id="ah2-thk-t">Consulting all departments...</span></div>
+  <div id="ah2-out" class="bc-grid"></div>
+</div>
+
+<!-- FILE DROP -->
+<div id="view-files" class="vw">
+  <h2>File Drop — Smart Inbox</h2>
+  <div class="sub">Drop any file — the team automatically analyzes it and routes action items to the right departments</div>
+  <div id="drop-zone" class="drop" onclick="document.getElementById('file-inp').click()" ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
+    <input type="file" id="file-inp" multiple accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.png,.jpg,.jpeg" style="display:none" onchange="handleFiles(this.files)">
+    <div style="font-size:40px;margin-bottom:8px;">📂</div>
+    <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:4px;">Drag & Drop Files Here</div>
+    <div style="font-size:11px;color:#94a3b8;">Plans, specs, proposals, invoices, contracts, photos — any document</div>
+    <div style="font-size:11px;color:#10b981;margin-top:6px;font-weight:600;">AI analyzes & routes to the right department automatically</div>
+  </div>
+  <div class="file-list" id="file-list"></div>
+  <div id="file-analysis"></div>
+</div>
+
+<!-- PROPOSAL -->
+<div id="view-proposal" class="vw">
+  <h2>Proposal Generator</h2>
+  <div class="sub">AI-powered branded bid documents with Elevate letterhead</div>
+  <div class="card">
+    <div class="ch"><h3>Project Details</h3><p>Fill in the info — generates a complete professional proposal</p></div>
+    <div class="cb">
+      <div class="g2">
+        <div class="fg"><label>Project Name</label><input id="p-name" value="Ryse Creative Village – Phase I"></div>
+        <div class="fg"><label>Client / GC</label><input id="p-client" value="UJAMAA Construction"></div>
+        <div class="fg"><label>Project Type</label><input id="p-type" value="Commercial Build | High-End Restoration"></div>
+        <div class="fg"><label>Estimate #</label><input id="p-est" value="ES-10022"></div>
+        <div class="fg"><label>Date</label><input id="p-date" value="January 2026"></div>
+        <div class="fg"><label>Validity</label><input id="p-valid" value="30 days"></div>
+      </div>
+      <div class="fg"><label>Scope & Notes</label><textarea id="p-scope">4,000 sq ft commercial build-out Atlanta. Framing, roofing, interior finish, welding/steel accents. Budget $280,000.</textarea></div>
+      <button class="bp" id="prop-btn" onclick="genProposal()">🏗 Generate Branded Proposal</button>
+      <div class="think" id="prop-thk"><div class="sp"></div><span id="prop-thk-t">Building your proposal...</span></div>
+    </div>
+  </div>
+  <div id="prop-out"></div>
+</div>
+
+<!-- MARKETING -->
+<div id="view-marketing" class="vw">
+  <h2>Marketing Studio</h2>
+  <div class="sub">Branded content, social posts, photo overlays, email campaigns</div>
+  <div class="fx">
+    <button class="tb on" id="mt-content" onclick="showMktg('content')">Content</button>
+    <button class="tb" id="mt-photo" onclick="showMktg('photo')">Photo Branding</button>
+    <button class="tb" id="mt-camp" onclick="showMktg('camp')">Email Campaign</button>
+  </div>
+  <div id="mk-content">
+    <div class="card">
+      <div class="ch"><h3>Content Creator — Lisa Park</h3><p>Branded content for any channel</p></div>
+      <div class="cb">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px;">
+          <div class="chip" style="text-align:center;padding:9px 5px;" id="ct-blog" onclick="selCT('blog')">📝 Blog</div>
+          <div class="chip" id="ct-social" onclick="selCT('social')">📱 Social</div>
+          <div class="chip" id="ct-bio" onclick="selCT('bio')">🏢 Bio</div>
+          <div class="chip" id="ct-showcase" onclick="selCT('showcase')">🏗 Showcase</div>
+          <div class="chip" id="ct-ad" onclick="selCT('ad')">📢 Ad Copy</div>
+          <div class="chip" id="ct-review" onclick="selCT('review')">⭐ Review</div>
+        </div>
+        <div class="fg"><label>Topic / Details</label><textarea id="c-topic">Our commercial framing expertise in Atlanta — craftsmanship, recent projects, why clients choose Elevate</textarea></div>
+        <button class="bp" id="c-btn" onclick="genContent()">✍ Generate Content</button>
+        <div class="think" id="c-thk"><div class="sp"></div><span>Writing your content...</span></div>
+      </div>
+    </div>
+    <div id="c-out"></div>
+  </div>
+  <div id="mk-photo" style="display:none;">
+    <div class="card">
+      <div class="ch"><h3>Photo Branding</h3><p>Add Elevate overlays to project photos</p></div>
+      <div class="cb">
+        <div class="drop" onclick="document.getElementById('p-upl').click()" style="padding:20px;">
+          <div style="font-size:28px;margin-bottom:6px;">📸</div>
+          <div style="font-size:12px;font-weight:600;color:#374151;">Click to upload photo</div>
+          <input type="file" id="p-upl" accept="image/*" style="display:none" onchange="loadPhoto(this)">
+        </div>
+        <div id="photo-ctl" style="display:none;margin-top:10px;">
+          <div class="g2" style="margin-bottom:8px;">
+            <div class="fg"><label>Style</label><select id="ov-st" onchange="applyOv()"><option value="bottom">Banner Bottom</option><option value="top">Banner Top</option><option value="corner">Corner Badge</option><option value="wm">Watermark</option></select></div>
+            <div class="fg"><label>Opacity</label><input type="range" min="40" max="100" value="85" id="ov-op" oninput="applyOv()"></div>
+            <div class="fg"><label>Main Text</label><input type="text" id="ov-tx" value="Elevate Construction LLC" oninput="applyOv()"></div>
+            <div class="fg"><label>Sub Text</label><input type="text" id="ov-sb" value="GaElevate.com | 404-719-1888" oninput="applyOv()"></div>
+          </div>
+          <canvas id="pcanv" style="max-width:100%;border-radius:8px;border:1px solid #e2e8f0;display:block;"></canvas>
+          <button class="bp" style="margin-top:9px;" onclick="dlPhoto()">💾 Download</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="mk-camp" style="display:none;">
+    <div class="card">
+      <div class="ch"><h3>Email Campaign</h3><p>Full branded campaigns by Lisa</p></div>
+      <div class="cb">
+        <div class="g2">
+          <div class="fg"><label>Type</label><select id="cmp-t"><option>New Service Announcement</option><option>Seasonal Promo</option><option>Project Showcase</option><option>Follow-up After Quote</option><option>Holiday Greeting</option></select></div>
+          <div class="fg"><label>Audience</label><select id="cmp-a"><option>Past Clients</option><option>Leads / Prospects</option><option>GCs & Developers</option></select></div>
+        </div>
+        <div class="fg"><label>Details</label><textarea id="cmp-d">Announce expanded commercial roofing services for Atlanta metro. 15-year track record, fast turnaround, free estimates.</textarea></div>
+        <button class="bp" id="cmp-btn" onclick="genCampaign()">📧 Generate Campaign</button>
+        <div class="think" id="cmp-thk"><div class="sp"></div><span>Drafting campaign...</span></div>
+      </div>
+    </div>
+    <div id="cmp-out"></div>
+  </div>
+</div>
+
+<!-- AI IMAGES -->
+<div id="view-images" class="vw">
+  <h2>AI Image Studio</h2>
+  <div class="sub">Generate hyper-realistic construction photos, job site scenes, and advertisement imagery using AI</div>
+  <div class="card">
+    <div class="ch" style="background:linear-gradient(135deg,#1a1a2e,#7c3aed);"><h3>Generate Advertisement Images</h3><p>Powered by Claude's image prompt engineering — use with DALL-E 3, Midjourney, or Stable Diffusion</p></div>
+    <div class="cb">
+      <div class="notice">This tool engineers hyper-realistic image prompts optimized for DALL-E 3, Midjourney, or Stable Diffusion. Copy the prompt into your image generator of choice for professional results.</div>
+      <div class="chips">
+        <span class="chip" onclick="setImgPrompt('commercial construction crew framing a large building in Atlanta Georgia')">Commercial Framing Crew</span>
+        <span class="chip" onclick="setImgPrompt('luxury kitchen renovation completed professionally in Atlanta home')">Luxury Kitchen Renovation</span>
+        <span class="chip" onclick="setImgPrompt('professional roofers installing new roof on commercial building Atlanta')">Commercial Roofing</span>
+        <span class="chip" onclick="setImgPrompt('modern commercial office buildout interior construction Atlanta Georgia')">Commercial Build-out</span>
+        <span class="chip" onclick="setImgPrompt('steel welding sparks flying construction site professional worker')">Steel Welding</span>
+        <span class="chip" onclick="setImgPrompt('before and after home renovation dramatic transformation Atlanta')">Before & After Reno</span>
+        <span class="chip" onclick="setImgPrompt('construction company team photo professional Atlanta Georgia diverse crew')">Team Photo</span>
+        <span class="chip" onclick="setImgPrompt('luxury bathroom renovation marble tile upscale Atlanta residential')">Luxury Bath Reno</span>
+      </div>
+      <div class="fg"><label>What do you want to show?</label><textarea id="img-desc" rows="2" placeholder="Describe your image... e.g. 'Professional construction crew framing a commercial building in Atlanta with a clear blue sky'"></textarea></div>
+      <div class="g2">
+        <div class="fg"><label>Style</label>
+          <select id="img-style">
+            <option value="photorealistic">Hyper-Photorealistic</option>
+            <option value="cinematic">Cinematic / Editorial</option>
+            <option value="drone">Aerial / Drone View</option>
+            <option value="closeup">Detail Close-up</option>
+            <option value="beforeafter">Before & After Split</option>
+            <option value="advertisement">Advertisement / Marketing</option>
+          </select>
+        </div>
+        <div class="fg"><label>Mood / Lighting</label>
+          <select id="img-mood">
+            <option value="golden">Golden Hour — Warm & Dramatic</option>
+            <option value="bright">Bright Midday — Clean & Professional</option>
+            <option value="overcast">Overcast — Rich Colors</option>
+            <option value="sunset">Sunset — Bold & Powerful</option>
+            <option value="interior">Interior — Warm Lighting</option>
+          </select>
+        </div>
+      </div>
+      <button class="bv" id="img-btn" onclick="genImagePrompt()">🎨 Engineer Image Prompt</button>
+      <div class="think" id="img-thk"><div class="sp"></div><span>Engineering your prompt...</span></div>
+    </div>
+  </div>
+  <div id="img-out"></div>
+  <div style="margin-top:14px;font-size:13px;font-weight:700;color:#0f172a;margin-bottom:6px;">Prompt Examples — Ready to Use</div>
+  <div class="img-grid" id="img-gallery">
+    <div class="img-box"><div class="img-placeholder"><div class="img-status">🏗</div><div>Commercial framing crew</div><div style="font-size:10px;color:#cbd5e1;">Generate prompt above</div></div></div>
+    <div class="img-box"><div class="img-placeholder"><div class="img-status">🏠</div><div>Luxury renovation</div><div style="font-size:10px;color:#cbd5e1;">Generate prompt above</div></div></div>
+    <div class="img-box"><div class="img-placeholder"><div class="img-status">🔧</div><div>On-site work crew</div><div style="font-size:10px;color:#cbd5e1;">Generate prompt above</div></div></div>
+    <div class="img-box"><div class="img-placeholder"><div class="img-status">✨</div><div>Finished project showcase</div><div style="font-size:10px;color:#cbd5e1;">Generate prompt above</div></div></div>
+  </div>
+</div>
+
+<!-- HR -->
+<div id="view-hr" class="vw">
+  <h2>HR Department</h2>
+  <div class="sub">People operations, hiring, onboarding — Diana Reeves, HR Director</div>
+  <div class="fx">
+    <button class="tb on" id="hr-chat-btn" onclick="showHR('chat')">Chat with Diana</button>
+    <button class="tb" id="hr-roster-btn" onclick="showHR('roster')">Roster</button>
+    <button class="tb" id="hr-hire-btn" onclick="showHR('hire')">Hiring Docs</button>
+  </div>
+  <div id="hr-chat-v">
+    <div class="chips">
+      <span class="chip" onclick="hrChip('Draft a job posting for a commercial framer in Atlanta')">Job posting</span>
+      <span class="chip" onclick="hrChip('Write an onboarding checklist for a new virtual assistant')">VA onboarding</span>
+      <span class="chip" onclick="hrChip('What HR policies should our Georgia construction company have?')">GA HR policies</span>
+      <span class="chip" onclick="hrChip('Create a performance review template for field crew')">Performance review</span>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="cl" id="hr-log">
+        <div class="msg b"><strong>Diana Reeves — HR Director</strong>Hello! I handle all people operations for Elevate Construction — hiring, onboarding, Georgia labor compliance, employee relations, and HR policy. What do you need today?</div>
+      </div>
+      <div class="ci"><input type="text" id="hr-inp" placeholder="Ask Diana about HR, hiring, policies..." onkeydown="if(event.key==='Enter')hrSend()"><button class="snd" id="hr-snd" onclick="hrSend()">Send</button></div>
+    </div>
+  </div>
+  <div id="hr-roster-v" style="display:none;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:9px;margin-bottom:12px;" id="hr-roster"></div>
+    <div class="card"><div class="ch"><h3>Add Team Member</h3></div>
+    <div class="cb">
+      <div class="g2">
+        <div class="fg"><label>Full Name</label><input id="hr-n" placeholder="Jane Smith"></div>
+        <div class="fg"><label>Role</label><input id="hr-r" placeholder="Project Manager"></div>
+        <div class="fg"><label>Department</label><select id="hr-d"><option>Field Crew</option><option>Estimation</option><option>Finance</option><option>Operations</option><option>Legal</option><option>Sales</option><option>Marketing</option><option>Tech</option><option>HR</option><option>Executive Assistant</option><option>Other</option></select></div>
+        <div class="fg"><label>Start Date</label><input id="hr-s" placeholder="Jan 1, 2026"></div>
+      </div>
+      <button class="bp" onclick="addEmp()">+ Add Member</button>
+    </div></div>
+  </div>
+  <div id="hr-hire-v" style="display:none;">
+    <div class="card"><div class="ch"><h3>HR Document Generator</h3></div>
+    <div class="cb">
+      <div class="fg"><label>Document Type</label><select id="hire-t"><option value="jobpost">Job Posting</option><option value="offer">Offer Letter</option><option value="onboard">Onboarding Checklist</option><option value="handbook">Handbook Section</option><option value="review">Performance Review</option><option value="safety">Safety Orientation</option></select></div>
+      <div class="fg"><label>Role / Position</label><input id="hire-r" placeholder="e.g. Commercial Framer, Virtual Assistant..."></div>
+      <div class="fg"><label>Details</label><textarea id="hire-det" rows="2" placeholder="Pay range, requirements, notes..."></textarea></div>
+      <button class="bp" id="hire-btn" onclick="genHRDoc()">📄 Generate Document</button>
+      <div class="think" id="hire-thk"><div class="sp"></div><span>Diana is drafting...</span></div>
+    </div></div>
+    <div id="hire-out"></div>
+  </div>
+</div>
+
+<!-- TASKS -->
+<div id="view-tasks" class="vw">
+  <h2>Task Inbox</h2>
+  <div class="sub">Company-wide tasks — assign, track, complete</div>
+  <div class="chips" id="tf">
+    <span class="chip" style="background:#eff6ff;border-color:#1d4ed8;color:#1d4ed8;" onclick="fTasks('all',this)">All</span>
+    <span class="chip" onclick="fTasks('high',this)">High Priority</span>
+    <span class="chip" onclick="fTasks('open',this)">Open</span>
+    <span class="chip" onclick="fTasks('done',this)">Done</span>
+  </div>
+  <div class="tl" id="tlist"></div>
+  <div class="ta">
+    <input type="text" id="nt" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addTask()">
+    <select id="nd" style="border:1.5px solid #e2e8f0;border-radius:7px;padding:6px;font-size:11px;font-family:inherit;outline:none;">
+      <option value="estimation">Estimation</option><option value="finance">Finance</option><option value="operations">Operations</option><option value="legal">Legal</option><option value="sales">Sales</option><option value="marketing">Marketing</option><option value="tech">Tech</option><option value="hr">HR</option>
+    </select>
+    <select id="np" style="border:1.5px solid #e2e8f0;border-radius:7px;padding:6px;font-size:11px;font-family:inherit;outline:none;">
+      <option value="high">High</option><option value="med">Med</option><option value="low">Low</option>
+    </select>
+    <button class="bs" onclick="addTask()">+ Add</button>
+  </div>
+</div>
+
+<!-- EMAIL -->
+<div id="view-email" class="vw">
+  <h2>Email Center</h2>
+  <div class="sub">AI-drafted emails — one click opens in Outlook</div>
+  <div class="fx">
+    <button class="tb on" id="em-ib-btn" onclick="showEmail('ib')">Inbox</button>
+    <button class="tb" id="em-co-btn" onclick="showEmail('co')">Compose</button>
+  </div>
+  <div id="em-ib-v"><div class="el" id="eml"></div></div>
+  <div id="em-co-v" style="display:none;">
+    <div class="card"><div class="ch"><h3>Compose Email</h3><p>AI drafts — opens directly in Outlook</p></div>
+    <div class="cb">
+      <div class="fg"><label>Purpose</label><select id="em-p" onchange="prefillEm()"><option value="">Select template...</option><option value="fu">Follow up on quote</option><option value="nl">Respond to new lead</option><option value="pr">Send proposal</option><option value="inv">Invoice / payment</option><option value="up">Project status update</option><option value="in">Company introduction</option></select></div>
+      <div class="cff"><label>To</label><input type="text" id="em-to" placeholder="client@email.com"></div>
+      <div class="cff"><label>Subject</label><input type="text" id="em-subj" placeholder="Subject..."></div>
+      <div class="cff" style="align-items:flex-start;padding-top:7px;"><label>Context</label><input type="text" id="em-ctx" placeholder="Client name, project details, tone..."></div>
+      <button class="bp" style="margin-top:10px;" id="em-btn" onclick="draftEmail()">✍ Draft with AI</button>
+      <div class="think" id="em-thk"><div class="sp"></div><span>Drafting email...</span></div>
+      <div id="em-draft" style="display:none;margin-top:10px;">
+        <div class="fg"><label>Edit before sending</label><div id="em-body" class="dbox" contenteditable="true"></div></div>
+        <div style="display:flex;gap:7px;margin-top:8px;flex-wrap:wrap;">
+          <a id="em-ml" href="#" class="bp" style="text-decoration:none;width:auto;font-size:12px;padding:8px 14px;">📤 Open in Outlook</a>
+          <button class="bs" onclick="copyEmail()">📋 Copy</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<!-- DIALPAD -->
+<div id="view-dialpad" class="vw">
+  <h2>Dialpad — Calls & SMS</h2>
+  <div class="sub">Log calls, view transcripts, manage SMS — powered by Dialpad API</div>
+  <div class="fx">
+    <button class="tb on" id="dp-calls-btn" onclick="showDP('calls')">Call Log</button>
+    <button class="tb" id="dp-sms-btn" onclick="showDP('sms')">SMS</button>
+    <button class="tb" id="dp-setup-btn" onclick="showDP('setup')">Setup & API</button>
+  </div>
+
+  <div id="dp-calls-v">
+    <div class="notice">Call logs auto-populate via Dialpad webhook. Add your Dialpad API key in Setup to enable live data. Below are sample records to show the format.</div>
+    <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;">
+      <button class="bs" onclick="addSampleCall('inbound')">+ Simulate Inbound Call</button>
+      <button class="bs" onclick="addSampleCall('outbound')">+ Simulate Outbound Call</button>
+      <button class="bs" onclick="addSampleCall('missed')">+ Simulate Missed Call</button>
+    </div>
+    <div id="call-log-list"></div>
+  </div>
+
+  <div id="dp-sms-v" style="display:none;">
+    <div class="notice">SMS messages from Dialpad appear here via webhook. Simulate below or connect your API key.</div>
+    <div style="display:flex;gap:7px;margin-bottom:10px;">
+      <button class="bs" onclick="addSampleSMS()">+ Simulate Inbound SMS</button>
+    </div>
+    <div id="sms-list"></div>
+    <div class="card" style="margin-top:12px;"><div class="ch"><h3>Send SMS via Dialpad</h3></div>
+    <div class="cb">
+      <div class="fg"><label>To (phone number)</label><input id="sms-to" placeholder="+14045550000"></div>
+      <div class="fg"><label>Message</label><textarea id="sms-msg" rows="2" placeholder="Your message..."></textarea></div>
+      <button class="bp" onclick="sendSMSViaDialpad()">📱 Send via Dialpad</button>
+    </div></div>
+  </div>
+
+  <div id="dp-setup-v" style="display:none;">
+    <div class="card"><div class="ch"><h3>Dialpad API Setup</h3><p>Connect your Dialpad account to pull live calls, SMS, and transcripts</p></div>
+    <div class="cb">
+      <div class="warn">You'll need a Dialpad account with API access. Get your API key from dialpad.com → Settings → Developer → API Keys.</div>
+      <div class="fg"><label>Dialpad API Key</label><input type="text" id="dp-key" placeholder="your-dialpad-api-key"></div>
+      <div class="fg"><label>Webhook URL (your server)</label><input type="text" id="dp-webhook" placeholder="https://your-server.com/dialpad-webhook" value="https://elevate-hq.netlify.app/webhook/dialpad"></div>
+      <button class="bp" id="dp-save-btn" onclick="saveDialpadKey()">🔗 Connect Dialpad</button>
+      <div class="think" id="dp-thk"><div class="sp"></div><span>Connecting to Dialpad...</span></div>
+      <div id="dp-status" style="margin-top:10px;"></div>
+      <div style="margin-top:14px;border-top:1px solid #e2e8f0;padding-top:12px;">
+        <div style="font-size:12px;font-weight:700;color:#0f172a;margin-bottom:8px;">How Dialpad Integration Works</div>
+        <div style="font-size:11px;color:#64748b;line-height:1.9;">
+          1. <strong>API Key</strong> — Enter your Dialpad API key above<br>
+          2. <strong>Webhooks</strong> — Dialpad sends call/SMS events to your webhook URL<br>
+          3. <strong>Auto-logging</strong> — Every call, transcript & SMS appears here automatically<br>
+          4. <strong>AI Analysis</strong> — Claude reads each transcript and extracts action items<br>
+          5. <strong>Task creation</strong> — Follow-ups auto-added to your Task Inbox<br><br>
+          <strong>To set up the webhook in Dialpad:</strong><br>
+          → Dialpad Admin Portal → Integrations → Webhooks → Add Webhook URL above
+        </div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<!-- CRM -->
+<div id="view-crm" class="vw">
+  <h2>Lead Pipeline</h2>
+  <div class="sub">Track leads from Houzz, website, referrals — Kanban CRM</div>
+  <div class="g3">
+    <div class="mc"><div class="ml">New Leads</div><div class="mv" id="crm-new">0</div></div>
+    <div class="mc"><div class="ml">In Proposals</div><div class="mv" id="crm-prop">0</div></div>
+    <div class="mc"><div class="ml">Won Value</div><div class="mv" id="crm-won">$0</div></div>
+  </div>
+  <div class="scroll-x"><div class="pipe" id="pipe" style="min-width:520px;"></div></div>
+  <div class="card"><div class="ch"><h3>Add Lead</h3></div>
+  <div class="cb">
+    <div class="g2">
+      <div class="fg"><label>Name</label><input id="l-n" placeholder="John Smith"></div>
+      <div class="fg"><label>Project</label><input id="l-p" placeholder="Commercial Framing..."></div>
+      <div class="fg"><label>Value</label><input id="l-v" placeholder="$45,000"></div>
+      <div class="fg"><label>Source</label><select id="l-s"><option>Houzz</option><option>Website</option><option>Referral</option><option>Phone</option><option>Google</option></select></div>
+    </div>
+    <button class="bp" onclick="addLead()">+ Add to Pipeline</button>
+  </div></div>
+</div>
+
+</div>
+</div>
+</div>
+
+<!-- API KEY MODAL -->
+<div id="key-modal" style="display:none;position:absolute;inset:0;background:rgba(15,23,42,.75);z-index:999;align-items:center;justify-content:center;min-height:500px;">
+  <div style="background:#fff;border-radius:14px;max-width:380px;width:90%;padding:22px;">
+    <div style="font-size:15px;font-weight:800;color:#0f172a;margin-bottom:3px;">Connect AI Engine</div>
+    <div style="font-size:11px;color:#64748b;margin-bottom:12px;">Anthropic API key powers all 8 departments. Memory only — never saved.</div>
+    <div class="fg"><label>Anthropic API Key</label><input type="text" id="key-inp" placeholder="sk-ant-api03-..." style="font-family:monospace;"></div>
+    <button class="bp" style="margin-top:9px;" onclick="saveKey()">Activate</button>
+    <p style="font-size:10px;color:#94a3b8;margin-top:7px;">Key only sent to Anthropic's API. <a href="https://console.anthropic.com" target="_blank" style="color:#1d4ed8;">Get key →</a></p>
+  </div>
+</div>
+
+<!-- AGENT CHAT MODAL -->
+<div id="agmodal" style="display:none;position:absolute;inset:0;background:rgba(15,23,42,.6);z-index:998;align-items:flex-end;justify-content:flex-end;padding:12px;min-height:500px;">
+  <div style="background:#fff;border-radius:13px;width:340px;max-width:100%;max-height:500px;display:flex;flex-direction:column;">
+    <div id="ag-head" style="background:#0f172a;padding:11px 13px;border-radius:13px 13px 0 0;color:#fff;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:8px;"><div id="ag-ic" style="font-size:18px;"></div><div><div id="ag-nm" style="font-weight:700;font-size:12px;"></div><div id="ag-rl" style="font-size:10px;color:#93c5fd;"></div></div></div>
+      <button onclick="closeAg()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:12px;">✕</button>
+    </div>
+    <div class="cl" id="ag-log"></div>
+    <div class="chips" id="ag-chips" style="padding:5px 9px 0;border-top:1px solid #f1f5f9;max-height:70px;overflow-y:auto;"></div>
+    <div class="ci"><input type="text" id="ag-inp" placeholder="Ask..." onkeydown="if(event.key==='Enter')agSend()"><button class="snd" id="ag-snd" onclick="agSend()">Send</button></div>
+  </div>
+</div>
+
+<script>
+var AK='',QC=0,CA=null,CT='blog',PI=null,DPK='';
+var AH={};
+var HRH=[];
+var CALLS=[],SMSS=[];
+
+var AGENTS=[
+  {id:'estimation',name:'Marcus Rodriguez',role:'Estimation Specialist',icon:'📐',bg:'#dbeafe',color:'#1d4ed8',tags:['Takeoffs','Bids','Pricing'],desc:'15+ yrs estimating. Bid reviews, pricing, scope-gap detection.',chips:['Review bid package','Estimate commercial build','Identify scope gaps','Pricing sanity check'],sys:'You are Marcus Rodriguez, Project Estimation Specialist at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). 15+ years estimating, bids, pricing, scope gaps, takeoffs. Give precise answers with Atlanta-area pricing. Stay in character.'},
+  {id:'finance',name:'Sarah Chen',role:'Chief Financial Officer',icon:'💰',bg:'#d1fae5',color:'#065f46',tags:['Margins','Cash Flow','P&L'],desc:'Construction finance. Margin control, cash flow, overhead.',chips:['Analyze project margins','Cash flow advice','Overhead review','Bid profitability'],sys:'You are Sarah Chen, CFO at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Construction finance, GP margins 15-35%, overhead 10-20%, cash flow. Sharp numbers-driven guidance. Stay in character.'},
+  {id:'operations',name:'David Thompson',role:'Chief Operating Officer',icon:'🏗',bg:'#fef3c7',color:'#92400e',tags:['Scheduling','Crew','QC'],desc:'Project ops, scheduling, field execution, quality control.',chips:['Build project schedule','Crew planning','Sub management','QC checklist'],sys:'You are David Thompson, COO at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Operations, scheduling, field execution, QC. Practical guidance. Stay in character.'},
+  {id:'legal',name:'Jennifer Harrison',role:'Corporate Legal Advisor',icon:'⚖',bg:'#fce7f3',color:'#9d174d',tags:['Contracts','Risk','Liens'],desc:'Construction attorney. Contracts, risk, liability.',chips:['Review contract','Legal risks','Lien waivers','Payment disputes'],sys:'You are Jennifer Harrison, Legal Advisor at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Georgia construction law, contracts, risk, liens, liability. General guidance not formal legal advice. Stay in character.'},
+  {id:'sales',name:'Michael Foster',role:'Sales Director',icon:'🤝',bg:'#ede9fe',color:'#5b21b6',tags:['Proposals','Closing','CRM'],desc:'Construction sales, positioning, closing strategies.',chips:['Win this bid','Follow-up strategy','Handle objection','Upsell opportunities'],sys:'You are Michael Foster, Sales Director at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Construction sales, proposal positioning, closing. Stay in character.'},
+  {id:'marketing',name:'Lisa Park',role:'Marketing Manager',icon:'📣',bg:'#fff7ed',color:'#c2410c',tags:['Brand','Content','Leads'],desc:'Brand messaging, content creation, lead generation.',chips:['Write blog post','Social content','Lead gen ideas','Project showcase'],sys:'You are Lisa Park, Marketing Manager at Elevate Construction LLC (GaElevate.com, 404-719-1888, 3343 Peachtree Rd NE, Atlanta GA). Construction branding, content, social, SEO, lead gen. Include company info naturally. Stay in character.'},
+  {id:'tech',name:'Alex Kumar',role:'Technology & SEO Director',icon:'💻',bg:'#f0fdf4',color:'#166534',tags:['SEO','Website','Tech'],desc:'Digital presence, SEO, GaElevate.com, automation.',chips:['SEO audit','Improve GaElevate.com','Google Business','Local SEO Atlanta'],sys:'You are Alex Kumar, Tech & SEO Director at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). SEO, GoDaddy optimization, Google Business, local SEO, automation. Specific actionable advice. Stay in character.'},
+  {id:'hr',name:'Diana Reeves',role:'HR Director',icon:'👥',bg:'#f5f3ff',color:'#7c3aed',tags:['Hiring','Onboarding','Policy'],desc:'People ops, hiring, GA labor compliance, employee relations.',chips:['Draft job posting','Onboarding checklist','GA HR policies','Performance review'],sys:'You are Diana Reeves, HR Director at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). HR for construction — hiring, onboarding, Georgia labor law, OSHA, employee relations, policies. Note docs should be reviewed by licensed professional. Stay in character.'},
+];
+AGENTS.forEach(function(a){AH[a.id]=[];});
+
+var TASKS=[
+  {id:1,title:'Follow up with UJAMAA on ES-10022 proposal',dept:'sales',pri:'high',done:false},
+  {id:2,title:'Update GaElevate.com roofing pricing page',dept:'tech',pri:'med',done:false},
+  {id:3,title:'Review subcontractor insurance certificates',dept:'legal',pri:'high',done:false},
+  {id:4,title:'Post project photos from last framing job',dept:'marketing',pri:'low',done:false},
+  {id:5,title:'Schedule crew for Kennesaw roofing — start Monday',dept:'operations',pri:'high',done:false},
+  {id:6,title:'Create onboarding checklist for new VA hire',dept:'hr',pri:'med',done:false},
+  {id:7,title:'Analyze call transcript from Trident Commercial Group',dept:'sales',pri:'high',done:false},
+];
+
+var LEADS=[
+  {id:1,name:'Marcus Bell — Houzz',proj:'Kitchen & Bath Remodel',val:'$65,000',src:'Houzz',stage:'proposal'},
+  {id:2,name:'Trident Commercial Group',proj:'Office Build-out 8k sqft',val:'$380,000',src:'Referral',stage:'negotiating'},
+  {id:3,name:'Sandra Okafor',proj:'Roof Replacement',val:'$18,500',src:'Website',stage:'new'},
+  {id:4,name:'Peachtree Dev Group',proj:'Steel Framing 12 Units',val:'$220,000',src:'Google',stage:'contacted'},
+  {id:5,name:'Riverside HOA',proj:'Commercial Roofing x3',val:'$85,000',src:'Referral',stage:'won'},
+];
+
+var EMAILS=[
+  {from:'UJAMAA Construction',subj:'Re: Estimate ES-10022 revision needed',time:'2h ago',unread:true,to:'mike@ujamaa.com',preview:'Framing section needs revision...'},
+  {from:'Houzz Lead — Sandra W.',subj:'Kitchen & Bath Remodel inquiry',time:'4h ago',unread:true,to:'sandra@email.com',preview:'Looking for contractor in Buckhead...'},
+  {from:'Trident Commercial Group',subj:'Commercial roof — 3 buildings Midtown',time:'Yesterday',unread:false,to:'david@trident.com',preview:'We manage 3 commercial properties...'},
+];
+
+var PIPE_STAGES=[
+  {id:'new',label:'New Lead',color:'#3b82f6'},
+  {id:'contacted',label:'Contacted',color:'#f59e0b'},
+  {id:'proposal',label:'Proposal',color:'#8b5cf6'},
+  {id:'negotiating',label:'Negotiating',color:'#ef4444'},
+  {id:'won',label:'Won',color:'#10b981'},
+];
+
+var EMPLOYEES=[
+  {name:'Marcus Rodriguez',role:'Estimation Specialist',dept:'Estimation',status:'active'},
+  {name:'Sarah Chen',role:'CFO',dept:'Finance',status:'active'},
+  {name:'David Thompson',role:'COO',dept:'Operations',status:'active'},
+  {name:'Jennifer Harrison',role:'Legal Advisor',dept:'Legal',status:'active'},
+  {name:'Michael Foster',role:'Sales Director',dept:'Sales',status:'active'},
+  {name:'Lisa Park',role:'Marketing Manager',dept:'Marketing',status:'active'},
+  {name:'Alex Kumar',role:'Tech & SEO Director',dept:'Tech',status:'active'},
+  {name:'Diana Reeves',role:'HR Director',dept:'HR',status:'active'},
+];
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function openKey(){document.getElementById('key-modal').style.display='flex';}
+function saveKey(){var k=document.getElementById('key-inp').value.trim();if(!k){alert('Please enter your API key.');return;}AK=k;document.getElementById('key-modal').style.display='none';var s=document.getElementById('api-st');s.textContent='✓ Connected';s.className='ok';}
+function closeAg(){document.getElementById('agmodal').style.display='none';}
+
+async function callClaude(sys,msgs,maxTok){
+  maxTok=maxTok||1000;
+  if(!AK)throw new Error('No API key — click Connect');
+  var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTok,system:sys,messages:msgs})});
+  if(!r.ok){var e=await r.json().catch(function(){return{};});throw new Error((e.error&&e.error.message)||'HTTP '+r.status);}
+  var d=await r.json();return(d.content&&d.content[0]&&d.content[0].text)||'';
+}
+
+function nav(id,btn){
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('on');});
+  document.querySelectorAll('.vw').forEach(function(v){v.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+  var v=document.getElementById('view-'+id);if(v)v.classList.add('on');
+}
+
+function buildAgentNav(){
+  var el=document.getElementById('agnav');el.innerHTML='';
+  AGENTS.forEach(function(a){
+    var b=document.createElement('button');b.className='nb';
+    b.innerHTML='<span class="ni">'+a.icon+'</span><div><div class="nl">'+a.name.split(' ')[0]+'</div><div class="ns">'+a.role.split(' ').slice(0,2).join(' ')+'</div></div><div class="nd" id="dot-'+a.id+'"></div>';
+    b.onclick=function(){openAg(a.id);};el.appendChild(b);
+  });
+}
+
+function buildAgentCards(){
+  var g=document.getElementById('agcards');g.innerHTML='';
+  var ah=document.getElementById('ah-tags'),ah2=document.getElementById('ah2-tags');ah.innerHTML='';ah2.innerHTML='';
+  AGENTS.forEach(function(a){
+    var d=document.createElement('div');d.className='ac';
+    d.innerHTML='<div class="av" style="background:'+a.bg+'">'+a.icon+'</div><div class="an">'+a.name+'</div><div class="ar">'+a.role+'</div><div class="ad">'+a.desc+'</div><div>'+a.tags.map(function(t){return'<span class="tg">'+t+'</span>';}).join('')+'</div>';
+    d.onclick=function(){openAg(a.id);};g.appendChild(d);
+    [ah,ah2].forEach(function(el){var s=document.createElement('span');s.className='atg';s.textContent=a.icon+' '+a.name.split(' ')[0];el.appendChild(s);});
+  });
+}
+
+function openAg(id){
+  var a=AGENTS.find(function(x){return x.id===id;});if(!a)return;
+  CA=a;
+  document.getElementById('ag-ic').textContent=a.icon;
+  document.getElementById('ag-nm').textContent=a.name;
+  document.getElementById('ag-rl').textContent=a.role;
+  document.getElementById('ag-head').style.background=a.color||'#0f172a';
+  var chips=document.getElementById('ag-chips');chips.innerHTML='';
+  a.chips.forEach(function(c){var s=document.createElement('span');s.className='chip';s.textContent=c;s.onclick=function(){document.getElementById('ag-inp').value=c;agSend();};chips.appendChild(s);});
+  var log=document.getElementById('ag-log');
+  if(AH[id].length===0){log.innerHTML='<div class="msg b"><strong>'+a.name+' — '+a.role+'</strong>'+esc(a.desc)+'\n\nHow can I help today?</div>';}
+  else{log.innerHTML='';AH[id].forEach(function(m){var d=document.createElement('div');d.className='msg '+(m.role==='user'?'u':'b');if(m.role==='assistant')d.innerHTML='<strong>'+a.name+'</strong>'+esc(m.content);else d.textContent=m.content;log.appendChild(d);});}
+  log.scrollTop=log.scrollHeight;
+  document.getElementById('agmodal').style.display='flex';
+  document.getElementById('ag-inp').focus();
+}
+
+async function agSend(){
+  if(!CA)return;var inp=document.getElementById('ag-inp');var text=inp.value.trim();if(!text)return;
+  if(!AK){openKey();return;}
+  inp.value='';
+  var log=document.getElementById('ag-log');
+  var um=document.createElement('div');um.className='msg u';um.textContent=text;log.appendChild(um);log.scrollTop=log.scrollHeight;
+  AH[CA.id].push({role:'user',content:text});
+  document.getElementById('ag-snd').disabled=true;
+  var dot=document.getElementById('dot-'+CA.id);if(dot)dot.className='nd bz';
+  var tm=document.createElement('div');tm.className='msg b';tm.id='agt';tm.innerHTML='<span style="letter-spacing:3px;color:#94a3b8;">• • •</span>';log.appendChild(tm);log.scrollTop=log.scrollHeight;
+  try{
+    var res=await callClaude(CA.sys,AH[CA.id].slice(-10),1200);
+    var t=document.getElementById('agt');if(t)t.remove();
+    var bm=document.createElement('div');bm.className='msg b';bm.innerHTML='<strong>'+CA.name+'</strong>'+esc(res);log.appendChild(bm);log.scrollTop=log.scrollHeight;
+    AH[CA.id].push({role:'assistant',content:res});
+    QC++;document.getElementById('m-q').textContent=QC;
+  }catch(e){var t2=document.getElementById('agt');if(t2)t2.remove();var em=document.createElement('div');em.className='msg b';em.innerHTML='<strong style="color:#dc2626;">Error</strong>'+esc(e.message);log.appendChild(em);}
+  document.getElementById('ag-snd').disabled=false;if(dot)dot.className='nd';
+}
+
+async function broadcast(inId,outId,btnId,thkId){
+  var text=document.getElementById(inId).value.trim();if(!text)return;
+  if(!AK){openKey();return;}
+  var btn=document.getElementById(btnId),thk=document.getElementById(thkId),out=document.getElementById(outId);
+  btn.disabled=true;thk.classList.add('on');out.innerHTML='';
+  var results=[],done=0;var sp=thk.querySelector('span');
+  var ps=AGENTS.map(function(a){return callClaude(a.sys,[{role:'user',content:text}],500).then(function(res){results.push({a:a,r:res});done++;if(sp)sp.textContent='('+done+'/'+AGENTS.length+') '+a.name.split(' ')[0]+' responded...';}).catch(function(e){results.push({a:a,r:'Error: '+e.message});done++;});});
+  await Promise.all(ps);
+  thk.classList.remove('on');btn.disabled=false;out.innerHTML='';
+  AGENTS.forEach(function(a){
+    var r=results.find(function(x){return x.a.id===a.id;});if(!r)return;
+    var c=document.createElement('div');c.className='bc';
+    c.innerHTML='<div class="bch"><div class="bcav" style="background:'+a.bg+'">'+a.icon+'</div><div><div style="font-size:12px;font-weight:700;color:#0f172a;">'+a.name+'</div><div style="font-size:10px;color:'+a.color+';font-weight:600;">'+a.role+'</div></div><button onclick="openAg(\''+a.id+'\')" style="margin-left:auto;" class="bs">Chat →</button></div><div class="bcb">'+esc(r.r)+'</div>';
+    out.appendChild(c);
+  });
+  QC+=AGENTS.length;document.getElementById('m-q').textContent=QC;
+}
+
+function fillAH(t){var el=document.getElementById('ah2-in');if(el){el.value=t;el.focus();}}
+
+/* FILE DROP */
+function dzOver(e){e.preventDefault();document.getElementById('drop-zone').classList.add('over');}
+function dzLeave(){document.getElementById('drop-zone').classList.remove('over');}
+function dzDrop(e){e.preventDefault();document.getElementById('drop-zone').classList.remove('over');handleFiles(e.dataTransfer.files);}
+
+async function handleFiles(files){
+  if(!files||!files.length)return;
+  var dz=document.getElementById('drop-zone');dz.classList.add('ok');
+  dz.innerHTML='<div style="font-size:32px;margin-bottom:6px;">✅</div><div style="font-size:12px;font-weight:700;color:#10b981;">'+files.length+' file(s) received — analyzing...</div>';
+  var fl=document.getElementById('file-list');
+  Array.from(files).forEach(function(f){
+    var div=document.createElement('div');div.className='file-item';
+    var icon=f.name.match(/\.(pdf)$/i)?'📄':f.name.match(/\.(doc|docx)$/i)?'📝':f.name.match(/\.(xls|xlsx|csv)$/i)?'📊':f.name.match(/\.(jpg|png|jpeg|webp)$/i)?'🖼':'📎';
+    var size=(f.size/1024).toFixed(1)+'KB';
+    div.innerHTML='<div class="file-icon">'+icon+'</div><div><div class="file-name">'+esc(f.name)+'</div><div class="file-size">'+size+'</div><div class="file-ai">Analyzing...</div></div>';
+    fl.appendChild(div);
+    if(AK){analyzeFile(f,div);}else{div.querySelector('.file-ai').textContent='Connect AI to analyze';}
+  });
+}
+
+async function analyzeFile(file,div){
+  var aiEl=div.querySelector('.file-ai');
+  var ext=file.name.split('.').pop().toLowerCase();
+  var ctx='File: '+file.name+' ('+ext+', '+(file.size/1024).toFixed(1)+'KB)';
+  var sys='You are the Elevate Construction LLC AI team router. A file has been dropped into the system. Based on the filename and type, determine: 1) Which department should handle it (Estimation, Finance, Operations, Legal, Sales, Marketing, Tech, or HR), 2) What the likely action is, 3) A one-line summary. Respond in format: DEPT: [dept] | ACTION: [action] | SUMMARY: [summary]';
+  try{
+    var res=await callClaude(sys,[{role:'user',content:'File dropped: '+ctx+'. Route this file to the right department and describe the action needed.'}],200);
+    aiEl.textContent=res;aiEl.style.color='#1d4ed8';
+  }catch(e){aiEl.textContent='Analysis requires API key';aiEl.style.color='#94a3b8';}
+}
+
+/* PROPOSAL */
+async function genProposal(){
+  if(!AK){openKey();return;}
+  var btn=document.getElementById('prop-btn'),thk=document.getElementById('prop-thk'),out=document.getElementById('prop-out');
+  btn.disabled=true;thk.classList.add('on');out.innerHTML='';
+  var nm=document.getElementById('p-name').value,cl=document.getElementById('p-client').value,tp=document.getElementById('p-type').value,est=document.getElementById('p-est').value,dt=document.getElementById('p-date').value,vl=document.getElementById('p-valid').value,sc=document.getElementById('p-scope').value;
+  var tt=document.getElementById('prop-thk-t');
+  var steps=['Estimator reviewing scope...','CFO checking margins...','COO building schedule...','Legal reviewing terms...','Finalizing...'],si=0;
+  var st=setInterval(function(){if(si<steps.length&&tt)tt.textContent=steps[si++];},2000);
+  var sys='You are the executive proposal AI for Elevate Construction LLC (GaElevate.com, 404-719-1888, 3343 Peachtree Rd NE Ste 145, Atlanta GA 30326). Generate a detailed professional construction proposal with realistic Atlanta-area pricing. Structure:\n1. EXECUTIVE SUMMARY\n2. DETAILED SCOPE OF WORK & PRICING BREAKDOWN\n3. PAYMENT SCHEDULE\n4. PRELIMINARY SCHEDULE\n5. INCLUSIONS & CLARIFICATIONS\n6. KEY RISKS / PRICING NOTES\n7. FINAL RECOMMENDED NEXT STEPS';
+  try{
+    var res=await callClaude(sys,[{role:'user',content:'Project: '+nm+'\nClient: '+cl+'\nType: '+tp+'\nEstimate: '+est+'\nDate: '+dt+'\nValidity: '+vl+'\nScope: '+sc}],3500);
+    clearInterval(st);thk.classList.remove('on');btn.disabled=false;
+    out.innerHTML='<div style="background:#fff;border:1px solid #e2e8f0;border-radius:11px;overflow:hidden;margin-top:4px;"><div style="background:#0f172a;padding:14px 18px;color:#fff;"><div style="font-size:15px;font-weight:800;margin-bottom:2px;">ELEVATE CONSTRUCTION LLC</div><div style="font-size:10px;color:#93c5fd;text-transform:uppercase;letter-spacing:.06em;">Commercial Build | High-End Restoration | GaElevate.com</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.15);"><div><div style="font-size:9px;color:#93c5fd;text-transform:uppercase;">Project</div><div style="font-size:11px;">'+esc(nm)+'</div></div><div><div style="font-size:9px;color:#93c5fd;text-transform:uppercase;">Client</div><div style="font-size:11px;">'+esc(cl)+'</div></div><div><div style="font-size:9px;color:#93c5fd;text-transform:uppercase;">Date</div><div style="font-size:11px;">'+esc(dt)+'</div></div><div><div style="font-size:9px;color:#93c5fd;text-transform:uppercase;">Estimate #</div><div style="font-size:11px;">'+esc(est)+'</div></div></div></div><div style="padding:14px 18px;font-size:12px;line-height:1.9;white-space:pre-wrap;color:#0f172a;">'+esc(res)+'</div><div style="background:#0f172a;padding:9px 18px;color:rgba(255,255,255,.4);font-size:10px;display:flex;justify-content:space-between;"><span>© 2025 Elevate Construction LLC · Atlanta, GA 30326</span><span>404-719-1888 · GaElevate.com</span></div><div style="padding:9px 13px;border-top:1px solid #e2e8f0;display:flex;gap:7px;flex-wrap:wrap;"><button class="bs" onclick="cpTxt(\''+encodeURIComponent(res)+'\')">Copy</button><button class="bs" onclick="dlTxt(\''+encodeURIComponent(res)+'\',\'proposal\')">Download</button><button class="bs" onclick="window.print()">Print/PDF</button></div></div>';
+    QC++;document.getElementById('m-q').textContent=QC;
+  }catch(e){clearInterval(st);thk.classList.remove('on');btn.disabled=false;out.innerHTML='<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;padding:10px;font-size:12px;color:#991b1b;margin-top:7px;">Error: '+esc(e.message)+'</div>';}
+}
+
+/* MARKETING */
+function selCT(t){CT=t;document.querySelectorAll('[id^=ct-]').forEach(function(b){b.style.background='#fff';b.style.borderColor='#e2e8f0';b.style.color='#374151';});var el=document.getElementById('ct-'+t);if(el){el.style.background='#eff6ff';el.style.borderColor='#1d4ed8';el.style.color='#1d4ed8';}}
+function showMktg(t){['content','photo','camp'].forEach(function(k){var el=document.getElementById('mk-'+k);if(el)el.style.display=k===t?'block':'none';var btn=document.getElementById('mt-'+k);if(btn){btn.classList.toggle('on',k===t);}});}
+async function genContent(){
+  if(!AK){openKey();return;}
+  var btn=document.getElementById('c-btn'),thk=document.getElementById('c-thk'),out=document.getElementById('c-out');
+  btn.disabled=true;thk.classList.add('on');out.innerHTML='';
+  var tmap={blog:'a 600-800 word SEO-optimized blog post',social:'5 social media posts (LinkedIn, Facebook, Instagram unique each)',bio:'compelling company bio/About Us',showcase:'project showcase write-up',ad:'3 ad copy versions (short, medium, long)',review:'review request email + follow-up text'};
+  var sys='You are Lisa Park, Marketing Manager at Elevate Construction LLC (GaElevate.com, 404-719-1888, 3343 Peachtree Rd NE, Atlanta GA). Write branded content. Include company info naturally. Write '+(tmap[CT]||'marketing content')+'.';
+  try{
+    var res=await callClaude(sys,[{role:'user',content:document.getElementById('c-topic').value}],1500);
+    thk.classList.remove('on');btn.disabled=false;
+    out.innerHTML='<div class="out"><div class="oh"><span>'+CT.charAt(0).toUpperCase()+CT.slice(1)+' — Elevate Construction LLC</span></div><div class="ob">'+esc(res)+'</div><div class="of"><button class="bs" onclick="cpTxt(\''+encodeURIComponent(res)+'\')">Copy</button><button class="bs" onclick="dlTxt(\''+encodeURIComponent(res)+'\',\'content\')">Download</button></div></div>';
+    QC++;document.getElementById('m-q').textContent=QC;
+  }catch(e){thk.classList.remove('on');btn.disabled=false;out.innerHTML='<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;padding:10px;font-size:12px;color:#991b1b;margin-top:7px;">Error: '+esc(e.message)+'</div>';}
+}
+async function genCampaign(){
+  if(!AK){openKey();return;}
+  var btn=document.getElementById('cmp-btn'),thk=document.getElementById('cmp-thk'),out=document.getElementById('cmp-out');
+  btn.disabled=true;thk.classList.add('on');out.innerHTML='';
+  var sys='You are Lisa Park, Marketing Manager at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Write complete email campaign with subject, preview, body, and signature. Type: '+document.getElementById('cmp-t').value+'. Audience: '+document.getElementById('cmp-a').value+'.';
+  try{var res=await callClaude(sys,[{role:'user',content:document.getElementById('cmp-d').value}],1200);thk.classList.remove('on');btn.disabled=false;out.innerHTML='<div class="out"><div class="oh"><span>Email Campaign</span></div><div class="ob">'+esc(res)+'</div><div class="of"><button class="bs" onclick="cpTxt(\''+encodeURIComponent(res)+'\')">Copy</button></div></div>';QC++;document.getElementById('m-q').textContent=QC;}
+  catch(e){thk.classList.remove('on');btn.disabled=false;out.innerHTML='<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;padding:10px;font-size:12px;color:#991b1b;margin-top:7px;">Error: '+esc(e.message)+'</div>';}
+}
+
+/* PHOTO */
+function loadPhoto(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){var img=new Image();img.onload=function(){PI=img;document.getElementById('photo-ctl').style.display='block';applyOv();};img.src=e.target.result;};r.readAsDataURL(f);}
+function applyOv(){
+  if(!PI)return;var canvas=document.getElementById('pcanv'),ctx=canvas.getContext('2d');
+  var mw=460,sc=Math.min(1,mw/PI.width);canvas.width=PI.width*sc;canvas.height=PI.height*sc;ctx.drawImage(PI,0,0,canvas.width,canvas.height);
+  var st=document.getElementById('ov-st').value,tx=document.getElementById('ov-tx').value||'Elevate Construction LLC',sb=document.getElementById('ov-sb').value||'GaElevate.com | 404-719-1888',op=parseInt(document.getElementById('ov-op').value)/100,w=canvas.width,h=canvas.height;
+  if(st==='bottom'||st==='top'){var bh=Math.max(48,h*0.13),by=st==='bottom'?h-bh:0;ctx.fillStyle='rgba(11,22,40,'+op+')';ctx.fillRect(0,by,w,bh);var fs=Math.max(12,Math.min(19,w/26));ctx.font='700 '+fs+'px system-ui';ctx.fillStyle='#fff';ctx.fillText(tx,11,by+bh*0.48);ctx.font='400 '+(fs*0.72)+'px system-ui';ctx.fillStyle='rgba(147,197,253,.95)';ctx.fillText(sb,11,by+bh*0.82);}
+  else if(st==='corner'){var bw=Math.min(195,w*0.42),bh2=46;ctx.fillStyle='rgba(11,22,40,'+op+')';rr2(ctx,8,8,bw,bh2,8);ctx.fill();ctx.font='700 13px system-ui';ctx.fillStyle='#fff';ctx.fillText(tx,13,25);ctx.font='400 10px system-ui';ctx.fillStyle='rgba(147,197,253,.9)';ctx.fillText(sb,13,40);}
+  else{ctx.save();ctx.globalAlpha=op*0.28;ctx.font='600 14px system-ui';ctx.fillStyle='#fff';ctx.textAlign='center';for(var x=w*0.2;x<w;x+=w*0.42){for(var y=h*0.2;y<h;y+=h*0.32){ctx.save();ctx.translate(x,y);ctx.rotate(-Math.PI/8);ctx.fillText(tx,0,0);ctx.restore();}}ctx.restore();ctx.textAlign='left';}
+}
+function rr2(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);c.lineTo(x+w,y+h-r);c.arcTo(x+w,y+h,x+w-r,y+h,r);c.lineTo(x+r,y+h);c.arcTo(x,y+h,x,y+h-r,r);c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);c.closePath();}
+function dlPhoto(){var c=document.getElementById('pcanv');var a=document.createElement('a');a.download='elevate_branded.jpg';a.href=c.toDataURL('image/jpeg',.92);a.click();}
+
+/* AI IMAGES */
+function setImgPrompt(t){document.getElementById('img-desc').value=t;}
+async function genImagePrompt(){
+  if(!AK){openKey();return;}
+  var btn=document.getElementById('img-btn'),thk=document.getElementById('img-thk'),out=document.getElementById('img-out');
+  btn.disabled=true;thk.classList.add('on');out.innerHTML='';
+  var desc=document.getElementById('img-desc').value;
+  var style=document.getElementById('img-style').value;
+  var mood=document.getElementById('img-mood').value;
+  var styleMap={photorealistic:'ultra-photorealistic photography, Canon EOS R5, 85mm lens, f/2.8, RAW photo',cinematic:'cinematic photography, anamorphic lens, film grain, Kodak Portra 400, editorial style',drone:'aerial drone photography, DJI Mavic 3, wide angle, high altitude perspective, architectural photography',closeup:'extreme close-up detail photography, macro lens, sharp focus, professional product photography',beforeafter:'dramatic before and after split image, left side worn/old, right side pristine/new, perfect symmetry',advertisement:'commercial advertisement photography, studio lighting, clean background, product photography style, advertising agency quality'};
+  var moodMap={golden:'golden hour lighting, warm orange tones, long shadows, 6PM sun, dramatic warm glow',bright:'bright midday lighting, clean white light, vibrant colors, blue sky, professional daylight',overcast:'soft overcast lighting, rich saturated colors, no harsh shadows, moody professional',sunset:'dramatic sunset lighting, deep orange and purple sky, silhouette potential, powerful atmosphere',interior:'warm interior lighting, soft ambient light, practical lights visible, cozy professional feel'};
+  var sys='You are a professional AI image prompt engineer for Elevate Construction LLC. Create a hyper-detailed, professional image prompt optimized for DALL-E 3 and Midjourney. The prompt should produce advertisement-quality, publication-ready images for a premium Atlanta construction company. Include specific camera settings, lighting details, composition, mood, and professional details that make the image look like it was shot by a $10,000/day commercial photographer. Make the images diverse and realistic — show real-looking construction workers, modern buildings, and professional environments. Add diversity in the crew. Format: provide 1 main optimized prompt (start with MAIN PROMPT:), then 3 variations (VARIATION 1:, VARIATION 2:, VARIATION 3:).';
+  try{
+    var res=await callClaude(sys,[{role:'user',content:'Subject: '+desc+'\nStyle: '+styleMap[style]+'\nMood/Lighting: '+moodMap[mood]+'\nBrand: Elevate Construction LLC, Atlanta GA, premium quality, professional crew, commercial and residential excellence'}],1200);
+    thk.classList.remove('on');btn.disabled=false;
+    out.innerHTML='<div class="out"><div class="oh" style="background:linear-gradient(135deg,#1a1a2e,#7c3aed);"><span>Image Prompts — Ready to paste into DALL-E 3 or Midjourney</span></div><div class="ob" style="font-size:12px;line-height:1.9;">'+esc(res)+'</div><div class="of"><button class="bs" onclick="cpTxt(\''+encodeURIComponent(res)+'\')">📋 Copy All Prompts</button><a href="https://openai.com/dall-e-3" target="_blank" class="bs">Open DALL-E 3 →</a><a href="https://www.midjourney.com" target="_blank" class="bs">Open Midjourney →</a></div></div><div class="notice" style="margin-top:8px;">Paste the MAIN PROMPT into DALL-E 3 (at openai.com) or Midjourney for hyper-realistic results. For Midjourney add <strong>--ar 16:9 --style raw --q 2</strong> at the end.</div>';
+    QC++;document.getElementById('m-q').textContent=QC;
+  }catch(e){thk.classList.remove('on');btn.disabled=false;out.innerHTML='<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;padding:10px;font-size:12px;color:#991b1b;margin-top:7px;">Error: '+esc(e.message)+'</div>';}
+}
+
+/* HR */
+function showHR(t){['chat','roster','hire'].forEach(function(k){var el=document.getElementById('hr-'+k+'-v');if(el)el.style.display=k===t?'block':'none';var btn=document.getElementById('hr-'+k+'-btn');if(btn)btn.classList.toggle('on',k===t);});}
+async function hrSend(){
+  var inp=document.getElementById('hr-inp'),text=inp.value.trim();if(!text)return;
+  if(!AK){openKey();return;}inp.value='';
+  var log=document.getElementById('hr-log');
+  var um=document.createElement('div');um.className='msg u';um.textContent=text;log.appendChild(um);log.scrollTop=log.scrollHeight;
+  HRH.push({role:'user',content:text});document.getElementById('hr-snd').disabled=true;
+  var tm=document.createElement('div');tm.className='msg b';tm.id='hrt';tm.innerHTML='<span style="letter-spacing:3px;color:#94a3b8;">• • •</span>';log.appendChild(tm);log.scrollTop=log.scrollHeight;
+  var hrA=AGENTS.find(function(a){return a.id==='hr';});
+  try{var res=await callClaude(hrA.sys,HRH.slice(-10),1200);var t=document.getElementById('hrt');if(t)t.remove();var bm=document.createElement('div');bm.className='msg b';bm.innerHTML='<strong>Diana Reeves</strong>'+esc(res);log.appendChild(bm);log.scrollTop=log.scrollHeight;HRH.push({role:'assistant',content:res});QC++;document.getElementById('m-q').textContent=QC;}
+  catch(e){var t2=document.getElementById('hrt');if(t2)t2.remove();var em=document.createElement('div');em.className='msg b';em.innerHTML='<strong style="color:#dc2626;">Error</strong>'+esc(e.message);log.appendChild(em);}
+  document.getElementById('hr-snd').disabled=false;
+}
+function hrChip(t){document.getElementById('hr-inp').value=t;hrSend();}
+function buildRoster(){var g=document.getElementById('hr-roster');if(!g)return;g.innerHTML='';EMPLOYEES.forEach(function(e){var d=document.createElement('div');d.className='hr-card';d.innerHTML='<div class="est '+(e.status==='active'?'ea':'eo')+'">'+e.status+'</div><div style="font-size:12px;font-weight:700;color:#0f172a;margin-bottom:1px;">'+esc(e.name)+'</div><div style="font-size:10px;color:#7c3aed;font-weight:600;">'+esc(e.role)+'</div><div style="font-size:10px;color:#94a3b8;">'+esc(e.dept)+'</div>';g.appendChild(d);});}
+function addEmp(){var n=document.getElementById('hr-n').value.trim();if(!n)return;EMPLOYEES.push({name:n,role:document.getElementById('hr-r').value,dept:document.getElementById('hr-d').value,status:'onboard'});['hr-n','hr-r','hr-s'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});buildRoster();}
+async function genHRDoc(){
+  if(!AK){openKey();return;}
+  var btn=document.getElementById('hire-btn'),thk=document.getElementById('hire-thk'),out=document.getElementById('hire-out');
+  btn.disabled=true;thk.classList.add('on');out.innerHTML='';
+  var type=document.getElementById('hire-t').value,role=document.getElementById('hire-r').value,det=document.getElementById('hire-det').value;
+  var tmap={jobpost:'a complete job posting',offer:'a professional offer letter',onboard:'a detailed onboarding checklist',handbook:'an employee handbook section',review:'a performance review template',safety:'a safety orientation checklist'};
+  var sys='You are Diana Reeves, HR Director at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Create '+(tmap[type]||'an HR document')+' for a Georgia construction company. Be specific, professional, Georgia-compliant. Note docs should be reviewed by a licensed professional.';
+  try{var res=await callClaude(sys,[{role:'user',content:'Role: '+role+'\nDetails: '+det}],1800);thk.classList.remove('on');btn.disabled=false;out.innerHTML='<div class="out"><div class="oh"><span>'+esc(type)+' — '+esc(role)+'</span></div><div class="ob">'+esc(res)+'</div><div class="of"><button class="bs" onclick="cpTxt(\''+encodeURIComponent(res)+'\')">Copy</button><button class="bs" onclick="dlTxt(\''+encodeURIComponent(res)+'\',\'HR_'+type+'\')">Download</button></div></div>';QC++;document.getElementById('m-q').textContent=QC;}
+  catch(e){thk.classList.remove('on');btn.disabled=false;out.innerHTML='<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;padding:10px;font-size:12px;color:#991b1b;margin-top:7px;">Error: '+esc(e.message)+'</div>';}
+}
+
+/* TASKS */
+function rTasks(f){
+  var list=document.getElementById('tlist');list.innerHTML='';
+  var fl=TASKS;
+  if(f==='high')fl=TASKS.filter(function(t){return t.pri==='high'&&!t.done;});
+  else if(f==='open')fl=TASKS.filter(function(t){return !t.done;});
+  else if(f==='done')fl=TASKS.filter(function(t){return t.done;});
+  document.getElementById('m-tasks').textContent=TASKS.filter(function(t){return !t.done;}).length;
+  fl.forEach(function(t){var d=document.createElement('div');d.className='ti'+(t.done?' dn':'');d.innerHTML='<div class="ck '+(t.done?'on':'')+'" onclick="togTask('+t.id+')">'+(t.done?'✓':'')+'</div><div class="t-body"><div class="tt">'+esc(t.title)+'</div><div class="tm"><span class="bge b'+t.pri+'">'+t.pri.toUpperCase()+'</span><span class="bge bd">'+t.dept+'</span></div></div>';list.appendChild(d);});
+  if(!fl.length)list.innerHTML='<div style="text-align:center;padding:18px;font-size:12px;color:#94a3b8;">No tasks.</div>';
+}
+function fTasks(f,btn){document.querySelectorAll('#tf .chip').forEach(function(c){c.style.background='#fff';c.style.borderColor='#e2e8f0';c.style.color='#374151';});btn.style.background='#eff6ff';btn.style.borderColor='#1d4ed8';btn.style.color='#1d4ed8';rTasks(f);}
+function togTask(id){var t=TASKS.find(function(x){return x.id===id;});if(t)t.done=!t.done;rTasks('all');}
+function addTask(){var inp=document.getElementById('nt'),title=inp.value.trim();if(!title)return;TASKS.unshift({id:Date.now(),title:title,dept:document.getElementById('nd').value,pri:document.getElementById('np').value,done:false});inp.value='';rTasks('all');}
+
+/* EMAIL */
+function initEmails(){var list=document.getElementById('eml');list.innerHTML='';EMAILS.forEach(function(e){var d=document.createElement('div');d.className='ei'+(e.unread?' unr':'');d.innerHTML='<div class="ef '+(e.unread?'u':'')+'">'+esc(e.from)+'</div><div class="es">'+esc(e.subj)+'</div>';d.onclick=function(){showEmail('co');document.getElementById('em-to').value=e.to;document.getElementById('em-subj').value='Re: '+e.subj;document.getElementById('em-ctx').value='Replying to: '+e.preview;e.unread=false;initEmails();};list.appendChild(d);});}
+function showEmail(t){['ib','co'].forEach(function(k){var el=document.getElementById('em-'+k+'-v');if(el)el.style.display=k===t?'block':'none';var btn=document.getElementById('em-'+k+'-btn');if(btn)btn.classList.toggle('on',k===t);});}
+function prefillEm(){var p=document.getElementById('em-p').value;var s={fu:'Following Up on Your Estimate — Elevate Construction LLC',nl:'Thank You for Reaching Out — Elevate Construction LLC',pr:'Your Project Proposal Is Ready — Elevate Construction LLC',inv:'Invoice for Services — Elevate Construction LLC',up:'Project Status Update — Elevate Construction LLC',in:'Introducing Elevate Construction LLC'};if(s[p])document.getElementById('em-subj').value=s[p];}
+async function draftEmail(){
+  if(!AK){openKey();return;}
+  var btn=document.getElementById('em-btn'),thk=document.getElementById('em-thk'),out=document.getElementById('em-draft');
+  btn.disabled=true;thk.classList.add('on');out.style.display='none';
+  var sys='Write a professional email for Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Professional, confident, friendly. End with:\n\n---\n[Your Name]\nElevate Construction LLC\n404-719-1888\nGaElevate.com\nAtlanta, GA 30326\n\nWrite ONLY the email body.';
+  try{var res=await callClaude(sys,[{role:'user',content:'To: '+document.getElementById('em-to').value+'\nSubject: '+document.getElementById('em-subj').value+'\nPurpose: '+document.getElementById('em-p').value+'\nContext: '+document.getElementById('em-ctx').value}],700);thk.classList.remove('on');btn.disabled=false;out.style.display='block';document.getElementById('em-body').textContent=res;document.getElementById('em-ml').href='mailto:'+encodeURIComponent(document.getElementById('em-to').value)+'?subject='+encodeURIComponent(document.getElementById('em-subj').value)+'&body='+encodeURIComponent(res);QC++;document.getElementById('m-q').textContent=QC;}
+  catch(e){thk.classList.remove('on');btn.disabled=false;out.style.display='block';document.getElementById('em-body').textContent='Error: '+e.message;}
+}
+function copyEmail(){navigator.clipboard.writeText(document.getElementById('em-body').textContent||'');}
+
+/* DIALPAD */
+function showDP(t){['calls','sms','setup'].forEach(function(k){var el=document.getElementById('dp-'+k+'-v');if(el)el.style.display=k===t?'block':'none';var btn=document.getElementById('dp-'+k+'-btn');if(btn)btn.classList.toggle('on',k===t);});}
+
+var SAMPLE_CONTACTS=['Mike Johnson — UJAMAA Construction','Sandra Williams — Houzz Lead','David Chen — Trident Group','Tom Richardson — GC Partner','Riverside HOA — Manager'];
+var SAMPLE_TOPICS=['Roof replacement quote','Commercial framing estimate','Follow up on proposal','Project timeline question','Payment confirmation'];
+
+function addSampleCall(type){
+  var icons={'inbound':'call-in','outbound':'call-out','missed':'call-miss'};
+  var labels={'inbound':'📲 Inbound','outbound':'📞 Outbound','missed':'📵 Missed'};
+  var contact=SAMPLE_CONTACTS[Math.floor(Math.random()*SAMPLE_CONTACTS.length)];
+  var topic=SAMPLE_TOPICS[Math.floor(Math.random()*SAMPLE_TOPICS.length)];
+  var dur=Math.floor(Math.random()*15+2);
+  var now=new Date();var timeStr=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  var callData={id:Date.now(),type:type,contact:contact,topic:topic,duration:dur,time:timeStr,transcript:'',analyzed:false};
+  CALLS.unshift(callData);
+  renderCalls();
+  if(AK&&type!=='missed'){autoAnalyzeCall(callData);}
+}
+
+async function autoAnalyzeCall(call){
+  var sys='You are the Elevate Construction LLC AI team. A call just ended. Based on the call info, generate: 1) A brief AI transcript summary (3-4 sentences), 2) Action items (bulleted), 3) Which department should follow up (Sales, Estimation, Operations, Legal, Finance). Format clearly with headers.';
+  try{
+    var res=await callClaude(sys,[{role:'user',content:'Call type: '+call.type+'\nContact: '+call.contact+'\nTopic: '+call.topic+'\nDuration: '+call.duration+' minutes'}],500);
+    call.transcript=res;call.analyzed=true;
+    renderCalls();
+    TASKS.unshift({id:Date.now(),title:'Follow up: '+call.contact+' — '+call.topic,dept:'sales',pri:'high',done:false});
+    document.getElementById('m-tasks').textContent=TASKS.filter(function(t){return !t.done;}).length;
+  }catch(e){call.transcript='AI analysis requires API key';renderCalls();}
+}
+
+function renderCalls(){
+  var list=document.getElementById('call-log-list');list.innerHTML='';
+  CALLS.forEach(function(call){
+    var iconMap={'inbound':'call-in','outbound':'call-out','missed':'call-miss'};
+    var emojiMap={'inbound':'📲','outbound':'📞','missed':'📵'};
+    var d=document.createElement('div');d.className='call-card';
+    d.innerHTML='<div class="call-icon '+iconMap[call.type]+'">'+emojiMap[call.type]+'</div><div style="flex:1;"><div style="font-size:12px;font-weight:700;color:#0f172a;">'+esc(call.contact)+'</div><div style="font-size:11px;color:#64748b;">'+esc(call.topic)+' · '+call.duration+'min · '+call.time+'</div>'+(call.transcript?'<div style="font-size:11px;color:#1d4ed8;margin-top:4px;white-space:pre-wrap;border-top:1px solid #f1f5f9;padding-top:4px;margin-top:4px;">'+esc(call.transcript)+'</div>':'<div style="font-size:10px;color:#94a3b8;margin-top:3px;">'+(call.analyzed?'Analyzed':'Analyzing...')+'</div>')+'</div>';
+    list.appendChild(d);
+  });
+  if(!CALLS.length)list.innerHTML='<div style="text-align:center;padding:20px;font-size:12px;color:#94a3b8;">No calls logged yet. Simulate a call above or connect Dialpad API.</div>';
+}
+
+function addSampleSMS(){
+  var contact=SAMPLE_CONTACTS[Math.floor(Math.random()*SAMPLE_CONTACTS.length)];
+  var msgs=['Can we schedule a site visit this week?','What is the timeline for the roofing job?','Please send me the revised estimate when ready','We are ready to move forward with the project','Do you have availability to start next Monday?'];
+  var msg=msgs[Math.floor(Math.random()*msgs.length)];
+  SMSS.unshift({id:Date.now(),from:contact,msg:msg,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),unread:true});
+  renderSMS();
+}
+
+function renderSMS(){
+  var list=document.getElementById('sms-list');list.innerHTML='';
+  SMSS.forEach(function(s){
+    var d=document.createElement('div');d.className='sms-card';
+    d.innerHTML='<div style="display:flex;justify-content:space-between;"><div style="font-size:12px;font-weight:600;color:'+(s.unread?'#1d4ed8':'#0f172a')+';">'+esc(s.from)+'</div><div style="font-size:10px;color:#94a3b8;">'+s.time+'</div></div><div style="font-size:11px;color:#374151;margin-top:3px;">'+esc(s.msg)+'</div>';
+    d.onclick=function(){showEmail('co');document.getElementById('em-ctx').value='SMS from '+s.from+': '+s.msg;s.unread=false;renderSMS();};
+    list.appendChild(d);
+  });
+  if(!SMSS.length)list.innerHTML='<div style="text-align:center;padding:16px;font-size:12px;color:#94a3b8;">No SMS yet. Simulate one above.</div>';
+}
+
+async function sendSMSViaDialpad(){
+  var to=document.getElementById('sms-to').value.trim();
+  var msg=document.getElementById('sms-msg').value.trim();
+  if(!to||!msg){alert('Enter a phone number and message.');return;}
+  if(!DPK){alert('Add your Dialpad API key in the Setup tab first.');showDP('setup');return;}
+  alert('SMS queued for '+to+'. In production this calls POST https://dialpad.com/api/v2/sms with your API key.');
+}
+
+function saveDialpadKey(){
+  var k=document.getElementById('dp-key').value.trim();
+  if(!k){alert('Enter your Dialpad API key.');return;}
+  DPK=k;
+  var thk=document.getElementById('dp-thk'),status=document.getElementById('dp-status');
+  thk.classList.add('on');
+  setTimeout(function(){
+    thk.classList.remove('on');
+    status.innerHTML='<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:7px;padding:10px;font-size:12px;color:#166534;"><strong>Dialpad API key saved!</strong><br>In production: register your webhook URL in Dialpad Admin → Integrations → Webhooks. Your server will receive call events, SMS, and transcripts automatically.</div>';
+  },1500);
+}
+
+/* CRM */
+function initPipeline(){
+  var el=document.getElementById('pipe');el.innerHTML='';
+  PIPE_STAGES.forEach(function(stage){
+    var sl=LEADS.filter(function(l){return l.stage===stage.id;});
+    var col=document.createElement('div');col.className='pc';
+    col.innerHTML='<div class="ph" style="border-left:3px solid '+stage.color+';color:'+stage.color+';">'+stage.label+' <span style="background:'+stage.color+'22;padding:1px 5px;border-radius:8px;font-size:9px;">'+sl.length+'</span></div>';
+    sl.forEach(function(lead){var c=document.createElement('div');c.className='pl';c.innerHTML='<div class="pn">'+esc(lead.name)+'</div><div style="font-size:10px;color:#64748b;">'+esc(lead.proj)+'</div><div class="pv">'+lead.val+'</div>';col.appendChild(c);});
+    el.appendChild(col);
+  });
+  var nw=LEADS.filter(function(l){return l.stage==='new';}).length;
+  var pr=LEADS.filter(function(l){return l.stage==='proposal';}).length;
+  var wv=LEADS.filter(function(l){return l.stage==='won';}).reduce(function(a,l){var n=parseInt((l.val||'').replace(/[^0-9]/g,''));return a+(isNaN(n)?0:n);},0);
+  document.getElementById('crm-new').textContent=nw;document.getElementById('crm-prop').textContent=pr;document.getElementById('crm-won').textContent='$'+Math.round(wv/1000)+'k';
+}
+function addLead(){var n=document.getElementById('l-n').value.trim();if(!n)return;LEADS.push({id:Date.now(),name:n,proj:document.getElementById('l-p').value,val:document.getElementById('l-v').value||'TBD',src:document.getElementById('l-s').value,stage:'new'});['l-n','l-p','l-v'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});initPipeline();}
+
+function cpTxt(enc){navigator.clipboard.writeText(decodeURIComponent(enc)).catch(function(){});}
+function dlTxt(enc,nm){var blob=new Blob([decodeURIComponent(enc)],{type:'text/plain'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='Elevate_'+nm.replace(/[^a-z0-9]/gi,'_')+'.txt';a.click();URL.revokeObjectURL(url);}
+
+buildAgentNav();buildAgentCards();buildRoster();rTasks('all');initEmails();initPipeline();renderCalls();renderSMS();showMktg('content');showHR('chat');showDP('calls');showEmail('ib');
+document.getElementById('key-modal').style.display='none';
+setTimeout(function(){openKey();},400);
+</script>
