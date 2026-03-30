@@ -615,7 +615,13 @@ textarea{resize:vertical;min-height:80px;}
         <div class="tab" onclick="switchTab('email','gmail-connect')">🔗 Gmail</div>
       </div>
       <div id="email-inbox" class="tab-content active" style="padding-top:16px;">
-        <div class="notice-box">💡 <strong>Gmail connected.</strong> Click "Gmail" tab to pull live emails. Below are your tracked leads and messages — click any to compose an AI-assisted reply.</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+          <div style="flex:1;font-size:12px;color:rgba(255,255,255,.45);">
+            <span id="email-count-display">0 emails</span> ·
+            <span style="color:rgba(255,255,255,.3);">Emails auto-removed from app after 30 days (not deleted from Gmail/Outlook)</span>
+          </div>
+          <button onclick="manualEmailCleanup()" class="btn-secondary btn-sm" style="font-size:10px;">🗑 Clean Old Emails</button>
+        </div>
         <div class="email-list" id="email-list"></div>
       </div>
       <div id="email-compose" class="tab-content" style="padding-top:16px;">
@@ -1161,6 +1167,401 @@ textarea{resize:vertical;min-height:80px;}
       <div id="con-output"></div>
     </div>
 
+
+    <!-- ACCOUNTING MODULE -->
+    <div id="view-accounting" class="dept-view">
+      <div class="content-title">🧾 Accounting</div>
+      <div class="content-subtitle">Invoices, job costing, P&L reports, expenses, and financial documents — powered by Sarah Chen, CFO</div>
+
+      <div class="tab-bar" id="accounting-tabs">
+        <div class="tab active" onclick="switchTab('accounting','invoices')">🧾 Invoices</div>
+        <div class="tab" onclick="switchTab('accounting','jobcost')">📊 Job Costing</div>
+        <div class="tab" onclick="switchTab('accounting','pl')">📈 P&L Report</div>
+        <div class="tab" onclick="switchTab('accounting','expenses')">💳 Expenses & Receipts</div>
+        <div class="tab" onclick="switchTab('accounting','emailreceipts')">📧 Email Receipts</div>
+      </div>
+
+      <!-- INVOICES TAB -->
+      <div id="accounting-invoices" class="tab-content active" style="padding-top:18px;">
+        <div class="metrics-row">
+          <div class="metric-card"><div class="metric-label">Total Invoiced</div><div class="metric-value" id="acc-total-invoiced">$0</div><div class="metric-sub">All time</div></div>
+          <div class="metric-card"><div class="metric-label">Outstanding</div><div class="metric-value" id="acc-outstanding">$0</div><div class="metric-sub">Awaiting payment</div></div>
+          <div class="metric-card"><div class="metric-label">Paid</div><div class="metric-value" id="acc-paid">$0</div><div class="metric-sub">Collected</div></div>
+          <div class="metric-card"><div class="metric-label">Overdue</div><div class="metric-value" id="acc-overdue">$0</div><div class="metric-sub" style="color:#fca5a5;">Past due</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h3>➕ Create Invoice</h3><p>Generate a professional branded invoice — download as PDF or .txt</p></div>
+          <div class="panel-body">
+            <div class="form-grid">
+              <div class="form-group"><label>Client Name</label><input type="text" id="inv-client" placeholder="e.g. Trident Commercial Group"></div>
+              <div class="form-group"><label>Project Name</label><input type="text" id="inv-project" placeholder="e.g. Buckhead Office Build-Out"></div>
+              <div class="form-group"><label>Invoice #</label><input type="text" id="inv-num" placeholder="e.g. INV-1001"></div>
+              <div class="form-group"><label>Invoice Date</label><input type="text" id="inv-date" placeholder="e.g. April 1, 2026"></div>
+              <div class="form-group"><label>Due Date</label><input type="text" id="inv-due" placeholder="e.g. April 30, 2026"></div>
+              <div class="form-group"><label>Payment Terms</label>
+                <select id="inv-terms">
+                  <option>Net 30</option><option>Net 15</option><option>Due on Receipt</option>
+                  <option>50% Deposit Paid / 50% Due</option><option>Progress Billing</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:10px;"><label>Line Items (one per line: Description | Amount)</label>
+              <textarea id="inv-items" rows="5" placeholder="Concrete slab — 2,400 sq ft @ $9.50/sqft | $22,800&#10;Labor — Framing crew 5 days | $8,500&#10;Materials — Steel hardware | $3,200&#10;Project management | $2,500"></textarea>
+            </div>
+            <div class="form-grid">
+              <div class="form-group"><label>Tax Rate (%)</label><input type="text" id="inv-tax" placeholder="0" value="0"></div>
+              <div class="form-group"><label>Notes / Terms</label><input type="text" id="inv-notes" placeholder="Thank you for your business!"></div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn-primary" style="flex:1;" onclick="generateInvoice()">🧾 Generate Invoice</button>
+              <button class="btn-secondary" onclick="invoiceAiAssist()">🤖 AI Price Check</button>
+            </div>
+            <div class="thinking-bar" id="inv-thinking"><div class="spinner"></div><span class="thinking-text" id="inv-thinking-text">Sarah is preparing your invoice...</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+            <div><h3>📋 Invoice History</h3><p>All invoices — click to view or mark as paid</p></div>
+            <button class="btn-secondary btn-sm" onclick="exportInvoiceCSV()">📥 Export CSV</button>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <div id="invoice-list" style="min-height:60px;"></div>
+          </div>
+        </div>
+        <div id="invoice-output"></div>
+      </div>
+
+      <!-- JOB COSTING TAB -->
+      <div id="accounting-jobcost" class="tab-content" style="padding-top:18px;">
+        <div class="panel">
+          <div class="panel-header"><h3>📊 Job Cost Analysis</h3><p>Enter project details — Sarah calculates margins, overhead, and profitability</p></div>
+          <div class="panel-body">
+            <div class="form-grid">
+              <div class="form-group"><label>Project Name</label><input type="text" id="jc-project" placeholder="e.g. Kennesaw Roofing Job"></div>
+              <div class="form-group"><label>Contract Value ($)</label><input type="text" id="jc-contract" placeholder="e.g. 85000" oninput="calcJobCost()"></div>
+              <div class="form-group"><label>Labor Cost ($)</label><input type="text" id="jc-labor" placeholder="e.g. 28000" oninput="calcJobCost()"></div>
+              <div class="form-group"><label>Materials Cost ($)</label><input type="text" id="jc-materials" placeholder="e.g. 22000" oninput="calcJobCost()"></div>
+              <div class="form-group"><label>Subcontractor Cost ($)</label><input type="text" id="jc-subs" placeholder="e.g. 8000" oninput="calcJobCost()"></div>
+              <div class="form-group"><label>Equipment / Other ($)</label><input type="text" id="jc-other" placeholder="e.g. 3500" oninput="calcJobCost()"></div>
+            </div>
+            <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:14px;margin-bottom:14px;" id="jc-results">
+              <div style="font-size:12px;color:rgba(255,255,255,.4);text-align:center;">Enter project values above to see live job cost analysis</div>
+            </div>
+            <button class="btn-primary" onclick="generateJobCostReport()">📊 Generate Full Job Cost Report</button>
+            <div class="thinking-bar" id="jc-thinking"><div class="spinner"></div><span class="thinking-text">Sarah is analyzing your job costs...</span></div>
+          </div>
+        </div>
+        <div id="jc-output"></div>
+      </div>
+
+      <!-- P&L TAB -->
+      <div id="accounting-pl" class="tab-content" style="padding-top:18px;">
+        <div class="panel">
+          <div class="panel-header"><h3>📈 P&L Report Generator</h3><p>Sarah generates a professional Profit & Loss statement for any period</p></div>
+          <div class="panel-body">
+            <div class="form-grid">
+              <div class="form-group"><label>Period</label>
+                <select id="pl-period">
+                  <option>Q1 2026 (Jan–Mar)</option><option>Q2 2026 (Apr–Jun)</option>
+                  <option>Q3 2025 (Jul–Sep)</option><option>Q4 2025 (Oct–Dec)</option>
+                  <option>Full Year 2025</option><option>Full Year 2026 (YTD)</option>
+                  <option>Custom Period</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Total Revenue ($)</label><input type="text" id="pl-revenue" placeholder="e.g. 450000"></div>
+              <div class="form-group"><label>Total Labor ($)</label><input type="text" id="pl-labor" placeholder="e.g. 145000"></div>
+              <div class="form-group"><label>Total Materials ($)</label><input type="text" id="pl-materials" placeholder="e.g. 98000"></div>
+              <div class="form-group"><label>Subcontractors ($)</label><input type="text" id="pl-subs" placeholder="e.g. 55000"></div>
+              <div class="form-group"><label>Overhead ($)</label><input type="text" id="pl-overhead" placeholder="e.g. 42000"></div>
+              <div class="form-group"><label>Equipment ($)</label><input type="text" id="pl-equipment" placeholder="e.g. 18000"></div>
+              <div class="form-group"><label>Other Expenses ($)</label><input type="text" id="pl-other" placeholder="e.g. 12000"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;"><label>Notes / Context</label>
+              <textarea id="pl-notes" rows="2" placeholder="Any context — major projects completed, unusual expenses, growth notes..."></textarea>
+            </div>
+            <button class="btn-primary" onclick="generatePLReport()">📈 Generate P&L Report</button>
+            <div class="thinking-bar" id="pl-thinking"><div class="spinner"></div><span class="thinking-text">Sarah is compiling your P&L...</span></div>
+          </div>
+        </div>
+        <div id="pl-output"></div>
+      </div>
+
+      <!-- EXPENSES TAB -->
+      <div id="accounting-expenses" class="tab-content" style="padding-top:18px;">
+
+        <!-- RECEIPT SCANNER -->
+        <div class="panel" style="border-left:3px solid var(--gold);">
+          <div class="panel-header" style="background:linear-gradient(135deg,rgba(13,27,46,.95),rgba(30,20,5,.9));">
+            <h3>📸 Receipt Scanner</h3>
+            <p>Take a photo or upload a receipt — AI reads every detail and logs it automatically</p>
+          </div>
+          <div class="panel-body">
+            <!-- DROP ZONE -->
+            <div id="receipt-drop-zone"
+              style="border:2px dashed rgba(245,158,11,.4);border-radius:12px;padding:30px;text-align:center;
+                     cursor:pointer;background:rgba(245,158,11,.04);transition:all .25s;margin-bottom:14px;"
+              onclick="document.getElementById('receipt-file-input').click()"
+              ondragover="receiptDragOver(event)" ondragleave="receiptDragLeave(event)" ondrop="receiptFileDrop(event)">
+              <div style="font-size:44px;margin-bottom:8px;">📸</div>
+              <div style="font-weight:700;font-size:14px;color:rgba(255,255,255,.85);margin-bottom:4px;">Drop Receipt Here or Click to Upload</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;">Photo, screenshot, or scan — JPG, PNG, PDF · AI reads vendor, amount, date, items automatically</div>
+              <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                <div style="background:var(--gold);color:white;padding:8px 18px;border-radius:8px;font-size:12px;font-weight:700;">📂 Upload File</div>
+                <div id="camera-btn" onclick="event.stopPropagation();openCamera()" style="background:rgba(37,99,235,.3);color:#93c5fd;padding:8px 18px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid rgba(37,99,235,.4);">📷 Take Photo</div>
+              </div>
+              <input type="file" id="receipt-file-input" style="display:none;"
+                accept="image/*,.pdf" onchange="scanReceipt(this.files)">
+            </div>
+
+            <!-- CAMERA CAPTURE -->
+            <div id="camera-wrap" style="display:none;margin-bottom:14px;">
+              <video id="camera-video" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.1);" autoplay playsinline></video>
+              <div style="display:flex;gap:10px;margin-top:10px;">
+                <button onclick="capturePhoto()" class="btn-gold" style="flex:1;">📸 Capture Receipt</button>
+                <button onclick="closeCamera()" class="btn-secondary" style="flex:1;">✕ Cancel</button>
+              </div>
+              <canvas id="camera-canvas" style="display:none;"></canvas>
+            </div>
+
+            <!-- SCAN STATUS -->
+            <div id="receipt-scan-status" style="display:none;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);border-radius:9px;padding:11px 15px;margin-bottom:12px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="spinner"></div>
+                <span id="receipt-scan-text" style="font-size:12px;color:#93c5fd;">Reading receipt...</span>
+              </div>
+            </div>
+
+            <!-- SCANNED RECEIPT PREVIEW — editable before saving -->
+            <div id="receipt-preview" style="display:none;">
+              <div style="font-weight:700;font-size:13px;color:rgba(255,255,255,.7);margin-bottom:10px;">✅ Receipt Read — Review & Save</div>
+              <div class="form-grid">
+                <div class="form-group"><label>Vendor / Store</label><input type="text" id="rcp-vendor" placeholder="e.g. Home Depot"></div>
+                <div class="form-group"><label>Total Amount ($)</label><input type="text" id="rcp-amount" placeholder="e.g. 847.50"></div>
+                <div class="form-group"><label>Date</label><input type="text" id="rcp-date" placeholder="e.g. April 1, 2026"></div>
+                <div class="form-group"><label>Category</label>
+                  <select id="rcp-category">
+                    <option>Materials</option><option>Labor</option><option>Equipment Rental</option>
+                    <option>Fuel & Transportation</option><option>Subcontractor</option>
+                    <option>Tools & Supplies</option><option>Insurance</option>
+                    <option>Office & Admin</option><option>Marketing</option><option>Other</option>
+                  </select>
+                </div>
+                <div class="form-group"><label>Job / Project</label><input type="text" id="rcp-job" placeholder="e.g. Kennesaw Roofing"></div>
+                <div class="form-group"><label>Paid By</label>
+                  <select id="rcp-paid">
+                    <option>Company Card</option><option>Cash</option><option>Check</option><option>Owner</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:12px;"><label>Items / Description (from receipt)</label>
+                <textarea id="rcp-items" rows="3" placeholder="Line items extracted from receipt..."></textarea>
+              </div>
+              <div id="rcp-img-preview" style="margin-bottom:12px;"></div>
+              <div style="display:flex;gap:10px;">
+                <button class="btn-primary" style="flex:1;" onclick="saveScannedReceipt()">💾 Save to Expense Log</button>
+                <button class="btn-secondary" onclick="cancelReceiptScan()">✕ Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MANUAL ENTRY -->
+        <div class="panel">
+          <div class="panel-header"><h3>✏️ Manual Expense Entry</h3><p>Log an expense without a receipt</p></div>
+          <div class="panel-body">
+            <div class="form-grid">
+              <div class="form-group"><label>Description</label><input type="text" id="exp-desc" placeholder="e.g. Lumber for Kennesaw job"></div>
+              <div class="form-group"><label>Amount ($)</label><input type="text" id="exp-amount" placeholder="e.g. 1850"></div>
+              <div class="form-group"><label>Category</label>
+                <select id="exp-category">
+                  <option>Materials</option><option>Labor</option><option>Equipment Rental</option>
+                  <option>Fuel & Transportation</option><option>Subcontractor</option>
+                  <option>Tools & Supplies</option><option>Insurance</option>
+                  <option>Office & Admin</option><option>Marketing</option><option>Other</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Job / Project</label><input type="text" id="exp-job" placeholder="e.g. Kennesaw Roofing or General"></div>
+              <div class="form-group"><label>Date</label><input type="text" id="exp-date" placeholder="e.g. April 1, 2026"></div>
+              <div class="form-group"><label>Paid By</label>
+                <select id="exp-paid">
+                  <option>Company Card</option><option>Cash</option><option>Check</option><option>Owner</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn-primary" onclick="addExpense()">➕ Log Expense</button>
+          </div>
+        </div>
+
+        <!-- EXPENSE LOG -->
+        <div class="panel">
+          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div><h3>💳 Expense Log</h3><p>All expenses — receipts included</p></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn-secondary btn-sm" onclick="exportExpenseCSV()">📥 CSV</button>
+              <button class="btn-secondary btn-sm" onclick="exportExpenseXLSX()">📊 Excel</button>
+              <button class="btn-secondary btn-sm" onclick="generateAccountantReport()">📋 Accountant Report</button>
+              <button class="btn-secondary btn-sm" onclick="expenseAiAnalysis()">🤖 AI Analysis</button>
+            </div>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <!-- FILTER ROW -->
+            <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;gap:8px;flex-wrap:wrap;">
+              <select id="exp-filter-cat" onchange="renderExpenseList()" style="font-size:11px;padding:5px 10px;">
+                <option value="">All Categories</option>
+                <option>Materials</option><option>Labor</option><option>Equipment Rental</option>
+                <option>Fuel & Transportation</option><option>Subcontractor</option>
+                <option>Tools & Supplies</option><option>Insurance</option>
+                <option>Office & Admin</option><option>Marketing</option><option>Other</option>
+              </select>
+              <select id="exp-filter-paid" onchange="renderExpenseList()" style="font-size:11px;padding:5px 10px;">
+                <option value="">All Payment Methods</option>
+                <option>Company Card</option><option>Cash</option><option>Check</option><option>Owner</option>
+              </select>
+              <input type="text" id="exp-filter-search" placeholder="Search expenses..." oninput="renderExpenseList()"
+                style="flex:1;min-width:120px;font-size:11px;padding:5px 10px;">
+            </div>
+            <div id="expense-list" style="min-height:60px;"></div>
+            <div id="expense-totals" style="padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);"></div>
+          </div>
+        </div>
+        <div id="expense-ai-output"></div>
+        <div id="accountant-report-output"></div>
+      </div>
+
+      <!-- EMAIL RECEIPTS TAB -->
+      <div id="accounting-emailreceipts" class="tab-content" style="padding-top:18px;">
+
+        <!-- AUTO-ROUTING STATUS -->
+        <div class="panel" style="border-left:3px solid rgba(37,99,235,.6);">
+          <div class="panel-header">
+            <h3>⚡ Auto-Routing Status</h3>
+            <p>Email receipts are automatically detected and routed to accounting when your email webhooks are connected</p>
+          </div>
+          <div class="panel-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+              <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:14px;border:1px solid rgba(255,255,255,.08);">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                  <span style="font-size:18px;">📧</span>
+                  <span style="font-weight:700;font-size:13px;color:white;">Gmail</span>
+                  <span id="gmail-receipt-status" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(245,158,11,.2);color:#fcd34d;border:1px solid rgba(245,158,11,.3);">PENDING SETUP</span>
+                </div>
+                <div style="font-size:11px;color:rgba(255,255,255,.5);line-height:1.8;">
+                  When Gmail webhook is connected, emails from vendors like Home Depot, Amazon, fuel companies, and subs auto-route here.<br>
+                  <a href="#" onclick="showView('hr');switchTab('hr','email-connect')" style="color:#93c5fd;">→ Set up Gmail webhook</a>
+                </div>
+              </div>
+              <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:14px;border:1px solid rgba(255,255,255,.08);">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                  <span style="font-size:18px;">📨</span>
+                  <span style="font-weight:700;font-size:13px;color:white;">Outlook</span>
+                  <span id="outlook-receipt-status" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(245,158,11,.2);color:#fcd34d;border:1px solid rgba(245,158,11,.3);">PENDING SETUP</span>
+                </div>
+                <div style="font-size:11px;color:rgba(255,255,255,.5);line-height:1.8;">
+                  Microsoft Graph webhook routes purchase confirmations, invoices from vendors, and expense emails directly to accounting.<br>
+                  <a href="#" onclick="showView('hr');switchTab('hr','email-connect')" style="color:#93c5fd;">→ Set up Outlook webhook</a>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:14px;">
+              <div style="font-weight:700;font-size:13px;color:white;margin-bottom:8px;">🤖 What Gets Auto-Detected</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:rgba(255,255,255,.6);line-height:1.9;">
+                <div>✅ Home Depot / Lowe's order confirmations</div>
+                <div>✅ Amazon Business purchase receipts</div>
+                <div>✅ Fuel card transaction emails</div>
+                <div>✅ Subcontractor invoices</div>
+                <div>✅ Equipment rental confirmations</div>
+                <div>✅ Insurance premium notices</div>
+                <div>✅ Supplier invoices (any vendor)</div>
+                <div>✅ Utility bills and recurring expenses</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MANUAL EMAIL PASTE / FORWARD -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>📋 Paste or Forward an Email Receipt</h3>
+            <p>Copy and paste the text of any receipt email — AI extracts all details and logs it instantly</p>
+          </div>
+          <div class="panel-body">
+            <div class="form-group" style="margin-bottom:14px;">
+              <label>Paste Email Receipt Text</label>
+              <textarea id="email-receipt-text" rows="8"
+                placeholder="Paste the full text of any receipt or confirmation email here...
+
+Example:
+Order Confirmation — The Home Depot
+Order #: W123456789
+Date: April 1, 2026
+Item: 2x4 Lumber 96 inch — Qty 200 — $486.00
+Item: Concrete Mix 60lb — Qty 50 — $174.50
+Subtotal: $660.50
+Tax: $52.84
+Total Charged: $713.34
+Payment: Visa ending in 4821"></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label>Job / Project to Assign To</label>
+              <input type="text" id="email-receipt-job" placeholder="e.g. Kennesaw Roofing or General Overhead">
+            </div>
+            <button class="btn-primary" onclick="processEmailReceipt()">🤖 Extract & Log Receipt</button>
+            <div class="thinking-bar" id="email-receipt-thinking">
+              <div class="spinner"></div>
+              <span class="thinking-text">Reading receipt email...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- EMAIL RECEIPT FILE UPLOADER -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>📎 Upload Email Receipt File</h3>
+            <p>Upload a saved .eml, .html, .pdf, or screenshot of an email receipt</p>
+          </div>
+          <div class="panel-body">
+            <div id="email-file-drop"
+              style="border:2px dashed rgba(37,99,235,.35);border-radius:12px;padding:28px;text-align:center;
+                     cursor:pointer;background:rgba(37,99,235,.04);transition:all .25s;"
+              onclick="document.getElementById('email-file-input').click()"
+              ondragover="emailFileDragOver(event)" ondragleave="emailFileDragLeave(event)" ondrop="emailFileDrop(event)">
+              <div style="font-size:38px;margin-bottom:8px;">📧</div>
+              <div style="font-weight:700;font-size:13px;color:rgba(255,255,255,.8);margin-bottom:4px;">Drop Email Receipt File Here</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;">.eml · .html · .pdf · .png · .jpg · Screenshot of email</div>
+              <div style="background:rgba(37,99,235,.3);color:#93c5fd;padding:7px 18px;border-radius:7px;font-size:12px;font-weight:700;display:inline-block;">📂 Browse File</div>
+              <input type="file" id="email-file-input" style="display:none;"
+                accept=".eml,.html,.htm,.pdf,.png,.jpg,.jpeg,.txt"
+                onchange="processEmailReceiptFile(this.files)">
+            </div>
+            <div id="email-file-status" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(37,99,235,.1);border-radius:8px;font-size:12px;color:#93c5fd;border:1px solid rgba(37,99,235,.2);">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="spinner"></div>
+                <span id="email-file-status-text">Reading file...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROCESSED EMAIL RECEIPTS LOG -->
+        <div class="panel">
+          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+            <div><h3>📬 Email Receipt Log</h3><p>All receipts received or processed from email</p></div>
+            <div style="display:flex;gap:8px;">
+              <span id="email-receipt-count" style="font-size:11px;padding:3px 10px;background:rgba(37,99,235,.2);color:#93c5fd;border-radius:10px;border:1px solid rgba(37,99,235,.3);">0 email receipts</span>
+            </div>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <div id="email-receipt-log" style="min-height:60px;"></div>
+          </div>
+        </div>
+        <div id="email-receipt-output"></div>
+      </div>
+
+    </div><!-- end view-accounting -->
+
     <!-- DEPT CHAT VIEWS -->
     <div id="dept-chat-views"></div>
 
@@ -1359,6 +1760,7 @@ function buildSidebar(){
     {id:'hr',icon:'👥',name:'HR Module',title:'Staff, Payroll & Docs'},
     {id:'estimator',icon:'🧮',name:'Estimator',title:'Live Line-Item Bids'},
     {id:'contracts',icon:'📝',name:'Contracts',title:'GA Legal Templates'},
+    {id:'accounting',icon:'🧾',name:'Accounting',title:'Invoices, P&L & Job Costing'},
   ];
   navItems.forEach(item=>{
     const btn=document.createElement('button');
@@ -2140,32 +2542,153 @@ async function aiTaskHelp(id){
 // EMAIL CENTER
 // =====================================================
 function initEmailInbox(){
-  emailItems=[
-    {id:1,from:"Mike Johnson — UJAMAA Construction",subject:"Re: Estimate ES-10022 — Need revision on framing section",preview:"Hey, the proposal looks great overall. Can we revisit line items 3-5?",time:"2h ago",unread:true},
-    {id:2,from:"Sandra Williams — Houzz Lead",subject:"New Lead: Kitchen & Master Bath Remodel — Buckhead",preview:"Looking for a contractor to handle a full kitchen gut and master bath...",time:"4h ago",unread:true},
-    {id:3,from:"David Chen — Property Management Group",subject:"Commercial Roof Replacement — 3 buildings, Midtown Atlanta",preview:"We manage 3 commercial properties in Midtown and need bids for...",time:"Yesterday",unread:false},
-    {id:4,from:"Houzz Pro — New Review Request",subject:"James T. left a 5-star review on your Houzz profile",preview:"Great work on the restoration project! Professional crew and on time...",time:"Yesterday",unread:false},
-    {id:5,from:"Tom Richardson — GC Partner",subject:"Subcontract opportunity: Large residential framing package",preview:"We have a 22-unit townhome project starting Q2. Looking for framing sub...",time:"2 days ago",unread:false},
-  ];
+  // Load from localStorage only — no fake sample data
+  const saved = localStorage.getItem('elevate_emails');
+  emailItems = saved ? JSON.parse(saved) : [];
+
+  // Auto-cleanup: remove emails older than 30 days from the app
+  // (does NOT delete from Gmail/Outlook — only from local app cache)
+  emailItems = cleanOldEmails(emailItems);
+  localStorage.setItem('elevate_emails', JSON.stringify(emailItems));
+
+  // Clear any old fake sample data
+  clearFakeEmails();
+
   renderEmailList();
+  updateEmailBadge();
+}
+
+function cleanOldEmails(items){
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const before = items.length;
+  // Only remove emails that have a real timestamp (received_at field)
+  // Emails without a timestamp are kept until manually dismissed
+  const cleaned = items.filter(email => {
+    if(!email.received_at) return true; // keep if no timestamp
+    const age = now - new Date(email.received_at).getTime();
+    return age < THIRTY_DAYS;
+  });
+  if(cleaned.length < before){
+    const removed = before - cleaned.length;
+    console.log('[Email] Auto-cleaned '+removed+' emails older than 30 days from app cache');
+    addActivity('🗑️ Auto-removed '+removed+' emails older than 30 days from app (not deleted from Gmail/Outlook)');
+  }
+  return cleaned;
+}
+
+function clearFakeEmails(){
+  // Detect and wipe any old fake sample emails
+  const fakeIds = [1,2,3,4,5];
+  const fakeSenders = ['UJAMAA Construction','Sandra Williams — Houzz Lead','David Chen — Property','Houzz Pro — New Review','Tom Richardson'];
+  const wasFake = emailItems.some(e => fakeSenders.some(f => (e.from||'').includes(f.split('—')[0].trim())));
+  if(wasFake){
+    emailItems = emailItems.filter(e => !fakeSenders.some(f => (e.from||'').includes(f.split('—')[0].trim())));
+    localStorage.setItem('elevate_emails', JSON.stringify(emailItems));
+    console.log('[Email] Cleared fake sample emails');
+  }
+}
+
+function updateEmailBadge(){
+  const unread = emailItems.filter(e=>e.unread).length;
+  const badge  = document.getElementById('email-badge');
+  if(badge){
+    if(unread > 0){
+      badge.style.display = 'block';
+      badge.textContent   = unread+' New Email'+(unread>1?'s':'');
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+  // Update sidebar status dot
+  const dot = document.getElementById('status-dot-email');
+  if(dot) dot.className = 'dept-status'+(unread>0?' mail':' online');
+}
+
+function saveEmails(){
+  localStorage.setItem('elevate_emails', JSON.stringify(emailItems));
 }
 
 function renderEmailList(){
   const list=document.getElementById('email-list');if(!list)return;
   list.innerHTML='';
-  emailItems.forEach(email=>{
+
+  if(!emailItems.length){
+    list.innerHTML=`
+      <div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,.35);">
+        <div style="font-size:40px;margin-bottom:12px;">📭</div>
+        <div style="font-size:14px;font-weight:600;color:rgba(255,255,255,.45);margin-bottom:8px;">No emails yet</div>
+        <div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,.3);">
+          Emails will appear here automatically once your<br>Gmail or Outlook webhooks are connected.<br><br>
+          <a href="#" onclick="showView('hr');switchTab('hr','email-connect')" style="color:#93c5fd;">→ Set up Gmail & Outlook webhooks</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Sort: unread first, then by date
+  const sorted = [...emailItems].sort((a,b)=>{
+    if(a.unread && !b.unread) return -1;
+    if(!a.unread && b.unread) return 1;
+    const ta = a.received_at ? new Date(a.received_at).getTime() : 0;
+    const tb = b.received_at ? new Date(b.received_at).getTime() : 0;
+    return tb - ta;
+  });
+
+  sorted.forEach(email=>{
     const div=document.createElement('div');
     div.className='email-item'+(email.unread?' unread':'');
+
+    // Age display
+    const age = email.received_at ? getEmailAge(email.received_at) : (email.time||'');
+    // Days until auto-cleanup
+    const daysLeft = email.received_at ? getDaysUntilCleanup(email.received_at) : null;
+    const cleanupWarning = daysLeft !== null && daysLeft <= 7
+      ? `<span style="font-size:9px;color:rgba(255,255,255,.25);"> · removed from app in ${daysLeft}d</span>` : '';
+
     div.innerHTML=`
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-        <div class="email-from">${email.unread?'<strong>':''}${esc(email.from)}${email.unread?'</strong>':''}</div>
-        <div class="email-time">${email.time}</div>
+        <div class="email-from">${email.unread?'<strong>':''}${esc(email.from||'')}${email.unread?'</strong>':''}</div>
+        <div class="email-time">${age}${cleanupWarning}</div>
       </div>
-      <div class="email-subject">${esc(email.subject)}</div>
-      <div class="email-preview">${esc(email.preview)}</div>`;
+      <div class="email-subject">${esc(email.subject||'')}</div>
+      <div class="email-preview">${esc(email.preview||'')}</div>
+      <div style="display:flex;gap:8px;margin-top:6px;justify-content:flex-end;">
+        ${email.unread?`<button onclick="event.stopPropagation();markEmailRead(${email.id})" style="font-size:10px;background:rgba(37,99,235,.15);color:#93c5fd;border:1px solid rgba(37,99,235,.25);border-radius:5px;padding:2px 8px;cursor:pointer;">Mark Read</button>`:''}
+        <button onclick="event.stopPropagation();dismissEmail(${email.id})" style="font-size:10px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.35);border:1px solid rgba(255,255,255,.08);border-radius:5px;padding:2px 8px;cursor:pointer;">Dismiss</button>
+      </div>`;
     div.addEventListener('click',()=>openEmailReply(email));
     list.appendChild(div);
   });
+  updateEmailBadge();
+}
+
+function getEmailAge(received_at){
+  if(!received_at) return '';
+  const diff = Date.now() - new Date(received_at).getTime();
+  const mins  = Math.floor(diff/60000);
+  const hours = Math.floor(diff/3600000);
+  const days  = Math.floor(diff/86400000);
+  if(mins < 60)  return mins+'m ago';
+  if(hours < 24) return hours+'h ago';
+  if(days === 1) return 'Yesterday';
+  if(days < 30)  return days+'d ago';
+  return new Date(received_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+function getDaysUntilCleanup(received_at){
+  const age  = (Date.now() - new Date(received_at).getTime()) / 86400000;
+  return Math.max(0, Math.round(30 - age));
+}
+
+function markEmailRead(id){
+  const email = emailItems.find(e=>e.id===id);
+  if(email){ email.unread=false; saveEmails(); renderEmailList(); updateEmailBadge(); }
+}
+
+function dismissEmail(id){
+  emailItems = emailItems.filter(e=>e.id!==id);
+  saveEmails(); renderEmailList(); updateEmailBadge();
 }
 
 function openEmailReply(email){
@@ -2545,6 +3068,9 @@ window.addEventListener('DOMContentLoaded',()=>{
   initEstimator();
   renderRoster();
   updateHRMetrics();
+  initAccounting();
+  initEmailReceipts();
+  scheduleDailyCleanup();
 });
 
 // =====================================================
@@ -4396,7 +4922,1267 @@ Make it detailed, natural, and construction-industry specific. Plain text only, 
 if(vapiKey && document.getElementById('vapi-key-input')){
   document.getElementById('vapi-key-input').value = vapiKey;
 }
+
+// =====================================================
+// ACCOUNTING MODULE
+// =====================================================
+let invoices = JSON.parse(localStorage.getItem('elevate_invoices')||'[]');
+let expenses = JSON.parse(localStorage.getItem('elevate_expenses')||'[]');
+
+function saveInvoices(){ localStorage.setItem('elevate_invoices', JSON.stringify(invoices)); }
+function saveExpenses(){ localStorage.setItem('elevate_expenses', JSON.stringify(expenses)); }
+
+function fmtMoney(n){ return '$'+(parseFloat(n)||0).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+
+// ── ACCOUNTING METRICS ────────────────────────────────────────
+function updateAccMetrics(){
+  const total     = invoices.reduce((a,i)=>a+(i.total||0),0);
+  const paid      = invoices.filter(i=>i.status==='paid').reduce((a,i)=>a+(i.total||0),0);
+  const overdue   = invoices.filter(i=>i.status==='overdue').reduce((a,i)=>a+(i.total||0),0);
+  const outstanding = total - paid;
+  const ti = document.getElementById('acc-total-invoiced');
+  const op = document.getElementById('acc-outstanding');
+  const pa = document.getElementById('acc-paid');
+  const ov = document.getElementById('acc-overdue');
+  if(ti) ti.textContent = fmtMoney(total);
+  if(op) op.textContent = fmtMoney(outstanding);
+  if(pa) pa.textContent = fmtMoney(paid);
+  if(ov) ov.textContent = fmtMoney(overdue);
+}
+
+// ── INVOICE GENERATOR ─────────────────────────────────────────
+async function generateInvoice(){
+  if(!apiKey){ openApiModal(); return; }
+  const client  = document.getElementById('inv-client').value.trim();
+  const project = document.getElementById('inv-project').value.trim();
+  const num     = document.getElementById('inv-num').value.trim() || 'INV-'+String(invoices.length+1001);
+  const date    = document.getElementById('inv-date').value.trim() || new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const due     = document.getElementById('inv-due').value.trim();
+  const terms   = document.getElementById('inv-terms').value;
+  const items   = document.getElementById('inv-items').value.trim();
+  const taxRate = parseFloat(document.getElementById('inv-tax').value)||0;
+  const notes   = document.getElementById('inv-notes').value.trim();
+
+  if(!client||!items){ alert('Enter client name and line items.'); return; }
+
+  const thinking = document.getElementById('inv-thinking');
+  const thinkingText = document.getElementById('inv-thinking-text');
+  thinking.classList.add('show');
+  thinkingText.textContent = 'Sarah is preparing your invoice...';
+
+  // Parse line items to calculate total
+  let subtotal = 0;
+  const parsedItems = items.split('\n').map(line=>{
+    const parts = line.split('|');
+    const desc = parts[0]?.trim()||line.trim();
+    const amtStr = parts[1]?.trim().replace(/[$,]/g,'')||'0';
+    const amt = parseFloat(amtStr)||0;
+    subtotal += amt;
+    return {desc, amt};
+  }).filter(i=>i.desc);
+
+  const tax   = subtotal * (taxRate/100);
+  const total = subtotal + tax;
+
+  const sys = `You are Sarah Chen, CFO at Elevate Construction LLC. Generate a complete professional invoice in plain text format. No markdown. Use clear section headers in ALL CAPS. Include all standard invoice elements. Make it look professional and ready to print.`;
+  const msg = `Generate a complete invoice with these details:
+Invoice #: ${num}
+Date: ${date}
+Due Date: ${due||'Net 30 from invoice date'}
+Payment Terms: ${terms}
+Client: ${client}
+Project: ${project}
+From: Elevate Construction LLC | 404-719-1888 | GaElevate.com | 3343 Peachtree Rd NE Ste 145 MB 2131, Atlanta GA 30326
+
+Line Items:
+${parsedItems.map(i=>i.desc+': '+fmtMoney(i.amt)).join('\n')}
+
+Subtotal: ${fmtMoney(subtotal)}
+Tax (${taxRate}%): ${fmtMoney(tax)}
+TOTAL DUE: ${fmtMoney(total)}
+
+Payment Notes: ${notes||'Thank you for your business! Payment due by '+due}
+
+Include: remittance section, payment methods (check payable to Elevate Construction LLC, or bank transfer), and a professional closing. Georgia contractor license reminder.`;
+
+  try{
+    const res = await callClaude(sys, [{role:'user',content:msg}], 2000);
+    const clean = stripMarkdown(res);
+    thinking.classList.remove('show');
+
+    // Save invoice
+    const invoice = {
+      id: Date.now(), num, client, project, date, due, terms,
+      items: parsedItems, subtotal, tax, total,
+      status: 'outstanding', notes, content: clean,
+      created: new Date().toISOString()
+    };
+    invoices.push(invoice);
+    saveInvoices();
+    renderInvoiceList();
+    updateAccMetrics();
+
+    // Display
+    document.getElementById('invoice-output').innerHTML = `
+      <div class="branded-doc" style="margin-top:16px;">
+        <div class="doc-header">
+          <div class="doc-logo-row">
+            <div><div class="doc-company-name">🧾 INVOICE ${num}</div>
+            <div class="doc-tagline">Elevate Construction LLC · ${date}</div></div>
+            <div style="text-align:right;font-size:11px;opacity:.8;">
+              <div style="font-size:16px;font-weight:800;color:#6ee7b7;">${fmtMoney(total)}</div>
+              <div>Due: ${due||'Net 30'}</div>
+            </div>
+          </div>
+          <div class="doc-meta" style="margin-top:12px;">
+            <div class="doc-meta-item"><strong>Client</strong>${client}</div>
+            <div class="doc-meta-item"><strong>Project</strong>${project}</div>
+            <div class="doc-meta-item"><strong>Terms</strong>${terms}</div>
+            <div class="doc-meta-item"><strong>Status</strong><span style="color:#fcd34d;">OUTSTANDING</span></div>
+          </div>
+        </div>
+        <div class="doc-body">
+          <div style="font-size:13px;line-height:1.9;white-space:pre-wrap;color:rgba(255,255,255,.85);">${esc(clean)}</div>
+          <hr class="section-divider">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn-secondary" onclick="copyText('${encodeURIComponent(clean)}')">📋 Copy</button>
+            <button class="btn-secondary" onclick="downloadTxt('${encodeURIComponent(clean)}','Invoice_${num}')">💾 Download .txt</button>
+            <button class="btn-secondary" onclick="markInvoicePaid(${invoice.id})" style="color:#6ee7b7;border-color:rgba(16,185,129,.4);">✅ Mark as Paid</button>
+          </div>
+        </div>
+        <div class="doc-footer"><span>© ${new Date().getFullYear()} Elevate Construction LLC · GaElevate.com · 404-719-1888</span></div>
+      </div>`;
+
+    addActivity('🧾 Invoice generated: '+num+' for '+client+' — '+fmtMoney(total));
+    queryCount++; document.getElementById('metric-queries').textContent=queryCount;
+    localStorage.setItem('elevate_query_count',queryCount);
+
+  }catch(err){
+    thinking.classList.remove('show');
+    document.getElementById('invoice-output').innerHTML=`<div class="error-box">Error: ${err.message}</div>`;
+  }
+}
+
+function markInvoicePaid(id){
+  const inv = invoices.find(i=>i.id===id);
+  if(inv){ inv.status='paid'; saveInvoices(); renderInvoiceList(); updateAccMetrics(); addActivity('✅ Invoice paid: '+inv.num); }
+}
+
+function renderInvoiceList(){
+  const list = document.getElementById('invoice-list');
+  if(!list) return;
+  if(!invoices.length){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:13px;">No invoices yet — create your first one above.</div>';
+    return;
+  }
+  list.innerHTML = invoices.slice().reverse().map(inv=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);">
+      <div style="font-size:20px;">🧾</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:13px;color:rgba(255,255,255,.85);">${inv.num} — ${inv.client}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">${inv.project} · ${inv.date}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-weight:700;font-size:13px;color:#6ee7b7;">${fmtMoney(inv.total)}</div>
+        <div style="font-size:10px;padding:2px 7px;border-radius:10px;margin-top:2px;
+          background:${inv.status==='paid'?'rgba(16,185,129,.2)':inv.status==='overdue'?'rgba(220,38,38,.2)':'rgba(245,158,11,.2)'};
+          color:${inv.status==='paid'?'#6ee7b7':inv.status==='overdue'?'#fca5a5':'#fcd34d'};">
+          ${inv.status.toUpperCase()}</div>
+      </div>
+      ${inv.status!=='paid'?`<button onclick="markInvoicePaid(${inv.id})" style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">✅ Paid</button>`:''}
+    </div>`).join('');
+}
+
+function exportInvoiceCSV(){
+  const rows = [['Invoice #','Client','Project','Date','Due','Total','Status']];
+  invoices.forEach(inv=>rows.push([inv.num,inv.client,inv.project,inv.date,inv.due||'',inv.total,inv.status]));
+  const csv = rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='Elevate_Invoices.csv'; a.click();
+  URL.revokeObjectURL(url);
+  addActivity('📥 Invoice CSV exported');
+}
+
+async function invoiceAiAssist(){
+  if(!apiKey){ openApiModal(); return; }
+  const items = document.getElementById('inv-items').value.trim();
+  const project = document.getElementById('inv-project').value.trim();
+  if(!items && !project){ alert('Enter project and line items first.'); return; }
+  const thinking = document.getElementById('inv-thinking');
+  thinking.classList.add('show');
+  const dept = DEPARTMENTS.find(d=>d.id==='finance');
+  const res = await callClaude(dept.systemPrompt, [{role:'user',content:`Review these invoice line items for a construction project called "${project}":
+${items}
+
+Are these prices competitive for Atlanta 2026? Any items missing? Any red flags? Give me your CFO take in 3-4 sentences.`}], 500);
+  thinking.classList.remove('show');
+  document.getElementById('invoice-output').innerHTML = `<div class="panel"><div class="panel-header"><h3>💰 Sarah's Price Review</h3></div><div class="panel-body" style="font-size:13px;line-height:1.8;color:rgba(255,255,255,.82);">${esc(res)}</div></div>`;
+  queryCount++; document.getElementById('metric-queries').textContent=queryCount;
+}
+
+// ── JOB COSTING ───────────────────────────────────────────────
+function calcJobCost(){
+  const contract   = parseFloat(document.getElementById('jc-contract')?.value)||0;
+  const labor      = parseFloat(document.getElementById('jc-labor')?.value)||0;
+  const materials  = parseFloat(document.getElementById('jc-materials')?.value)||0;
+  const subs       = parseFloat(document.getElementById('jc-subs')?.value)||0;
+  const other      = parseFloat(document.getElementById('jc-other')?.value)||0;
+  const totalCost  = labor+materials+subs+other;
+  const grossProfit= contract-totalCost;
+  const gpPct      = contract>0 ? (grossProfit/contract*100) : 0;
+  const overhead   = contract*0.12;
+  const netProfit  = grossProfit-overhead;
+  const npPct      = contract>0 ? (netProfit/contract*100) : 0;
+
+  const res = document.getElementById('jc-results');
+  if(!res) return;
+  if(!contract){ res.innerHTML='<div style="font-size:12px;color:rgba(255,255,255,.4);text-align:center;">Enter contract value to see analysis</div>'; return; }
+
+  const gpColor = gpPct>=25?'#6ee7b7':gpPct>=15?'#fcd34d':'#fca5a5';
+  const npColor = npPct>=10?'#6ee7b7':npPct>=5?'#fcd34d':'#fca5a5';
+
+  res.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;">
+      ${[
+        ['Contract Value',fmtMoney(contract),'white'],
+        ['Total Direct Cost',fmtMoney(totalCost),'#fca5a5'],
+        ['Gross Profit',fmtMoney(grossProfit),gpColor],
+        ['GP Margin',gpPct.toFixed(1)+'%',gpColor],
+        ['Est. Overhead (12%)',fmtMoney(overhead),'#fcd34d'],
+        ['Net Profit',fmtMoney(netProfit),npColor],
+      ].map(([l,v,c])=>`<div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">${l}</div>
+        <div style="font-size:16px;font-weight:800;color:${c};">${v}</div>
+      </div>`).join('')}
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,.4);">
+      ${gpPct<15?'⚠️ Gross margin below 15% — review pricing or cut costs':gpPct>=25?'✅ Healthy gross margin':'📊 Acceptable margin — watch overhead'}
+    </div>`;
+}
+
+async function generateJobCostReport(){
+  if(!apiKey){ openApiModal(); return; }
+  const project   = document.getElementById('jc-project').value||'Project';
+  const contract  = document.getElementById('jc-contract').value||'0';
+  const labor     = document.getElementById('jc-labor').value||'0';
+  const materials = document.getElementById('jc-materials').value||'0';
+  const subs      = document.getElementById('jc-subs').value||'0';
+  const other     = document.getElementById('jc-other').value||'0';
+  const thinking  = document.getElementById('jc-thinking');
+  thinking.classList.add('show');
+  const dept = DEPARTMENTS.find(d=>d.id==='finance');
+  const res = await callClaude(dept.systemPrompt, [{role:'user',content:`Generate a complete job cost report for "${project}" at Elevate Construction LLC.
+Contract Value: $${contract}
+Labor: $${labor}
+Materials: $${materials}
+Subcontractors: $${subs}
+Equipment/Other: $${other}
+Include: cost breakdown, gross profit, overhead allocation, net profit, variance analysis, recommendations to improve margins. Plain text, no markdown.`}], 1500);
+  thinking.classList.remove('show');
+  document.getElementById('jc-output').innerHTML = `
+    <div class="panel"><div class="panel-header"><h3>📊 Job Cost Report — ${project}</h3></div>
+    <div class="panel-body"><div style="font-size:13px;line-height:1.9;white-space:pre-wrap;color:rgba(255,255,255,.85);">${esc(res)}</div>
+    <hr class="section-divider">
+    <button class="btn-secondary" onclick="copyText('${encodeURIComponent(res)}')">📋 Copy Report</button>
+    <button class="btn-secondary" onclick="downloadTxt('${encodeURIComponent(res)}','JobCost_${project.replace(/\s/g,'_')}')">💾 Download</button>
+    </div></div>`;
+  queryCount++; document.getElementById('metric-queries').textContent=queryCount;
+  localStorage.setItem('elevate_query_count',queryCount);
+  addActivity('📊 Job cost report: '+project);
+}
+
+// ── P&L REPORT ────────────────────────────────────────────────
+async function generatePLReport(){
+  if(!apiKey){ openApiModal(); return; }
+  const period    = document.getElementById('pl-period').value;
+  const revenue   = document.getElementById('pl-revenue').value||'0';
+  const labor     = document.getElementById('pl-labor').value||'0';
+  const materials = document.getElementById('pl-materials').value||'0';
+  const subs      = document.getElementById('pl-subs').value||'0';
+  const overhead  = document.getElementById('pl-overhead').value||'0';
+  const equipment = document.getElementById('pl-equipment').value||'0';
+  const other     = document.getElementById('pl-other').value||'0';
+  const notes     = document.getElementById('pl-notes').value||'';
+  const thinking  = document.getElementById('pl-thinking');
+  thinking.classList.add('show');
+  const dept = DEPARTMENTS.find(d=>d.id==='finance');
+  const res = await callClaude(dept.systemPrompt,[{role:'user',content:`Generate a complete Profit & Loss statement for Elevate Construction LLC for ${period}.
+Total Revenue: $${revenue}
+Direct Costs: Labor $${labor} | Materials $${materials} | Subcontractors $${subs} | Equipment $${equipment}
+Overhead: $${overhead}
+Other Expenses: $${other}
+Notes: ${notes}
+Include: revenue, COGS breakdown, gross profit & margin %, operating expenses, EBITDA, net profit & margin %, YoY context if possible, executive summary with Sarah's CFO recommendations. Plain text format, professional, ready to present.`}], 2500);
+  thinking.classList.remove('show');
+  document.getElementById('pl-output').innerHTML = `
+    <div class="branded-doc" style="margin-top:16px;">
+      <div class="doc-header"><div class="doc-logo-row">
+        <div><div class="doc-company-name">📈 PROFIT & LOSS — ${period}</div>
+        <div class="doc-tagline">Elevate Construction LLC · Confidential Financial Report</div></div>
+      </div></div>
+      <div class="doc-body"><div style="font-size:13px;line-height:1.9;white-space:pre-wrap;color:rgba(255,255,255,.85);">${esc(res)}</div>
+      <hr class="section-divider">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-secondary" onclick="copyText('${encodeURIComponent(res)}')">📋 Copy</button>
+        <button class="btn-secondary" onclick="downloadTxt('${encodeURIComponent(res)}','PL_${period.replace(/\s/g,'_')}')">💾 Download</button>
+      </div></div>
+      <div class="doc-footer"><span>Prepared by Sarah Chen, CFO · Elevate Construction LLC</span></div>
+    </div>`;
+  queryCount++; document.getElementById('metric-queries').textContent=queryCount;
+  localStorage.setItem('elevate_query_count',queryCount);
+  addActivity('📈 P&L report generated: '+period);
+}
+
+// ── EXPENSES ──────────────────────────────────────────────────
+function addExpense(){
+  const desc     = document.getElementById('exp-desc').value.trim();
+  const amount   = parseFloat(document.getElementById('exp-amount').value)||0;
+  const category = document.getElementById('exp-category').value;
+  const job      = document.getElementById('exp-job').value.trim()||'General';
+  const date     = document.getElementById('exp-date').value.trim()||new Date().toLocaleDateString();
+  const paidBy   = document.getElementById('exp-paid').value;
+  if(!desc||!amount){ alert('Enter description and amount.'); return; }
+  const exp = { id:Date.now(), desc, amount, category, job, date, paidBy, created:new Date().toISOString() };
+  expenses.push(exp);
+  saveExpenses();
+  renderExpenseList();
+  ['exp-desc','exp-amount','exp-job','exp-date'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  addActivity('💳 Expense logged: '+desc+' — '+fmtMoney(amount));
+}
+
+function renderExpenseList(){
+  const list = document.getElementById('expense-list');
+  if(!list) return;
+  if(!expenses.length){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:13px;">No expenses logged yet.</div>';
+    return;
+  }
+  const total = expenses.reduce((a,e)=>a+e.amount,0);
+  list.innerHTML = `<div style="padding:10px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;">
+    <span style="font-size:11px;color:rgba(255,255,255,.4);">${expenses.length} expenses</span>
+    <span style="font-size:13px;font-weight:700;color:#fca5a5;">Total: ${fmtMoney(total)}</span>
+  </div>`+
+  expenses.slice().reverse().map(exp=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.05);">
+      <div style="flex:1;">
+        <div style="font-size:13px;color:rgba(255,255,255,.85);font-weight:500;">${esc(exp.desc)}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">${exp.category} · ${exp.job} · ${exp.date}</div>
+      </div>
+      <div style="font-weight:700;color:#fca5a5;">${fmtMoney(exp.amount)}</div>
+      <button onclick="removeExpense(${exp.id})" style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.2);color:#fca5a5;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;">✕</button>
+    </div>`).join('');
+}
+
+function removeExpense(id){
+  expenses = expenses.filter(e=>e.id!==id);
+  saveExpenses(); renderExpenseList();
+}
+
+function exportExpenseCSV(){
+  const rows=[['Date','Description','Category','Job','Amount','Paid By']];
+  expenses.forEach(e=>rows.push([e.date,e.desc,e.category,e.job,e.amount,e.paidBy]));
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='Elevate_Expenses.csv'; a.click();
+  URL.revokeObjectURL(url);
+  addActivity('📥 Expense CSV exported');
+}
+
+async function expenseAiAnalysis(){
+  if(!apiKey){ openApiModal(); return; }
+  if(!expenses.length){ alert('Log some expenses first.'); return; }
+  const out = document.getElementById('expense-ai-output');
+  out.innerHTML='<div class="thinking-bar show" style="margin:10px 0;"><div class="spinner"></div><span class="thinking-text">Sarah is analyzing your expenses...</span></div>';
+  const summary = expenses.map(e=>`${e.date}: ${e.desc} (${e.category}) — ${fmtMoney(e.amount)} — Job: ${e.job}`).join('\n');
+  const total = expenses.reduce((a,e)=>a+e.amount,0);
+  const dept = DEPARTMENTS.find(d=>d.id==='finance');
+  const res = await callClaude(dept.systemPrompt,[{role:'user',content:`Analyze these expenses for Elevate Construction LLC:
+${summary}
+Total: ${fmtMoney(total)}
+
+Give me: 1) Top spending categories, 2) Any unusual or high expenses to review, 3) Tax deductibility notes for Georgia construction company, 4) Recommendations to reduce costs. Be specific and actionable.`}], 800);
+  out.innerHTML=`<div class="panel"><div class="panel-header"><h3>💰 Sarah's Expense Analysis</h3></div><div class="panel-body" style="font-size:13px;line-height:1.8;color:rgba(255,255,255,.82);white-space:pre-wrap;">${esc(res)}</div></div>`;
+  queryCount++; document.getElementById('metric-queries').textContent=queryCount;
+  localStorage.setItem('elevate_query_count',queryCount);
+}
+
+// ── INIT ACCOUNTING ───────────────────────────────────────────
+function initAccounting(){
+  invoices = JSON.parse(localStorage.getItem('elevate_invoices')||'[]');
+  expenses = JSON.parse(localStorage.getItem('elevate_expenses')||'[]');
+  renderInvoiceList();
+  renderExpenseList();
+  updateAccMetrics();
+}
+
+// =====================================================
+// RECEIPT SCANNER — Camera + Upload + AI OCR
+// =====================================================
+let currentReceiptImage = null; // base64 of scanned receipt
+let cameraStream = null;
+
+// ── DRAG & DROP ───────────────────────────────────────────────
+function receiptDragOver(e){
+  e.preventDefault();
+  const z = document.getElementById('receipt-drop-zone');
+  if(z){ z.style.borderColor='rgba(245,158,11,.9)'; z.style.background='rgba(245,158,11,.1)'; }
+}
+function receiptDragLeave(e){
+  const z = document.getElementById('receipt-drop-zone');
+  if(z){ z.style.borderColor='rgba(245,158,11,.4)'; z.style.background='rgba(245,158,11,.04)'; }
+}
+function receiptFileDrop(e){
+  e.preventDefault(); receiptDragLeave(e);
+  if(e.dataTransfer.files.length) scanReceipt(e.dataTransfer.files);
+}
+
+// ── CAMERA ────────────────────────────────────────────────────
+async function openCamera(){
+  const wrap = document.getElementById('camera-wrap');
+  const video = document.getElementById('camera-video');
+  try{
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:'environment', width:{ideal:1920}, height:{ideal:1080} }
+    });
+    video.srcObject = cameraStream;
+    wrap.style.display = 'block';
+    document.getElementById('receipt-drop-zone').style.display = 'none';
+  }catch(err){
+    alert('Camera access denied or not available. Please upload a photo instead.\n'+err.message);
+  }
+}
+
+function capturePhoto(){
+  const video  = document.getElementById('camera-video');
+  const canvas = document.getElementById('camera-canvas');
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const base64 = canvas.toDataURL('image/jpeg', 0.92).split(',')[1];
+  closeCamera();
+  processReceiptImage(base64, 'image/jpeg', 'camera_photo.jpg');
+}
+
+function closeCamera(){
+  if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; }
+  document.getElementById('camera-wrap').style.display = 'none';
+  document.getElementById('receipt-drop-zone').style.display = 'block';
+}
+
+// ── FILE UPLOAD ───────────────────────────────────────────────
+async function scanReceipt(files){
+  const file = files[0]; if(!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  if(ext === 'pdf'){
+    // Use PDF.js to render first page as image
+    showReceiptStatus('Reading PDF receipt...');
+    const fileData = await readPDFForProposal(file);
+    if(fileData.type === 'pdf' && fileData.pages.length){
+      processReceiptImage(fileData.pages[0], 'image/jpeg', file.name);
+    } else {
+      showReceiptStatus('Could not read PDF — try a JPG or PNG photo instead.');
+    }
+    return;
+  }
+
+  // Image file
+  showReceiptStatus('Reading receipt image...');
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const b64 = ev.target.result.split(',')[1];
+    processReceiptImage(b64, file.type||'image/jpeg', file.name);
+  };
+  reader.readAsDataURL(file);
+}
+
+function showReceiptStatus(msg){
+  const s = document.getElementById('receipt-scan-status');
+  const t = document.getElementById('receipt-scan-text');
+  if(s) s.style.display = 'block';
+  if(t) t.textContent = msg;
+}
+function hideReceiptStatus(){
+  const s = document.getElementById('receipt-scan-status');
+  if(s) s.style.display = 'none';
+}
+
+// ── AI RECEIPT READER ─────────────────────────────────────────
+async function processReceiptImage(base64, mediaType, filename){
+  if(!apiKey){ openApiModal(); return; }
+  currentReceiptImage = base64;
+
+  showReceiptStatus('AI is reading your receipt...');
+
+  const steps = [
+    'Reading vendor name...',
+    'Extracting line items...',
+    'Finding total amount...',
+    'Detecting date...',
+    'Categorizing expense...'
+  ];
+  let si = 0;
+  const st = setInterval(()=>{
+    const t = document.getElementById('receipt-scan-text');
+    if(t && si < steps.length) t.textContent = steps[si++];
+  }, 800);
+
+  const today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+  const sys = `You are a receipt scanner AI for Elevate Construction LLC. Read every detail from this receipt image.
+Respond ONLY with a raw JSON object — no markdown, no explanation, no code fences.
+Use exactly these keys:
+- vendor (store/vendor name)
+- amount (total amount as number, no $ sign)
+- date (date on receipt, or "${today}" if not visible)
+- category (one of: Materials, Labor, Equipment Rental, Fuel & Transportation, Subcontractor, Tools & Supplies, Insurance, Office & Admin, Marketing, Other)
+- items (string listing all line items found, comma separated)
+- tax (tax amount as number, 0 if not found)
+- payment_method (Cash, Credit Card, Debit Card, Check, or Unknown)
+- confidence (High, Medium, or Low — how confident you are in the reading)
+- notes (any other useful info from the receipt)`;
+
+  try{
+    const raw = await callClaude(sys, [{
+      role: 'user',
+      content: [
+        { type:'image', source:{ type:'base64', media_type:mediaType, data:base64 } },
+        { type:'text', text:`Read this receipt from ${filename}. Extract all details and return JSON.` }
+      ]
+    }], 1000);
+
+    clearInterval(st);
+    hideReceiptStatus();
+
+    // Parse JSON response
+    let data = {};
+    try{
+      const clean = raw.replace(/```json|```/g,'').trim();
+      const match = clean.match(/\{[\s\S]*\}/);
+      data = JSON.parse(match ? match[0] : clean);
+    }catch(e){
+      console.error('[Receipt] Parse error:', e, raw);
+      data = { vendor:'Unknown Vendor', amount:0, date:today, category:'Other', items:raw.slice(0,200), confidence:'Low' };
+    }
+
+    // Show preview with extracted data
+    showReceiptPreview(data, base64);
+    addActivity('📸 Receipt scanned: '+data.vendor+' — $'+data.amount);
+    queryCount++; document.getElementById('metric-queries').textContent=queryCount;
+    localStorage.setItem('elevate_query_count',queryCount);
+
+  }catch(err){
+    clearInterval(st);
+    hideReceiptStatus();
+    document.getElementById('receipt-drop-zone').innerHTML +=
+      `<div class="error-box" style="margin-top:10px;">❌ Scan failed: ${err.message}</div>`;
+  }
+}
+
+function showReceiptPreview(data, base64){
+  const preview = document.getElementById('receipt-preview');
+  if(!preview) return;
+
+  // Fill form fields
+  const set = (id, val) => { const el=document.getElementById(id); if(el && val) el.value = String(val); };
+  set('rcp-vendor',   data.vendor||'');
+  set('rcp-amount',   data.amount||'');
+  set('rcp-date',     data.date||new Date().toLocaleDateString());
+  set('rcp-items',    data.items||'');
+  if(data.category){
+    const sel = document.getElementById('rcp-category');
+    if(sel){ for(let o of sel.options){ if(o.value===data.category){ sel.value=data.category; break; } } }
+  }
+  if(data.payment_method){
+    const pd = document.getElementById('rcp-paid');
+    if(pd){
+      const pm = data.payment_method;
+      if(pm.includes('Cash')) pd.value='Cash';
+      else if(pm.includes('Check')) pd.value='Check';
+      else pd.value='Company Card';
+    }
+  }
+
+  // Show receipt thumbnail
+  const imgWrap = document.getElementById('rcp-img-preview');
+  if(imgWrap && base64){
+    imgWrap.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(255,255,255,.04);border-radius:8px;border:1px solid rgba(255,255,255,.08);">
+        <img src="data:image/jpeg;base64,${base64}" style="width:70px;height:70px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.1);">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);">Receipt Image Attached</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;">Confidence: <span style="color:${data.confidence==='High'?'#6ee7b7':data.confidence==='Medium'?'#fcd34d':'#fca5a5'}">${data.confidence||'Medium'}</span></div>
+          ${data.tax?`<div style="font-size:11px;color:rgba(255,255,255,.4);">Tax: $${data.tax}</div>`:''}
+        </div>
+      </div>`;
+  }
+
+  preview.style.display = 'block';
+  document.getElementById('receipt-drop-zone').style.display = 'none';
+}
+
+function cancelReceiptScan(){
+  document.getElementById('receipt-preview').style.display = 'none';
+  document.getElementById('receipt-drop-zone').style.display = 'block';
+  currentReceiptImage = null;
+}
+
+function saveScannedReceipt(){
+  const vendor   = document.getElementById('rcp-vendor').value.trim() || 'Unknown Vendor';
+  const amount   = parseFloat(document.getElementById('rcp-amount').value)||0;
+  const date     = document.getElementById('rcp-date').value.trim() || new Date().toLocaleDateString();
+  const category = document.getElementById('rcp-category').value;
+  const job      = document.getElementById('rcp-job').value.trim() || 'General';
+  const paidBy   = document.getElementById('rcp-paid').value;
+  const items    = document.getElementById('rcp-items').value.trim();
+
+  if(!amount){ alert('Please confirm the amount before saving.'); return; }
+
+  const exp = {
+    id:       Date.now(),
+    desc:     vendor,
+    amount,
+    category,
+    job,
+    date,
+    paidBy,
+    items,
+    hasReceipt: true,
+    receiptImage: currentReceiptImage, // store base64 thumbnail
+    source:   'Receipt Scan',
+    created:  new Date().toISOString()
+  };
+
+  expenses.push(exp);
+  saveExpenses();
+  renderExpenseList();
+  updateAccMetrics();
+
+  // Reset
+  cancelReceiptScan();
+  document.getElementById('receipt-file-input').value = '';
+  currentReceiptImage = null;
+
+  // Flash success
+  const dz = document.getElementById('receipt-drop-zone');
+  dz.style.borderColor = 'rgba(16,185,129,.8)';
+  dz.style.background  = 'rgba(16,185,129,.08)';
+  setTimeout(()=>{ dz.style.borderColor='rgba(245,158,11,.4)'; dz.style.background='rgba(245,158,11,.04)'; }, 2000);
+
+  addActivity('💾 Receipt saved: '+vendor+' — $'+amount.toFixed(2));
+  showView('accounting');
+  // Switch to expenses tab
+  document.querySelectorAll('#accounting-tabs .tab').forEach((t,i)=>t.classList.toggle('active',i===3));
+  document.querySelectorAll('[id^="accounting-"]').forEach(el=>{
+    if(el.classList.contains('tab-content')) el.classList.toggle('active', el.id==='accounting-expenses');
+  });
+}
+
+// =====================================================
+// ENHANCED EXPENSE RENDERING with filters + totals
+// =====================================================
+function renderExpenseList(){
+  const list   = document.getElementById('expense-list');
+  const totals = document.getElementById('expense-totals');
+  if(!list) return;
+
+  const filterCat    = document.getElementById('exp-filter-cat')?.value||'';
+  const filterPaid   = document.getElementById('exp-filter-paid')?.value||'';
+  const filterSearch = (document.getElementById('exp-filter-search')?.value||'').toLowerCase();
+
+  let filtered = expenses.filter(e=>{
+    const matchCat    = !filterCat  || e.category===filterCat;
+    const matchPaid   = !filterPaid || e.paidBy===filterPaid;
+    const matchSearch = !filterSearch || e.desc.toLowerCase().includes(filterSearch) || (e.job||'').toLowerCase().includes(filterSearch);
+    return matchCat && matchPaid && matchSearch;
+  });
+
+  if(!filtered.length){
+    list.innerHTML='<div style="text-align:center;padding:24px;color:rgba(255,255,255,.3);font-size:13px;">No expenses found.</div>';
+    if(totals) totals.innerHTML='';
+    return;
+  }
+
+  list.innerHTML = `
+    <div style="display:grid;grid-template-columns:2.5fr 1fr 1fr 1fr auto auto;gap:0;font-size:10px;font-weight:700;
+                color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;
+                padding:8px 16px;border-bottom:1px solid rgba(255,255,255,.08);">
+      <span>Description</span><span>Category</span><span>Job</span><span>Date</span><span>Amount</span><span></span>
+    </div>`+
+  filtered.slice().reverse().map(exp=>`
+    <div style="display:grid;grid-template-columns:2.5fr 1fr 1fr 1fr auto auto;gap:0;
+                padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.05);align-items:center;
+                transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background=''">
+      <div>
+        <div style="font-size:13px;color:rgba(255,255,255,.85);font-weight:500;display:flex;align-items:center;gap:6px;">
+          ${exp.hasReceipt?'📸':'✏️'} ${esc(exp.desc)}
+        </div>
+        <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px;">${exp.paidBy}${exp.source?' · '+exp.source:''}</div>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,.5);">${exp.category}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.5);">${exp.job||'General'}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.45);">${exp.date}</div>
+      <div style="font-weight:700;color:#fca5a5;font-size:13px;">$${(exp.amount||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      <button onclick="removeExpense(${exp.id})"
+        style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.2);color:#fca5a5;
+               border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;margin-left:8px;">✕</button>
+    </div>`).join('');
+
+  // Totals footer
+  const total    = filtered.reduce((a,e)=>a+(e.amount||0),0);
+  const byCard   = filtered.filter(e=>e.paidBy==='Company Card').reduce((a,e)=>a+(e.amount||0),0);
+  const byCash   = filtered.filter(e=>e.paidBy==='Cash').reduce((a,e)=>a+(e.amount||0),0);
+  const receipts = filtered.filter(e=>e.hasReceipt).length;
+
+  if(totals) totals.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+      <div style="flex:1;">
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Showing ${filtered.length} of ${expenses.length} expenses</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;">📸 ${receipts} with receipt images</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Card: $${byCard.toLocaleString('en-US',{minimumFractionDigits:2})} · Cash: $${byCash.toLocaleString('en-US',{minimumFractionDigits:2})}</div>
+        <div style="font-size:17px;font-weight:800;color:#fca5a5;">Total: $${total.toLocaleString('en-US',{minimumFractionDigits:2})}</div>
+      </div>
+    </div>`;
+}
+
+// =====================================================
+// EXCEL EXPORT (SheetJS-style CSV that Excel opens perfectly)
+// =====================================================
+function exportExpenseXLSX(){
+  if(!expenses.length){ alert('No expenses to export.'); return; }
+
+  // Build a rich CSV with all columns that Excel renders beautifully
+  const headers = ['#','Date','Vendor / Description','Category','Job / Project','Amount','Tax','Payment Method','Has Receipt','Source','Notes / Items','Created'];
+  const rows = [headers];
+
+  expenses.forEach((e,i)=>{
+    rows.push([
+      i+1,
+      e.date||'',
+      e.desc||'',
+      e.category||'',
+      e.job||'General',
+      (e.amount||0).toFixed(2),
+      '',
+      e.paidBy||'',
+      e.hasReceipt?'YES':'NO',
+      e.source||'Manual',
+      (e.items||'').replace(/\n/g,' | '),
+      e.created ? new Date(e.created).toLocaleDateString() : ''
+    ]);
+  });
+
+  // Summary rows
+  rows.push([]);
+  rows.push(['SUMMARY','','','','','','','','','','','']);
+  rows.push(['Total Expenses','','','','',expenses.reduce((a,e)=>a+(e.amount||0),0).toFixed(2),'','','','','','']);
+
+  // Category breakdown
+  const cats = {};
+  expenses.forEach(e=>{ cats[e.category]=(cats[e.category]||0)+(e.amount||0); });
+  Object.entries(cats).sort((a,b)=>b[1]-a[1]).forEach(([cat,amt])=>{
+    rows.push([cat,'','','','',amt.toFixed(2),'','','','','','']);
+  });
+
+  rows.push([]);
+  rows.push(['Generated by','Elevate Construction LLC — AI HQ','','','','','','','','','Date:',new Date().toLocaleDateString()]);
+
+  const csv = rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'}); // BOM for Excel
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'Elevate_Expenses_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  addActivity('📊 Excel expense report exported');
+}
+
+// =====================================================
+// ACCOUNTANT REPORT — Formal financial summary document
+// =====================================================
+async function generateAccountantReport(){
+  if(!apiKey){ openApiModal(); return; }
+  if(!expenses.length){ alert('Log some expenses first.'); return; }
+
+  const out = document.getElementById('accountant-report-output');
+  out.innerHTML = '<div class="thinking-bar show" style="margin:10px 0;"><div class="spinner"></div><span class="thinking-text">Sarah and Jennifer are preparing your accountant report...</span></div>';
+
+  // Build expense summary
+  const total = expenses.reduce((a,e)=>a+(e.amount||0),0);
+  const cats  = {};
+  const jobs  = {};
+  const methods = {};
+  expenses.forEach(e=>{
+    cats[e.category]    = (cats[e.category]||0)+(e.amount||0);
+    jobs[e.job||'General'] = (jobs[e.job||'General']||0)+(e.amount||0);
+    methods[e.paidBy||'Unknown'] = (methods[e.paidBy||'Unknown']||0)+(e.amount||0);
+  });
+
+  const catSummary  = Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k}: $${v.toFixed(2)}`).join('\n');
+  const jobSummary  = Object.entries(jobs).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k}: $${v.toFixed(2)}`).join('\n');
+  const methSummary = Object.entries(methods).map(([k,v])=>`${k}: $${v.toFixed(2)}`).join('\n');
+  const receiptPct  = Math.round(expenses.filter(e=>e.hasReceipt).length/expenses.length*100);
+  const dateRange   = expenses.length ? expenses[0].date+' to '+expenses[expenses.length-1].date : 'N/A';
+  const expDetail   = expenses.map((e,i)=>`${i+1}. ${e.date} | ${e.desc} | ${e.category} | ${e.job||'General'} | $${(e.amount||0).toFixed(2)} | ${e.paidBy}`).join('\n');
+
+  const sys = `You are Sarah Chen, CFO, and Jennifer Harrison, Corporate Legal Advisor at Elevate Construction LLC. 
+Generate a complete, formal accountant-ready expense report. Use professional accounting language. 
+Plain text only, no markdown. Use ALL CAPS for section headers. This document will be given to an external CPA.`;
+
+  const res = await callClaude(sys, [{role:'user', content:`Generate a complete formal accountant expense report for Elevate Construction LLC.
+
+COMPANY: Elevate Construction LLC
+ADDRESS: 3343 Peachtree Rd NE Ste 145 MB 2131, Atlanta GA 30326
+PHONE: 404-719-1888
+EIN: [To be filled by owner]
+PREPARED BY: Sarah Chen, CFO
+REVIEWED BY: Jennifer Harrison, Corporate Legal Advisor
+REPORT DATE: ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
+PERIOD COVERED: ${dateRange}
+
+EXPENSE SUMMARY:
+Total Expenses: $${total.toFixed(2)}
+Total Transactions: ${expenses.length}
+Receipts on File: ${expenses.filter(e=>e.hasReceipt).length} of ${expenses.length} (${receiptPct}%)
+
+BY CATEGORY:
+${catSummary}
+
+BY JOB / PROJECT:
+${jobSummary}
+
+BY PAYMENT METHOD:
+${methSummary}
+
+DETAILED EXPENSE LOG:
+${expDetail}
+
+The report must include:
+1. Executive cover statement certifying accuracy
+2. Category breakdown with subtotals and percentages
+3. Job cost allocation summary
+4. Payment method breakdown
+5. Receipt documentation status
+6. Georgia construction-specific tax deductibility notes for each category
+7. IRS Schedule C category mappings for each expense type
+8. CFO certification statement
+9. Legal compliance note from Jennifer
+10. Signature blocks for CFO and Owner
+11. CPA instructions and notes
+
+Make it detailed, professional, and ready to hand directly to a CPA.`}], 4000);
+
+  out.innerHTML = '';
+
+  const clean = stripMarkdown(res);
+
+  out.innerHTML = `
+    <div class="branded-doc" style="margin-top:16px;">
+      <div class="doc-header">
+        <div class="doc-logo-row">
+          <div>
+            <div class="doc-company-name">📋 EXPENSE REPORT — ACCOUNTANT COPY</div>
+            <div class="doc-tagline">Elevate Construction LLC · Confidential Financial Document</div>
+          </div>
+          <div style="text-align:right;font-size:11px;opacity:.8;">
+            <div style="font-size:18px;font-weight:800;color:#fca5a5;">$${total.toLocaleString('en-US',{minimumFractionDigits:2})}</div>
+            <div>${expenses.length} transactions · ${dateRange}</div>
+          </div>
+        </div>
+        <div class="doc-meta" style="margin-top:12px;">
+          <div class="doc-meta-item"><strong>Period</strong>${dateRange}</div>
+          <div class="doc-meta-item"><strong>Transactions</strong>${expenses.length}</div>
+          <div class="doc-meta-item"><strong>Receipts on File</strong>${expenses.filter(e=>e.hasReceipt).length} (${receiptPct}%)</div>
+          <div class="doc-meta-item"><strong>Prepared By</strong>Sarah Chen, CFO</div>
+        </div>
+      </div>
+      <div class="doc-body">
+        <div style="font-size:13px;line-height:1.95;white-space:pre-wrap;color:rgba(255,255,255,.85);">${esc(clean)}</div>
+        <hr class="section-divider">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-primary" style="width:auto;" onclick="downloadTxt('${encodeURIComponent(clean)}','Elevate_Accountant_Report_${new Date().toISOString().slice(0,10)}')">💾 Download Report</button>
+          <button class="btn-secondary" onclick="exportExpenseXLSX()">📊 Download Excel Sheet</button>
+          <button class="btn-secondary" onclick="copyText('${encodeURIComponent(clean)}')">📋 Copy</button>
+        </div>
+        <div style="margin-top:12px;padding:10px 14px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;font-size:11px;color:rgba(253,186,116,.8);">
+          ⚠️ This report is AI-generated for internal use and CPA preparation. Your CPA should verify all figures, tax treatments, and IRS classifications before filing.
+        </div>
+      </div>
+      <div class="doc-footer">
+        <span>Prepared by Sarah Chen, CFO · Reviewed by Jennifer Harrison, Legal</span>
+        <span>Elevate Construction LLC · ${new Date().getFullYear()}</span>
+      </div>
+    </div>`;
+
+  queryCount++; document.getElementById('metric-queries').textContent=queryCount;
+  localStorage.setItem('elevate_query_count',queryCount);
+  addActivity('📋 Accountant expense report generated — '+expenses.length+' transactions');
+  out.scrollIntoView({behavior:'smooth'});
+}
+
+// =====================================================
+// EMAIL RECEIPT PROCESSING
+// =====================================================
+let emailReceipts = JSON.parse(localStorage.getItem('elevate_email_receipts')||'[]');
+function saveEmailReceipts(){ localStorage.setItem('elevate_email_receipts', JSON.stringify(emailReceipts)); }
+
+// ── DRAG & DROP for email file ────────────────────────────────
+function emailFileDragOver(e){
+  e.preventDefault();
+  const z = document.getElementById('email-file-drop');
+  if(z){ z.style.borderColor='rgba(37,99,235,.9)'; z.style.background='rgba(37,99,235,.1)'; }
+}
+function emailFileDragLeave(e){
+  const z = document.getElementById('email-file-drop');
+  if(z){ z.style.borderColor='rgba(37,99,235,.35)'; z.style.background='rgba(37,99,235,.04)'; }
+}
+function emailFileDrop(e){
+  e.preventDefault(); emailFileDragLeave(e);
+  if(e.dataTransfer.files.length) processEmailReceiptFile(e.dataTransfer.files);
+}
+
+// ── PROCESS EMAIL RECEIPT FILE ────────────────────────────────
+async function processEmailReceiptFile(files){
+  const file = files[0]; if(!file) return;
+  if(!apiKey){ openApiModal(); return; }
+
+  const statusEl   = document.getElementById('email-file-status');
+  const statusText = document.getElementById('email-file-status-text');
+  statusEl.style.display = 'block';
+  statusText.textContent  = 'Reading "'+file.name+'"...';
+
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  try{
+    let fileContent = '';
+    let fileData    = null;
+
+    if(['png','jpg','jpeg'].includes(ext)){
+      // Image — use vision
+      statusText.textContent = 'Reading email screenshot with vision AI...';
+      fileData = await new Promise((res,rej)=>{
+        const r = new FileReader();
+        r.onload = ev => res({ type:'image', base64: ev.target.result.split(',')[1], mediaType: file.type||'image/jpeg' });
+        r.onerror = rej;
+        r.readAsDataURL(file);
+      });
+    } else if(ext === 'pdf'){
+      statusText.textContent = 'Scanning PDF email receipt...';
+      const pdfData = await readPDFForProposal(file);
+      if(pdfData.type === 'pdf' && pdfData.pages.length){
+        fileData = { type:'image', base64: pdfData.pages[0], mediaType:'image/jpeg' };
+      }
+    } else {
+      // Text-based: .eml, .html, .txt
+      statusText.textContent = 'Extracting text from email file...';
+      const raw = await file.text();
+      // Strip HTML tags if html/eml
+      fileContent = raw.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,6000);
+      fileData = { type:'text', content: fileContent };
+    }
+
+    statusText.textContent = 'AI is reading the receipt...';
+    await extractAndLogEmailReceipt(fileData, file.name, document.getElementById('email-receipt-job')?.value||'General');
+
+    statusEl.style.background  = 'rgba(16,185,129,.1)';
+    statusEl.style.borderColor = 'rgba(16,185,129,.25)';
+    statusEl.style.color       = '#6ee7b7';
+    statusText.textContent     = '✅ Receipt from "'+file.name+'" logged successfully!';
+    setTimeout(()=>{ statusEl.style.display='none'; statusEl.style.background=''; statusEl.style.color='#93c5fd'; }, 3500);
+
+  }catch(err){
+    statusEl.style.background  = 'rgba(220,38,38,.1)';
+    statusEl.style.color       = '#fca5a5';
+    statusText.textContent     = '❌ Error: '+err.message;
+    console.error('[EmailReceipt]', err);
+  }
+}
+
+// ── PROCESS PASTED EMAIL TEXT ─────────────────────────────────
+async function processEmailReceipt(){
+  if(!apiKey){ openApiModal(); return; }
+  const text    = document.getElementById('email-receipt-text').value.trim();
+  const job     = document.getElementById('email-receipt-job').value.trim()||'General';
+  if(!text){ alert('Paste the email receipt text first.'); return; }
+
+  const thinking = document.getElementById('email-receipt-thinking');
+  thinking.classList.add('show');
+
+  try{
+    await extractAndLogEmailReceipt({ type:'text', content:text.slice(0,5000) }, 'Pasted Email', job);
+    document.getElementById('email-receipt-text').value = '';
+    thinking.classList.remove('show');
+  }catch(err){
+    thinking.classList.remove('show');
+    document.getElementById('email-receipt-output').innerHTML = `<div class="error-box">Error: ${err.message}</div>`;
+  }
+}
+
+// ── CORE: Extract data and log from any email source ──────────
+async function extractAndLogEmailReceipt(fileData, sourceName, job){
+  const today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+  const sys = `You are a receipt parsing AI for Elevate Construction LLC.
+Extract all financial details from this email receipt or confirmation.
+Respond ONLY with a raw JSON object. No markdown, no explanation, no code fences.
+Keys required:
+- vendor (company/store name)
+- amount (total as number, no $ sign)
+- subtotal (subtotal as number, 0 if not found)
+- tax (tax as number, 0 if not found)
+- date (date on receipt, or "${today}")
+- order_number (order/invoice/confirmation number or empty string)
+- category (one of: Materials, Labor, Equipment Rental, Fuel & Transportation, Subcontractor, Tools & Supplies, Insurance, Office & Admin, Marketing, Other)
+- items (all line items as a single string, pipe-separated)
+- payment_method (how it was paid or "Unknown")
+- email_type (Receipt, Invoice, Confirmation, Statement, or Other)
+- confidence (High, Medium, or Low)`;
+
+  let userContent;
+  if(fileData.type === 'image'){
+    userContent = [
+      { type:'image', source:{ type:'base64', media_type:fileData.mediaType, data:fileData.base64 } },
+      { type:'text', text:'Extract all receipt/invoice details from this email. Return JSON only.' }
+    ];
+  } else {
+    userContent = [{ type:'text', text:'Email content:\n'+fileData.content+'\n\nExtract all receipt details. Return JSON only.' }];
+  }
+
+  const raw = await callClaude(sys, [{role:'user', content:userContent}], 1000);
+
+  let data = {};
+  try{
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const match = clean.match(/\{[\s\S]*\}/);
+    data = JSON.parse(match ? match[0] : clean);
+  }catch(e){
+    console.warn('[EmailReceipt] JSON parse failed, using fallback');
+    data = { vendor:sourceName, amount:0, date:today, category:'Other',
+             items:raw.slice(0,200), confidence:'Low', email_type:'Receipt' };
+  }
+
+  // Save to email receipt log
+  const emailRec = {
+    id:           Date.now(),
+    vendor:       data.vendor||sourceName,
+    amount:       parseFloat(data.amount)||0,
+    subtotal:     parseFloat(data.subtotal)||0,
+    tax:          parseFloat(data.tax)||0,
+    date:         data.date||today,
+    orderNum:     data.order_number||'',
+    category:     data.category||'Other',
+    items:        data.items||'',
+    paidBy:       data.payment_method||'Company Card',
+    emailType:    data.email_type||'Receipt',
+    confidence:   data.confidence||'Medium',
+    source:       sourceName,
+    job:          job,
+    processed_at: new Date().toISOString()
+  };
+
+  emailReceipts.unshift(emailRec);
+  saveEmailReceipts();
+
+  // Also automatically add to main expense log
+  const exp = {
+    id:         emailRec.id+1,
+    desc:       emailRec.vendor + (emailRec.orderNum?' #'+emailRec.orderNum:''),
+    amount:     emailRec.amount,
+    category:   emailRec.category,
+    job:        emailRec.job,
+    date:       emailRec.date,
+    paidBy:     emailRec.paidBy,
+    items:      emailRec.items,
+    hasReceipt: false,
+    source:     'Email Receipt',
+    created:    new Date().toISOString()
+  };
+  expenses.push(exp);
+  saveExpenses();
+
+  // Update both logs
+  renderEmailReceiptLog();
+  renderExpenseList();
+  updateAccMetrics();
+
+  // Show result card
+  showEmailReceiptResult(emailRec);
+
+  addActivity('📧 Email receipt logged: '+emailRec.vendor+' — $'+emailRec.amount.toFixed(2));
+  queryCount++; document.getElementById('metric-queries').textContent=queryCount;
+  localStorage.setItem('elevate_query_count',queryCount);
+}
+
+// ── RENDER EMAIL RECEIPT LOG ──────────────────────────────────
+function renderEmailReceiptLog(){
+  const log     = document.getElementById('email-receipt-log');
+  const counter = document.getElementById('email-receipt-count');
+  if(!log) return;
+
+  if(counter) counter.textContent = emailReceipts.length+' email receipts';
+
+  if(!emailReceipts.length){
+    log.innerHTML='<div style="text-align:center;padding:24px;color:rgba(255,255,255,.3);font-size:13px;">No email receipts yet.<br>Paste an email above or connect your Gmail/Outlook webhooks.</div>';
+    return;
+  }
+
+  log.innerHTML = emailReceipts.map(rec=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.05);
+                transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background=''">
+      <div style="width:36px;height:36px;border-radius:8px;background:rgba(37,99,235,.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📧</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:13px;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          ${esc(rec.vendor)} ${rec.orderNum?'<span style="font-size:10px;color:rgba(255,255,255,.35);">#'+esc(rec.orderNum)+'</span>':''}
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;">
+          ${rec.category} · ${rec.job} · ${rec.date}
+          ${rec.items?'<br><span style="color:rgba(255,255,255,.3);">'+esc(rec.items.slice(0,80))+(rec.items.length>80?'...':'')+'</span>':''}
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-weight:700;font-size:13px;color:#6ee7b7;">$${rec.amount.toLocaleString('en-US',{minimumFractionDigits:2})}</div>
+        <div style="font-size:10px;margin-top:2px;padding:1px 7px;border-radius:10px;
+          background:${rec.confidence==='High'?'rgba(16,185,129,.2)':rec.confidence==='Medium'?'rgba(245,158,11,.2)':'rgba(220,38,38,.2)'};
+          color:${rec.confidence==='High'?'#6ee7b7':rec.confidence==='Medium'?'#fcd34d':'#fca5a5'};">
+          ${rec.confidence} confidence</div>
+      </div>
+      <button onclick="removeEmailReceipt(${rec.id})"
+        style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.2);color:#fca5a5;
+               border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;flex-shrink:0;">✕</button>
+    </div>`).join('');
+}
+
+function removeEmailReceipt(id){
+  emailReceipts = emailReceipts.filter(r=>r.id!==id);
+  saveEmailReceipts();
+  renderEmailReceiptLog();
+}
+
+// ── SHOW EXTRACTED RESULT ─────────────────────────────────────
+function showEmailReceiptResult(rec){
+  const out = document.getElementById('email-receipt-output');
+  if(!out) return;
+  out.innerHTML = `
+    <div class="success-box" style="margin-bottom:12px;">
+      ✅ Receipt logged successfully from <strong>${esc(rec.source)}</strong><br>
+      Added to both your Email Receipt Log and main Expense Log.
+    </div>
+    <div class="panel">
+      <div class="panel-header"><h3>📧 Extracted Receipt Details</h3><p>${esc(rec.vendor)} · ${esc(rec.date)}</p></div>
+      <div class="panel-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+          ${[
+            ['Vendor', rec.vendor],
+            ['Total', '$'+rec.amount.toFixed(2)],
+            ['Date', rec.date],
+            ['Order #', rec.orderNum||'—'],
+            ['Category', rec.category],
+            ['Job', rec.job],
+            ['Payment', rec.paidBy],
+            ['Confidence', rec.confidence],
+          ].map(([l,v])=>`
+            <div style="background:rgba(255,255,255,.05);border-radius:8px;padding:10px;">
+              <div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;">${l}</div>
+              <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.85);">${esc(String(v))}</div>
+            </div>`).join('')}
+        </div>
+        ${rec.items?`<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:10px;font-size:12px;color:rgba(255,255,255,.6);line-height:1.8;">
+          <div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Line Items</div>
+          ${esc(rec.items.replace(/\|/g,'\n'))}</div>`:''}
+        ${rec.tax?`<div style="margin-top:8px;font-size:12px;color:rgba(255,255,255,.5);">Subtotal: $${rec.subtotal.toFixed(2)} · Tax: $${rec.tax.toFixed(2)}</div>`:''}
+      </div>
+    </div>`;
+  out.scrollIntoView({behavior:'smooth'});
+}
+
+// ── SERVER-SIDE RECEIPT WEBHOOK ───────────────────────────────
+// Called when Railway server receives an email with receipt keywords
+function checkServerEmailReceipts(){
+  fetch(SERVER_URL+'/api/email-receipts')
+    .then(r=>r.json())
+    .then(data=>{
+      if(!data.receipts || !data.receipts.length) return;
+      data.receipts.forEach(async rec=>{
+        // Check not already processed
+        const exists = emailReceipts.some(r=>r.orderNum===rec.order_number && r.vendor===rec.vendor);
+        if(!exists && rec.email_text){
+          await extractAndLogEmailReceipt({ type:'text', content:rec.email_text }, 'Auto: '+rec.from_address, 'General');
+        }
+      });
+    })
+    .catch(()=>{}); // silent fail
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+function initEmailReceipts(){
+  emailReceipts = JSON.parse(localStorage.getItem('elevate_email_receipts')||'[]');
+  renderEmailReceiptLog();
+  // Check server for any auto-detected email receipts
+  setTimeout(checkServerEmailReceipts, 3000);
+}
+
+// ── MANUAL EMAIL CLEANUP ──────────────────────────────────────
+function manualEmailCleanup(){
+  const before = emailItems.length;
+  emailItems = cleanOldEmails(emailItems);
+  const removed = before - emailItems.length;
+  saveEmails();
+  renderEmailList();
+  if(removed > 0){
+    addActivity('🗑️ Manually removed '+removed+' old emails from app cache');
+  } else {
+    addActivity('✅ No old emails to clean up — all under 30 days');
+  }
+  // Update count display
+  const countEl = document.getElementById('email-count-display');
+  if(countEl) countEl.textContent = emailItems.length+' email'+(emailItems.length!==1?'s':'');
+}
+
+// ── ADD EMAIL TO INBOX (called by webhooks/server sync) ───────
+function addEmailToInbox(from, subject, preview, source){
+  const email = {
+    id:          Date.now()+Math.floor(Math.random()*1000),
+    from:        from||'Unknown Sender',
+    subject:     subject||'No Subject',
+    preview:     preview||'',
+    unread:      true,
+    source:      source||'webhook',
+    received_at: new Date().toISOString(),
+    time:        'Just now'
+  };
+  emailItems.unshift(email);
+  // Keep max 200 emails in app at any time
+  if(emailItems.length > 200) emailItems = emailItems.slice(0, 200);
+  saveEmails();
+  renderEmailList();
+  updateEmailBadge();
+  addActivity('📧 New email: '+from+' — '+subject.slice(0,40));
+  return email;
+}
+
+// ── DAILY CLEANUP CHECK (runs on load) ───────────────────────
+function scheduleDailyCleanup(){
+  const lastClean = localStorage.getItem('elevate_last_email_cleanup');
+  const now       = Date.now();
+  const ONE_DAY   = 86400000;
+
+  if(!lastClean || (now - parseInt(lastClean)) > ONE_DAY){
+    // Run cleanup once per day
+    const before = emailItems.length;
+    emailItems   = cleanOldEmails(emailItems);
+    if(emailItems.length !== before){
+      saveEmails();
+      renderEmailList();
+    }
+    localStorage.setItem('elevate_last_email_cleanup', String(now));
+    console.log('[Email] Daily cleanup ran — '+emailItems.length+' emails remaining');
+  }
+}
 </script>
 </body>
 </html>
-
