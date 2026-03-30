@@ -375,16 +375,17 @@ textarea{resize:vertical;min-height:80px;}
         <div class="panel-header"><h3>Broadcast Message</h3><p>All agents will respond in parallel from their domain</p></div>
         <div class="panel-body">
           <div class="quick-actions">
-            <span class="quick-chip" onclick="setAllHands('We have a new commercial project. What does each department need to prepare?')">New project kickoff</span>
-            <span class="quick-chip" onclick="setAllHands('We need to improve company profitability. What are your department recommendations?')">Profitability review</span>
-            <span class="quick-chip" onclick="setAllHands('A client wants to cut our budget by 20%. How should each department respond?')">Budget pressure</span>
-            <span class="quick-chip" onclick="setAllHands('What should Elevate Construction be focusing on this quarter?')">Quarterly priorities</span>
-            <span class="quick-chip" onclick="setAllHands('We just won a large job. What are our next steps as a company?')">Won a big job</span>
+            <span class="quick-chip" onclick="setBroadcastText('We have a new commercial project. What does each department need to prepare?')">New project kickoff</span>
+            <span class="quick-chip" onclick="setBroadcastText('We need to improve company profitability. What are your department recommendations?')">Profitability review</span>
+            <span class="quick-chip" onclick="setBroadcastText('A client wants to cut our budget by 20%. How should each department respond?')">Budget pressure</span>
+            <span class="quick-chip" onclick="setBroadcastText('What should Elevate Construction be focusing on this quarter?')">Quarterly priorities</span>
+            <span class="quick-chip" onclick="setBroadcastText('We just won a large job. What are our next steps as a company?')">Won a big job</span>
           </div>
-          <div id="allhands-input-wrap2">
-            <textarea id="allhands-input2" placeholder="Type a company-wide message or question..." rows="4" style="border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;font-size:13px;font-family:'Inter',sans-serif;width:100%;resize:vertical;outline:none;background:rgba(255,255,255,.05);color:white;"></textarea>
-          </div>
-          <button class="btn-primary" style="margin-top:12px;" onclick="broadcastToAll2()">📢 Send to All Departments</button>
+          <textarea id="broadcast-input" placeholder="Type a company-wide message or question..." rows="4"
+            style="border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;font-size:13px;
+                   font-family:'Inter',sans-serif;width:100%;resize:vertical;outline:none;
+                   background:rgba(255,255,255,.05);color:white;margin-bottom:12px;"></textarea>
+          <button class="btn-primary" style="margin-top:0;" onclick="runBroadcast()">📢 Send to All Departments</button>
           <div style="display:flex;gap:10px;margin-top:10px;">
             <button id="auto-meeting-btn" class="btn-gold" style="flex:1;" onclick="toggleAutoMeeting()">🎙️ Start Autonomous Board Meeting</button>
             <button class="btn-secondary" style="flex:1;" onclick="resetMeeting()">🔄 Reset Meeting</button>
@@ -440,7 +441,7 @@ textarea{resize:vertical;min-height:80px;}
         </div>
       </div>
 
-      <div id="broadcast-responses2" class="broadcast-responses"></div>
+      <div id="broadcast-responses-main" class="broadcast-responses"></div>
       </div><!-- end broadcast tab -->
 
       <!-- BOARD MEETING TAB -->
@@ -522,6 +523,16 @@ textarea{resize:vertical;min-height:80px;}
           </div>
         </div>
 
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+          <div style="font-size:12px;color:rgba(255,255,255,.4);">Board responses appear below as agents speak</div>
+          <button id="play-meeting-audio-btn" onclick="playMeetingAudio()"
+            style="background:linear-gradient(135deg,rgba(245,158,11,.3),rgba(217,119,6,.25));
+                   color:#fcd34d;border:1px solid rgba(245,158,11,.4);border-radius:8px;
+                   padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;
+                   display:inline-flex;align-items:center;gap:6px;">
+            🔊 Play Full Meeting Audio
+          </button>
+        </div>
         <div id="broadcast-responses2" class="broadcast-responses"></div>
       </div><!-- end boardroom tab -->
 
@@ -1321,6 +1332,7 @@ textarea{resize:vertical;min-height:80px;}
               <button class="btn-primary" style="width:auto;padding:9px 18px;" onclick="addLineItem()">+ Add</button>
             </div>
             <button class="btn-secondary" style="width:100%;font-size:12px;" onclick="aiEstimateScope()">🤖 AI Auto-Estimate from Notes</button>
+            <button class="btn-secondary" style="width:100%;font-size:12px;margin-top:8px;background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.35);color:#6ee7b7;" onclick="generatePreBidWorkup()">💰 Pre-Bid Workup — Max Sub/Labor/Material Costs</button>
           </div>
         </div>
       </div>
@@ -1343,7 +1355,7 @@ textarea{resize:vertical;min-height:80px;}
               <span>Overhead (18%)</span><span id="est-overhead">$0</span>
             </div>
             <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;color:rgba(255,255,255,.6);">
-              <span>Profit Margin (12%)</span><span id="est-profit">$0</span>
+              <span>Profit Margin (30%)</span><span id="est-profit">$0</span>
             </div>
             <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,.12);font-size:17px;font-weight:800;color:white;">
               <span>TOTAL ESTIMATE</span><span id="est-total" style="color:#6ee7b7;">$0</span>
@@ -1921,17 +1933,41 @@ const DEPARTMENTS=[
    tags:["Takeoffs","Bids","Pricing","Scope"],
    desc:"15+ years in construction estimating, bid reviews, pricing logic, scope-gap detection.",
    quickActions:["Review bid package","Estimate commercial build","Identify scope gaps","Pricing sanity check","Material takeoff"],
-   systemPrompt:`You are Marcus Rodriguez, Project Estimation Specialist at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). 15+ years in estimating, bid reviews, pricing, scope-gap detection, takeoffs. Services: Framing, Roofing, Welding, Residential, Commercial, Mitigation & Restoration. Give precise, specific estimates with Atlanta-area pricing. Be direct and professional. Stay in character.`},
+   systemPrompt:`You are Marcus Rodriguez, Project Estimation Specialist at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). 15+ years in estimating, bid reviews, pricing, scope-gap detection, takeoffs. Services: Framing, Roofing, Welding, Residential, Commercial, Mitigation & Restoration.
+
+PROFIT RULES — NON-NEGOTIABLE:
+- Every estimate MUST achieve a minimum 30% gross profit margin
+- Formula: Client Price = Direct Costs ÷ 0.52 (accounts for 18% overhead + 30% profit)
+- Always tell the CEO the MAX we can pay subs/labor to protect our margin
+- When reviewing bids: if GP falls below 30%, immediately flag and recommend a price correction
+- Always provide: Client Price, Max Sub Budget, Max Labor Budget, Max Material Budget
+- Be direct and specific with dollar amounts. Stay in character.`},
   {id:"finance",name:"Sarah Chen",role:"Chief Financial Officer",icon:"💰",bg:"rgba(16,185,129,0.25)",color:"#6ee7b7",voiceId:"XB0fDUnXU5powFXDhCwa",voiceName:"Charlotte",
    tags:["Margins","Cash Flow","Overhead","P&L"],
    desc:"Construction finance expert focused on margin control, overhead allocation, and profitable growth.",
    quickActions:["Analyze project margins","Cash flow advice","Overhead review","Job costing","Bid profitability"],
-   systemPrompt:`You are Sarah Chen, CFO at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Expert in construction finance, margin control (typical GP 15-35%), overhead (10-20%), cash flow, profitability. Give sharp, numbers-driven financial guidance. Stay in character.`},
+   systemPrompt:`You are Sarah Chen, CFO at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Expert in construction finance, margin control, overhead allocation, cash flow, profitability.
+
+FINANCIAL STANDARDS — STRICTLY ENFORCED:
+- Elevate's minimum acceptable gross profit margin is 30% — no exceptions
+- Overhead allocation: 18% of revenue
+- Combined floor: 48% of revenue goes to overhead + profit (leaving max 52% for direct costs)
+- When analyzing any job: calculate GP%, flag if below 30%, give the exact price needed to fix it
+- Always give Max Allowable Cost figures: what subs, labor, and materials can cost at most
+- Cash flow rule: minimum 40% deposit on all jobs
+- Walk-away number: if client budget cannot support 30% GP, say so with specifics. Stay in character.`},
   {id:"operations",name:"David Thompson",role:"Chief Operating Officer",icon:"🏗️",bg:"rgba(245,158,11,0.25)",color:"#fcd34d",voiceId:"nPczCjzI2devNBz1zQrb",voiceName:"Brian",
    tags:["Scheduling","Workflow","Field Ops","QC"],
    desc:"Oversees project operations, scheduling, workflow planning, field execution, and quality control.",
    quickActions:["Build project schedule","Crew planning","Subcontractor management","Phase sequencing","QC checklist"],
-   systemPrompt:`You are David Thompson, COO at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Expert in project operations, scheduling, field execution, subcontractor management, QC. Give realistic, practical operational guidance with timelines and crew considerations. Stay in character.`},
+   systemPrompt:`You are David Thompson, COO at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Expert in project operations, scheduling, field execution, subcontractor management, QC.
+
+OPERATIONAL STANDARDS:
+- Always consider the 30% GP margin target when planning operations — every crew decision affects profitability
+- When managing subs: negotiate hard, get 3 bids minimum, never accept first price
+- Labor efficiency: flag any scope that will blow the labor budget
+- Know that max allowable direct costs = 52% of client price (18% overhead + 30% profit must be preserved)
+- Always give realistic crew counts, days on site, and flag if the timeline will cause cost overruns. Stay in character.`},
   {id:"legal",name:"Jennifer Harrison",role:"Corporate Legal Advisor",icon:"⚖️",bg:"rgba(236,72,153,0.25)",color:"#f9a8d4",voiceId:"pFZP5JQG7iQjIQuC4Bku",voiceName:"Lily",
    tags:["Contracts","Risk","Liability","Compliance"],
    desc:"Construction attorney specializing in contracts, risk mitigation, and liability protection.",
@@ -1941,7 +1977,14 @@ const DEPARTMENTS=[
    tags:["Proposals","CRM","Follow-up","Closing"],
    desc:"Expert in construction proposal positioning, client relationships, and closing strategies.",
    quickActions:["Win this bid","Follow-up strategy","Handle objection","Proposal positioning","Upsell opportunities"],
-   systemPrompt:`You are Michael Foster, Sales Director at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Expert in construction sales, proposal positioning, client relationships, follow-up, closing. Give confident, strategic sales advice. Stay in character.`},
+   systemPrompt:`You are Michael Foster, Sales Director at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Expert in construction sales, proposal positioning, client relationships, follow-up, closing.
+
+SALES STANDARDS:
+- Never sell below the 30% GP minimum — protect Elevate's margin on every deal
+- If a client pushes back on price, use value-based selling (quality, reliability, warranty, Atlanta expertise)
+- Know our walk-away number: if client budget cannot support 30% GP, we decline or reduce scope
+- Upsell strategy: always look for add-ons (warranties, maintenance contracts, phase 2 work)
+- Frame pricing confidently — we are premium, not the cheapest option. Stay in character.`},
   {id:"marketing",name:"Lisa Park",role:"Marketing Manager",icon:"📣",bg:"rgba(249,115,22,0.25)",color:"#fdba74",voiceId:"EXAVITQu4vr4xnSDxMaL",voiceName:"Sarah",
    tags:["Brand","Content","Leads","Social"],
    desc:"Brand messaging, polished content creation, trust-building, and lead generation for Elevate.",
@@ -2024,7 +2067,7 @@ function buildAgentCards(){
     const card=document.createElement('div');
     card.className='agent-card';
     card.onclick=()=>selectDept(dept.id);
-    card.innerHTML=`<div class="agent-avatar" style="background:${dept.bg}">${dept.icon}</div><div class="agent-name">${dept.name}</div><div class="agent-role" style="color:${dept.color}">${dept.role}</div><div class="agent-desc">${dept.desc}</div><div>${dept.tags.map(t=>`<span class="agent-tag">${t}</span>`).join('')}</div>`;
+    card.innerHTML=`<div class="agent-avatar" style="background:${dept.bg}">${dept.icon}</div><div class="agent-name">${dept.name}</div><div class="agent-role" style="color:${dept.color}">${dept.role}</div><div class="agent-desc">${dept.desc}</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:6px;"><div>${dept.tags.map(t=>`<span class="agent-tag">${t}</span>`).join('')}</div>${dept.voiceId?`<button onclick="event.stopPropagation();testAgentVoice('${dept.voiceId}','${dept.name.split(' ')[0]}',this)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);border-radius:6px;padding:3px 9px;font-size:10px;cursor:pointer;white-space:nowrap;">🔊 Hear</button>`:''}</div>`;
     grid.appendChild(card);
   });
   // Also build allhands tags
@@ -2121,7 +2164,8 @@ function appendMsg(deptId,text,role,name=''){
   const log=document.getElementById('chat-'+deptId);if(!log)return;
   const div=document.createElement('div');div.className='chat-msg '+role;
   const ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  div.dataset.rawText = text;
+  // Store CLEAN raw text for voice — before any HTML escaping
+  div.dataset.rawText = stripMarkdown(String(text||'')).trim();
   div.dataset.agentName = name;
 
   let speakBtnHtml = '';
@@ -2180,19 +2224,27 @@ function setDeptStatus(deptId,state){
 // =====================================================
 async function broadcastToAll(){
   const text=document.getElementById('allhands-input')?.value?.trim();
-  if(!text)return;
+  if(!text){ alert('Please type a message first.'); return; }
   if(!apiKey){openApiModal();return;}
   await _runBroadcast(text,'broadcast-responses','allhands-input');
 }
 async function broadcastToAll2(){
-  const text=document.getElementById('allhands-input2')?.value?.trim();
-  if(!text)return;
+  // allhands-input2 is in the boardroom tab - get value wherever it is
+  const inputEl = document.getElementById('allhands-input2');
+  const text = inputEl?.value?.trim();
+  if(!text){ 
+    // Switch to boardroom tab so user can see the input
+    switchTab('allhands','boardroom');
+    setTimeout(()=>document.getElementById('allhands-input2')?.focus(), 300);
+    alert('Please type a message to broadcast to all departments.');
+    return; 
+  }
   if(!apiKey){openApiModal();return;}
   const thinking=document.getElementById('allhands-thinking');
   const thinkingText=document.getElementById('allhands-thinking-text');
-  thinking.classList.add('show');
+  if(thinking) thinking.classList.add('show');
   await _runBroadcast(text,'broadcast-responses2','allhands-input2',thinking,thinkingText);
-  thinking.classList.remove('show');
+  if(thinking) thinking.classList.remove('show');
 }
 async function _runBroadcast(text,outputId,inputId,thinking,thinkingText){
   const outputEl=document.getElementById(outputId);
@@ -2300,6 +2352,34 @@ async function startBoardMeeting(btn, outputId){
 function setAllHands(txt){
   const el=document.getElementById('allhands-input2');
   if(el){el.value=txt;el.focus();}
+}
+
+function setBroadcastText(txt){
+  const el=document.getElementById('broadcast-input');
+  if(el){el.value=txt;el.focus();}
+}
+
+async function runBroadcast(){
+  const inputEl = document.getElementById('broadcast-input');
+  const text = inputEl?.value?.trim();
+  if(!text){ alert('Please type a message to broadcast.'); return; }
+  if(!apiKey){ openApiModal(); return; }
+
+  // Show a local thinking indicator since allhands-thinking is in boardroom tab
+  const localThink = document.createElement('div');
+  localThink.className='thinking-bar show';
+  localThink.style.marginBottom='12px';
+  localThink.innerHTML='<div class="spinner"></div><span class="thinking-text" id="bc-thinking-text">Consulting all 7 departments...</span>';
+  const outDiv = document.getElementById('broadcast-responses-main');
+  if(outDiv){ outDiv.innerHTML=''; outDiv.appendChild(localThink); }
+
+  const thinkingText = document.getElementById('bc-thinking-text');
+
+  try{
+    await _runBroadcast(text,'broadcast-responses-main','broadcast-input',localThink,thinkingText);
+  }finally{
+    if(localThink) localThink.remove();
+  }
 }
 
 // =====================================================
@@ -3790,8 +3870,8 @@ async function speakBroadcast(responses) {
       const intro = r.name.split(' ')[0] + ' says... ';
       speakText(r.text, r.voiceId, resolve);
     });
-    // 600ms pause between speakers — feels like a real board meeting
-    await new Promise(r => setTimeout(r, 600));
+    // Human-like pause — 300-500ms, like a real board meeting
+    await new Promise(r => setTimeout(r, 350));
   }
 }
 
@@ -4009,8 +4089,8 @@ function renderEstimate(){
 
   const sub=lineItems.reduce((a,i)=>a+i.total,0);
   const overhead=sub*0.18;
-  const profit=sub*0.12;
-  const total=sub+overhead+profit;
+  const profit=sub*0.30;
+  const total=sub+overhead+profit; // overhead 18% + profit 30%
   document.getElementById('est-subtotal').textContent='$'+fmt(sub);
   document.getElementById('est-overhead').textContent='$'+fmt(overhead);
   document.getElementById('est-profit').textContent='$'+fmt(profit);
@@ -4299,10 +4379,14 @@ async function toggleAutoMeeting(){
     return;
   }
 
-  const topic = document.getElementById('allhands-input2').value.trim() || 'Quarterly Growth and Operations Strategy for Elevate Construction LLC';
+  // Make sure we're on the boardroom tab so UI elements are visible
+  switchTab('allhands','boardroom');
+
+  const topicEl = document.getElementById('allhands-input2');
+  const topic = (topicEl?.value||'').trim() || 'Quarterly Growth and Operations Strategy for Elevate Construction LLC';
+
   if(!meetingTranscript){
     meetingTranscript = 'BOARD MEETING — ' + new Date().toLocaleString() + '\nTOPIC: ' + topic + '\n';
-    // Clear previous responses
     const out = document.getElementById('broadcast-responses2');
     if(out) out.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(255,255,255,.4);font-size:13px;border:1px dashed rgba(255,255,255,.1);border-radius:10px;margin-bottom:10px;">🎙️ Autonomous Board Meeting Starting...<br><small style="opacity:.6;">Agents will speak to each other in order. Each builds on the previous response.</small></div>';
   }
@@ -4313,77 +4397,182 @@ async function toggleAutoMeeting(){
   runAutoMeetingLoop(topic);
 }
 
+// ── Detect if a response calls out someone by first name ─────
+function detectCalledName(text){
+  // Check if the response directly addresses or calls on another executive by first name
+  const firstNames = DEPARTMENTS.map(d=>({
+    firstName: d.name.split(' ')[0],
+    dept: d
+  }));
+
+  // Patterns: "Marcus, what do you think?" / "I'd ask David to..." / "Sarah, can you..."
+  // "over to Michael" / "Michael?" / "what does Marcus say"
+  for(const {firstName, dept} of firstNames){
+    const patterns = [
+      new RegExp(`\b${firstName},`, 'i'),                    // "Marcus, ..."
+      new RegExp(`\b${firstName}\?`, 'i'),                  // "Marcus?"
+      new RegExp(`over to ${firstName}`, 'i'),                // "over to Marcus"
+      new RegExp(`ask ${firstName}`, 'i'),                    // "I'd ask Marcus"
+      new RegExp(`${firstName}, (what|can|do|could|would|how|is|are)`, 'i'), // "Marcus, what..."
+      new RegExp(`(what|how) (does|do|would|will) ${firstName}`, 'i'),       // "what does Marcus..."
+      new RegExp(`${firstName} (needs?|should|has|can|will|would)`, 'i'),    // "Marcus needs to..."
+    ];
+    for(const re of patterns){
+      if(re.test(text)){
+        return dept;
+      }
+    }
+  }
+  return null;
+}
+
 async function runAutoMeetingLoop(topic){
-  const outputEl = document.getElementById('broadcast-responses2');
+  const outputEl  = document.getElementById('broadcast-responses2');
   const thinkingEl = document.getElementById('allhands-thinking');
   const thinkingText = document.getElementById('allhands-thinking-text');
 
+  if(thinkingEl && thinkingEl.offsetParent === null){
+    switchTab('allhands','boardroom');
+  }
+
+  // Track who just spoke so we don't skip anyone for too long
+  let skipCount = {};
+  DEPARTMENTS.forEach(d=>{ skipCount[d.id]=0; });
+
   while(isAutoMeetingActive){
     const dept = DEPARTMENTS[currentSpeakerIndex];
-    if(thinkingText) thinkingText.textContent = dept.icon+' '+dept.name.split(' ')[0]+' is speaking...';
+    if(thinkingText) thinkingText.textContent = dept.icon+' '+dept.name.split(' ')[0]+' is thinking...';
     if(thinkingEl) thinkingEl.classList.add('show');
 
-    // Highlight whose turn it is in sidebar
+    // Highlight active speaker in sidebar
     document.querySelectorAll('.dept-btn').forEach(b=>b.style.background='');
     const activeBtn = document.getElementById('btn-'+dept.id);
     if(activeBtn) activeBtn.style.background='rgba(245,158,11,.2)';
 
-    const recentTranscript = meetingTranscript.split('\n').slice(-20).join('\n');
+    const recentTranscript = meetingTranscript.split('\n').slice(-24).join('\n');
+
+    // Build a smarter prompt — agent knows who called them if applicable
+    const lastLine = meetingTranscript.trim().split('\n').filter(l=>l.trim()).pop()||'';
+    const calledByName = lastLine.includes(dept.name.split(' ')[0]) && !lastLine.startsWith(dept.name);
+    const calledNote = calledByName
+      ? `NOTE: You were just addressed by name in the previous statement — respond directly to that person.`
+      : '';
 
     const prompt = `We are in a live executive board meeting for Elevate Construction LLC.
 
 Meeting Transcript (recent):
 ${recentTranscript}
 
-You are ${dept.name}, ${dept.role}. It is your turn to speak.
-- Respond directly to what the last speaker said
-- You may agree, respectfully push back, ask another executive a question, or add your department's perspective
-- Be specific to construction business — reference real numbers, timelines, or department concerns
-- Keep it to 2-3 sentences max — this is spoken dialogue, not a report
-- NO markdown, NO bullet points, NO formatting — plain conversational speech only
-- Start with your reaction or response, not with your name`;
+You are ${dept.name}, ${dept.role}. ${calledNote}
+
+Rules for your response:
+- Speak directly to the last person who spoke OR to whoever called your name
+- You MAY call out a specific colleague by their FIRST NAME if you want their input (e.g. "Sarah, does that work for the budget?" or "David, can your crew handle that?")
+- Calling someone's name will make them speak NEXT — use this intentionally
+- React naturally — agree, push back, add a number, flag a risk, or ask a pointed question
+- Keep it SHORT: 1-3 sentences max — this is live spoken conversation
+- NO markdown, NO bullet points — plain conversational speech only
+- Do NOT start with your own name
+- Company profit target is 30% GP — factor this into any financial or bid discussions`;
 
     try{
-      const res = await callClaude(dept.systemPrompt, [{role:'user', content:prompt}], 350);
+      const res = await callClaude(dept.systemPrompt, [{role:'user', content:prompt}], 400);
       const cleanRes = stripMarkdown(res).trim();
       meetingTranscript += '\n'+dept.name+': '+cleanRes+'\n';
 
-      // Build card
+      // ── Check if this response called someone out by name ──
+      const calledDept = detectCalledName(cleanRes);
+
+      // Build card — highlight if this person was called by name
       const card = document.createElement('div');
       card.className = 'broadcast-card';
-      card.style.borderLeft = '3px solid '+dept.color;
-      card.style.animation = 'slideIn .3s ease';
+      card.style.cssText = 'border-left:3px solid '+dept.color+';animation:slideIn .25s ease;';
       card.innerHTML = `
         <div class="broadcast-card-header">
-          <div style="width:34px;height:34px;border-radius:50%;background:${dept.bg};display:flex;align-items:center;justify-content:center;font-size:16px;border:1.5px solid ${dept.color};">${dept.icon}</div>
+          <div style="width:34px;height:34px;border-radius:50%;background:${dept.bg};
+                      display:flex;align-items:center;justify-content:center;font-size:16px;
+                      border:1.5px solid ${dept.color};">${dept.icon}</div>
           <div style="flex:1;">
             <div style="font-size:13px;font-weight:700;color:white;">${dept.name}</div>
             <div style="font-size:11px;color:${dept.color};font-weight:600;">${dept.role}</div>
           </div>
-          <div style="font-size:10px;color:rgba(255,255,255,.3);">Round ${meetingRound+1}</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            ${calledDept ? `<span style="font-size:10px;background:rgba(245,158,11,.2);color:#fcd34d;
+                            padding:2px 7px;border-radius:10px;border:1px solid rgba(245,158,11,.3);">
+                            → ${calledDept.name.split(' ')[0]}</span>` : ''}
+            <div style="font-size:10px;color:rgba(255,255,255,.3);">Round ${meetingRound+1}</div>
+          </div>
         </div>
         <div class="broadcast-card-body" style="color:rgba(255,255,255,.88);">${esc(cleanRes)}</div>`;
 
-      // Insert at top so newest is first
-      if(outputEl.firstChild && outputEl.firstChild.id!=='meeting-intro'){
+      if(outputEl.firstChild){
         outputEl.insertBefore(card, outputEl.firstChild);
       } else {
         outputEl.appendChild(card);
       }
       outputEl.scrollTop = 0;
 
-      // Speak and wait for completion before next speaker
+      // Speak and wait for audio to finish
       if(elKey && dept.voiceId){
+        if(thinkingText) thinkingText.textContent = dept.icon+' '+dept.name.split(' ')[0]+' is speaking...';
         await new Promise(resolve => speakText(cleanRes, dept.voiceId, resolve));
       } else {
-        // No voice — wait proportional to text length
-        const waitMs = Math.max(2500, cleanRes.length * 45);
+        const waitMs = Math.max(1500, cleanRes.length * 30);
         await new Promise(r => setTimeout(r, waitMs));
       }
 
-      queryCount++; 
+      queryCount++;
       document.getElementById('metric-queries').textContent = queryCount;
       localStorage.setItem('elevate_query_count', queryCount);
+
+      // ── Determine NEXT speaker ──────────────────────────────
+      if(!isAutoMeetingActive) break;
+
+      // CEO queue takes priority
+      if(ceoQueued && ceoQueuedMsg){
+        const qMsg = ceoQueuedMsg;
+        ceoQueued = false; ceoQueuedMsg = '';
+        const notice = document.getElementById('ceo-queue-notice');
+        const micStatus = document.getElementById('ceo-mic-status');
+        if(notice) notice.style.display='none';
+        if(micStatus){ micStatus.textContent='STANDBY'; micStatus.style.color='rgba(255,255,255,.3)'; }
+        await new Promise(r=>setTimeout(r, Math.random()*150+250));
+        await ceoSpeakIntoMeeting(qMsg, false);
+        if(!isAutoMeetingActive) break;
+      }
+
+      // If someone was called by name → they speak next
+      if(calledDept && calledDept.id !== dept.id){
+        skipCount[calledDept.id] = 0; // reset their skip counter
+        currentSpeakerIndex = DEPARTMENTS.findIndex(d=>d.id===calledDept.id);
+        if(thinkingText) thinkingText.textContent = calledDept.icon+' '+calledDept.name.split(' ')[0]+' was called — responding...';
+      } else {
+        // Nobody called — find next speaker who hasn't spoken in a while
+        // Avoid immediate repeat of same speaker
+        let nextIdx = (currentSpeakerIndex + 1) % DEPARTMENTS.length;
+
+        // If someone has been skipped too many times (3+), prioritize them
+        const mostSkipped = DEPARTMENTS.reduce((max, d, i) => {
+          if(i===currentSpeakerIndex) return max;
+          return skipCount[d.id] > skipCount[max.dept.id] ? {dept:d, idx:i} : max;
+        }, {dept:DEPARTMENTS[nextIdx], idx:nextIdx});
+
+        if(skipCount[mostSkipped.dept.id] >= 3){
+          nextIdx = mostSkipped.idx;
+        }
+
+        // Update skip counts
+        DEPARTMENTS.forEach((d,i)=>{
+          if(i===nextIdx) skipCount[d.id]=0;
+          else skipCount[d.id]++;
+        });
+
+        currentSpeakerIndex = nextIdx;
+        if(currentSpeakerIndex === 0) meetingRound++;
+      }
+
+      // Human-like pause between speakers — 300-500ms
+      await new Promise(r=>setTimeout(r, Math.random()*200+300));
 
     }catch(err){
       console.error('[Meeting] Error:', err);
@@ -4394,32 +4583,9 @@ You are ${dept.name}, ${dept.role}. It is your turn to speak.
       addActivity('⚠️ Board meeting error: '+err.message);
       break;
     }
-
-    if(!isAutoMeetingActive) break;
-
-    // Check if CEO has queued a message — insert before next speaker
-    if(ceoQueued && ceoQueuedMsg){
-      const qMsg = ceoQueuedMsg;
-      ceoQueued = false;
-      ceoQueuedMsg = '';
-      document.getElementById('ceo-queue-notice').style.display = 'none';
-      document.getElementById('ceo-mic-status').textContent = 'STANDBY';
-      document.getElementById('ceo-mic-status').style.color = 'rgba(255,255,255,.3)';
-      await ceoSpeakIntoMeeting(qMsg, false);
-      await new Promise(r => setTimeout(r, 600));
-      if(!isAutoMeetingActive) break;
-    }
-
-    // Move to next speaker (round robin)
-    currentSpeakerIndex = (currentSpeakerIndex + 1) % DEPARTMENTS.length;
-    if(currentSpeakerIndex === 0) meetingRound++;
-
-    // Natural pause between speakers
-    await new Promise(r => setTimeout(r, 800));
   }
 
   if(thinkingEl) thinkingEl.classList.remove('show');
-  // Reset sidebar highlights
   document.querySelectorAll('.dept-btn').forEach(b=>b.style.background='');
 }
 
@@ -5384,7 +5550,7 @@ function calcJobCost(){
   const totalCost  = labor+materials+subs+other;
   const grossProfit= contract-totalCost;
   const gpPct      = contract>0 ? (grossProfit/contract*100) : 0;
-  const overhead   = contract*0.12;
+  const overhead   = contract*0.18;
   const netProfit  = grossProfit-overhead;
   const npPct      = contract>0 ? (netProfit/contract*100) : 0;
 
@@ -5392,8 +5558,8 @@ function calcJobCost(){
   if(!res) return;
   if(!contract){ res.innerHTML='<div style="font-size:12px;color:rgba(255,255,255,.4);text-align:center;">Enter contract value to see analysis</div>'; return; }
 
-  const gpColor = gpPct>=25?'#6ee7b7':gpPct>=15?'#fcd34d':'#fca5a5';
-  const npColor = npPct>=10?'#6ee7b7':npPct>=5?'#fcd34d':'#fca5a5';
+  const gpColor = gpPct>=30?'#6ee7b7':gpPct>=20?'#fcd34d':'#fca5a5';
+  const npColor = npPct>=20?'#6ee7b7':npPct>=10?'#fcd34d':'#fca5a5';
 
   res.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;">
@@ -5410,7 +5576,7 @@ function calcJobCost(){
       </div>`).join('')}
     </div>
     <div style="font-size:11px;color:rgba(255,255,255,.4);">
-      ${gpPct<15?'⚠️ Gross margin below 15% — review pricing or cut costs':gpPct>=25?'✅ Healthy gross margin':'📊 Acceptable margin — watch overhead'}
+      ${gpPct<20?'🔴 Gross margin below 20% — price is too low':gpPct>=30?'✅ Healthy gross margin — meets Elevate 30% minimum':'🟡 Margin below 30% target — consider adjusting price'}
     </div>`;
 }
 
@@ -7032,7 +7198,7 @@ MARCUS'S ESTIMATE:
 ${marcusAnalysis}
 
 As CFO, provide:
-1) MARGIN CHECK: Based on Marcus's price range, what is the expected gross margin %? Is it above our 20% GP minimum? If not, what price do we need to hit it?
+1) MARGIN CHECK: Based on Marcus's price range, what is the expected gross margin %? Is it above our 30% GP minimum? If not, what price do we need to hit it?
 2) HIDDEN COST FLAGS: Did Marcus account for overhead allocation, equipment wear, admin time, permits, insurance riders? Flag anything missing.
 3) BUDGET REALITY: Client stated ${lead.value}. Is that enough to make this job worthwhile? If not — what's our walk-away number?
 4) PAYMENT TERMS: What deposit %, payment schedule, and retainage terms should we require?
@@ -7280,6 +7446,337 @@ function initNotifications(){
   refreshAllBadges();
   // Refresh badges every 30 seconds
   setInterval(refreshAllBadges, 30000);
+}
+
+// =====================================================
+// PRE-BID WORKUP
+// Tells CEO exactly what to pay subs/labor/materials
+// to hit 30% GP minimum on any job
+// =====================================================
+async function generatePreBidWorkup(){
+  if(!apiKey){ openApiModal(); return; }
+
+  const project   = document.getElementById('est-project').value.trim();
+  const client    = document.getElementById('est-client').value.trim();
+  const projType  = document.getElementById('est-proj-type').value;
+  const location  = document.getElementById('est-location').value.trim()||'Atlanta metro area';
+  const notes     = document.getElementById('est-notes').value.trim();
+
+  // Get current estimate total if line items exist
+  const estTotalEl = document.getElementById('est-total');
+  const estTotal   = estTotalEl ? parseFloat(estTotalEl.textContent.replace(/[$,]/g,''))||0 : 0;
+
+  if(!project && !notes && !estTotal){
+    alert('Fill in project info or add line items first so Marcus can build your workup.');
+    return;
+  }
+
+  const thinking    = document.getElementById('est-thinking');
+  const thinkingText= document.getElementById('est-thinking-text');
+  thinking.classList.add('show');
+  thinkingText.textContent = 'Marcus and Sarah are building your pre-bid workup...';
+
+  // Phase 1: Marcus builds the workup
+  const marcusDept = DEPARTMENTS.find(d=>d.id==='estimation');
+  const sarahDept  = DEPARTMENTS.find(d=>d.id==='finance');
+
+  const currentItems = lineItems.length
+    ? lineItems.map(i=>`${i.desc}: ${i.qty} ${i.unit} @ $${i.rate} = $${fmt(i.total)}`).join('\n')
+    : 'No line items yet';
+
+  const estSubtotal = lineItems.reduce((a,i)=>a+i.total,0);
+  const clientPrice = estTotal || (estSubtotal * 1.48); // overhead + 30% profit
+
+  // Run Marcus + Sarah in parallel
+  const [marcusRes, sarahRes] = await Promise.allSettled([
+
+    callClaude(marcusDept.systemPrompt, [{role:'user', content:`Build a complete pre-bid cost workup for this project. I need to know exactly what to pay our subs, labor, and materials to hit our 30% GP minimum.
+
+PROJECT: ${project||projType}
+CLIENT: ${client||'TBD'}
+TYPE: ${projType}
+LOCATION: ${location}
+ESTIMATED CLIENT PRICE: ${estTotal ? '$'+fmt(estTotal) : 'TBD — use your best estimate'}
+CURRENT LINE ITEMS:
+${currentItems}
+NOTES: ${notes||'None'}
+
+Provide a detailed pre-bid workup with:
+
+1. RECOMMENDED CLIENT PRICE (if not set — based on scope and Atlanta 2026 market rates)
+
+2. COST BUDGET BREAKDOWN (must fit within 52% of client price):
+   - Max Subcontractor Budget: $X (what to tell the sub — their max)
+   - Max Labor Budget: $X (our own crew hours x rate)
+   - Max Materials Budget: $X (what to spend at supplier)
+   - Max Equipment/Other: $X
+   - TOTAL MAX DIRECT COSTS: $X (must be ≤52% of client price)
+
+3. WHAT TO TELL THE SUBCONTRACTOR:
+   - Their maximum contract amount: $X
+   - How to structure their bid request (what scope to give them)
+   - Negotiation strategy if they come in over budget
+
+4. MATERIAL COST TARGETS:
+   - Key materials for this job type with target unit prices
+   - Where to source (Home Depot Pro, supplier accounts, wholesale)
+   - Bulk order opportunities
+
+5. LABOR COST TARGETS:
+   - Crew composition needed
+   - Max hourly rates to stay in budget
+   - Estimated hours on site
+
+6. MARGIN VERIFICATION:
+   - Client Price: $X
+   - Total Direct Costs: $X (X%)
+   - Overhead (18%): $X
+   - Gross Profit (should be ≥30%): $X (X%)
+   - GO / NO-GO at stated client budget
+
+Use real Atlanta 2026 market rates. Be specific with every dollar amount.`}],
+    2000
+  ),
+
+    callClaude(sarahDept.systemPrompt, [{role:'user', content:`Financial review for pre-bid workup. Verify the numbers protect our 30% GP.
+
+PROJECT: ${project||projType}
+CLIENT PRICE: ${estTotal ? '$'+fmt(estTotal) : 'Use Marcus\'s recommendation'}
+SCOPE: ${notes||projType}
+CURRENT ESTIMATE ITEMS: ${currentItems}
+
+As CFO provide:
+1. MARGIN VERIFICATION TABLE — does this job hit 30% GP?
+2. MAX ALLOWABLE COST CEILING — the absolute maximum we can spend on ALL direct costs combined
+3. CASH FLOW REQUIREMENTS — deposit amount to require, payment milestones
+4. RISK BUFFER — recommend adding X% contingency for this job type
+5. CFO APPROVAL — Green / Yellow / Red with specific conditions`}],
+    1000
+  )
+  ]);
+
+  thinking.classList.remove('show');
+
+  const marcusWorkup = marcusRes.status==='fulfilled' ? stripMarkdown(marcusRes.value) : 'Marcus workup unavailable';
+  const sarahReview  = sarahRes.status==='fulfilled'  ? stripMarkdown(sarahRes.value)  : 'CFO review unavailable';
+
+  // Display the full workup
+  document.getElementById('est-ai-output').innerHTML = `
+    <div class="branded-doc" style="margin-top:16px;">
+      <div class="doc-header">
+        <div class="doc-logo-row">
+          <div>
+            <div class="doc-company-name">💰 PRE-BID WORKUP</div>
+            <div class="doc-tagline">${esc(project||projType)} — Max Cost Targets for 30% GP</div>
+          </div>
+          <div style="text-align:right;font-size:11px;opacity:.8;">
+            <div style="color:#6ee7b7;font-size:14px;font-weight:800;">30% GP TARGET</div>
+            <div>${new Date().toLocaleDateString()}</div>
+          </div>
+        </div>
+        <div class="doc-meta" style="margin-top:10px;">
+          <div class="doc-meta-item"><strong>Project</strong>${esc(project||projType)}</div>
+          <div class="doc-meta-item"><strong>Client</strong>${esc(client||'TBD')}</div>
+          <div class="doc-meta-item"><strong>Client Price</strong>${estTotal ? '$'+fmt(estTotal) : 'See Marcus'}</div>
+          <div class="doc-meta-item"><strong>Max Direct Costs</strong>${estTotal ? '$'+fmt(estTotal*0.52) : 'See below'}</div>
+        </div>
+      </div>
+      <div class="doc-body">
+
+        <!-- MARCUS WORKUP -->
+        <div style="margin-bottom:20px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.08);">
+            <div style="width:34px;height:34px;border-radius:50%;background:rgba(29,78,216,.3);display:flex;align-items:center;justify-content:center;font-size:16px;">📐</div>
+            <div>
+              <div style="font-weight:700;font-size:13px;color:white;">Marcus Rodriguez — Cost Workup</div>
+              <div style="font-size:11px;color:#93c5fd;">Sub / Labor / Material max budgets</div>
+            </div>
+          </div>
+          <div style="font-size:13px;line-height:1.95;white-space:pre-wrap;color:rgba(255,255,255,.88);">${esc(marcusWorkup)}</div>
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- SARAH REVIEW -->
+        <div style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(16,185,129,.2);">
+            <div style="width:34px;height:34px;border-radius:50%;background:rgba(16,185,129,.3);display:flex;align-items:center;justify-content:center;font-size:16px;">💰</div>
+            <div>
+              <div style="font-weight:700;font-size:13px;color:white;">Sarah Chen — CFO Margin Verification</div>
+              <div style="font-size:11px;color:#6ee7b7;">30% GP check · Cash flow · Approval</div>
+            </div>
+          </div>
+          <div style="font-size:13px;line-height:1.95;white-space:pre-wrap;color:rgba(255,255,255,.88);">${esc(sarahReview)}</div>
+        </div>
+
+        <!-- QUICK REFERENCE BOX -->
+        ${estTotal ? `
+        <div style="background:rgba(16,185,129,.1);border:1.5px solid rgba(16,185,129,.35);border-radius:10px;padding:14px;margin-bottom:16px;">
+          <div style="font-weight:700;font-size:12px;color:#6ee7b7;margin-bottom:10px;">📊 QUICK REFERENCE — COST CEILINGS</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
+            <div style="background:rgba(0,0,0,.2);border-radius:7px;padding:8px 10px;">
+              <div style="color:rgba(255,255,255,.45);font-size:10px;margin-bottom:2px;">CLIENT PRICE</div>
+              <div style="font-weight:800;color:white;font-size:15px;">$${fmt(estTotal)}</div>
+            </div>
+            <div style="background:rgba(0,0,0,.2);border-radius:7px;padding:8px 10px;">
+              <div style="color:rgba(255,255,255,.45);font-size:10px;margin-bottom:2px;">MAX ALL DIRECT COSTS (52%)</div>
+              <div style="font-weight:800;color:#fcd34d;font-size:15px;">$${fmt(estTotal*0.52)}</div>
+            </div>
+            <div style="background:rgba(0,0,0,.2);border-radius:7px;padding:8px 10px;">
+              <div style="color:rgba(255,255,255,.45);font-size:10px;margin-bottom:2px;">OVERHEAD (18%)</div>
+              <div style="font-weight:800;color:#93c5fd;font-size:15px;">$${fmt(estTotal*0.18)}</div>
+            </div>
+            <div style="background:rgba(16,185,129,.15);border-radius:7px;padding:8px 10px;border:1px solid rgba(16,185,129,.3);">
+              <div style="color:rgba(255,255,255,.45);font-size:10px;margin-bottom:2px;">YOUR PROFIT (30%)</div>
+              <div style="font-weight:800;color:#6ee7b7;font-size:15px;">$${fmt(estTotal*0.30)}</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,.45);text-align:center;">
+            Rule of thumb: Never let total costs exceed <strong style="color:#fcd34d;">$${fmt(estTotal*0.52)}</strong> on this job
+          </div>
+        </div>` : ''}
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-primary" style="width:auto;" onclick="exportEstimateToProposal()">📋 Send to Proposal</button>
+          <button class="btn-secondary" onclick="copyText('${encodeURIComponent(marcusWorkup+'\n\n---\n\n'+sarahReview)}')">📋 Copy Workup</button>
+          <button class="btn-secondary" onclick="downloadTxt('${encodeURIComponent(marcusWorkup+'\n\nCFO REVIEW:\n'+sarahReview)}','PreBid_Workup_${encodeURIComponent(project||projType)}')">💾 Download</button>
+        </div>
+      </div>
+      <div class="doc-footer">
+        <span>Marcus Rodriguez (Estimating) + Sarah Chen (CFO) · Elevate Construction LLC</span>
+        <span>30% GP Target · ${new Date().toLocaleDateString()}</span>
+      </div>
+    </div>`;
+
+  queryCount+=2;
+  document.getElementById('metric-queries').textContent=queryCount;
+  localStorage.setItem('elevate_query_count',queryCount);
+  addActivity('💰 Pre-bid workup generated: '+( project||projType));
+  document.getElementById('est-ai-output').scrollIntoView({behavior:'smooth'});
+}
+
+// =====================================================
+// ELEVENLABS VOICE TEST
+// =====================================================
+async function testElevenLabs(){
+  const key = document.getElementById('el-key-input').value.trim();
+  const result = document.getElementById('el-test-result');
+  if(!key){
+    result.style.display='block';
+    result.style.background='rgba(220,38,38,.15)';
+    result.style.color='#fca5a5';
+    result.textContent='⚠️ Enter your ElevenLabs key first.';
+    return;
+  }
+  result.style.display='block';
+  result.style.background='rgba(37,99,235,.15)';
+  result.style.color='#93c5fd';
+  result.textContent='🔄 Testing — you should hear Marcus speak...';
+
+  // Marcus's voice ID
+  const voiceId = 'CwhRBWXzGAHq8TQ4Fs17';
+  const testText = "Hello, I'm Marcus Rodriguez, Estimating Specialist at Elevate Construction. Your voice system is working correctly.";
+
+  try{
+    const res = await fetch('https://api.elevenlabs.io/v1/text-to-speech/'+voiceId+'/stream', {
+      method:'POST',
+      headers:{
+        'xi-api-key': key,
+        'Content-Type': 'application/json',
+        'Accept': 'audio/mpeg'
+      },
+      body: JSON.stringify({
+        text: testText,
+        model_id: 'eleven_turbo_v2_5',
+        voice_settings:{ stability:0.5, similarity_boost:0.75, style:0.3, use_speaker_boost:true }
+      })
+    });
+
+    if(!res.ok){
+      const err = await res.json().catch(()=>({}));
+      result.style.background='rgba(220,38,38,.15)';
+      result.style.color='#fca5a5';
+      result.textContent='❌ Error: '+(err.detail?.message||err.detail||JSON.stringify(err)||'Key may be invalid');
+      return;
+    }
+
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.play();
+    audio.onended = ()=>{ URL.revokeObjectURL(url); };
+
+    result.style.background='rgba(16,185,129,.15)';
+    result.style.color='#6ee7b7';
+    result.textContent='✅ Voice working! You should hear Marcus now. Save your keys to activate all 7 voices.';
+
+  }catch(e){
+    result.style.background='rgba(220,38,38,.15)';
+    result.style.color='#fca5a5';
+    result.textContent='❌ Failed: '+e.message;
+  }
+}
+
+// =====================================================
+// BOARD MEETING SPEAK ALL — listen to full transcript
+// =====================================================
+async function playMeetingAudio(){
+  if(!elKey){
+    alert('Add your ElevenLabs API key in ⚙ Settings to hear the board speak.');
+    openApiModal();
+    return;
+  }
+  // Get all broadcast cards in order and play them sequentially
+  const cards = document.querySelectorAll('#broadcast-responses2 .broadcast-card');
+  if(!cards.length){ alert('Start a board meeting first.'); return; }
+
+  const btn = document.getElementById('play-meeting-audio-btn');
+  if(btn){ btn.textContent='⏹ Stop Audio'; btn.onclick=()=>{ stopSpeech(); if(btn){btn.textContent='🔊 Play Full Meeting Audio';btn.onclick=playMeetingAudio;} }; }
+
+  // Play cards in REVERSE order (newest at top, oldest at bottom — we want chronological)
+  const cardArray = Array.from(cards).reverse();
+  for(const card of cardArray){
+    if(!isSpeaking && currentAudio===null && btn?.textContent?.includes('Stop')) break;
+
+    // Get the agent name and find their voice
+    const nameEl = card.querySelector('[style*="font-weight:700"]');
+    const agentName = nameEl?.textContent?.trim()||'';
+    const dept = DEPARTMENTS.find(d=>d.name===agentName||agentName.includes(d.name.split(' ')[0]));
+    const voiceId = dept?.voiceId;
+    const bodyEl = card.querySelector('.broadcast-card-body');
+    const text = bodyEl?.textContent?.trim()||'';
+
+    if(!text || !voiceId) continue;
+
+    await new Promise(resolve => speakText(text, voiceId, resolve));
+    await new Promise(r=>setTimeout(r,Math.random()*200+300)); // 300-500ms human pace
+  }
+
+  if(btn){ btn.textContent='🔊 Play Full Meeting Audio'; btn.onclick=playMeetingAudio; }
+}
+
+function testAgentVoice(voiceId, firstName, btn){
+  if(!elKey){
+    openApiModal();
+    return;
+  }
+  const greetings = {
+    'Marcus': "Hey, Marcus here. Ready to run the numbers on your next project.",
+    'Sarah':  "Sarah Chen, CFO. Let's make sure this job hits our 30% margin.",
+    'David':  "David Thompson. I'll make sure your crew is in the right place at the right time.",
+    'Jennifer':"Jennifer Harrison. I'll protect Elevate on every contract.",
+    'Michael': "Michael Foster. Let's close this deal and win the job.",
+    'Lisa':   "Lisa Park here. Ready to build your brand and bring in leads.",
+    'Alex':   "Alex Kumar. Let's get Elevate ranking number one in Atlanta."
+  };
+  const text = greetings[firstName] || "Hello, I'm "+firstName+", part of the Elevate Construction executive team.";
+  const origHTML = btn.innerHTML;
+  btn.innerHTML = '⏹';
+  btn.style.color='#fcd34d';
+  speakText(text, voiceId, ()=>{
+    btn.innerHTML = origHTML;
+    btn.style.color='';
+  });
 }
 </script>
 </body>
