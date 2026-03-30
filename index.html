@@ -386,60 +386,12 @@ textarea{resize:vertical;min-height:80px;}
                    font-family:'Inter',sans-serif;width:100%;resize:vertical;outline:none;
                    background:rgba(255,255,255,.05);color:white;margin-bottom:12px;"></textarea>
           <button class="btn-primary" style="margin-top:0;" onclick="runBroadcast()">📢 Send to All Departments</button>
-          <div style="display:flex;gap:10px;margin-top:10px;">
-            <button id="auto-meeting-btn" class="btn-gold" style="flex:1;" onclick="toggleAutoMeeting()">🎙️ Start Autonomous Board Meeting</button>
-            <button class="btn-secondary" style="flex:1;" onclick="resetMeeting()">🔄 Reset Meeting</button>
-          </div>
+
           <div class="thinking-bar" id="allhands-thinking"><div class="spinner"></div><span class="thinking-text" id="allhands-thinking-text">Consulting all departments...</span></div>
         </div>
       </div>
 
-      <!-- CEO SPEAK PANEL -->
-      <div id="ceo-speak-panel" style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(13,27,46,.8));border:1.5px solid rgba(245,158,11,.3);border-radius:13px;padding:16px;margin-bottom:14px;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👑</div>
-          <div style="flex:1;">
-            <div style="font-weight:700;font-size:13px;color:white;">CEO — You</div>
-            <div style="font-size:11px;color:rgba(253,186,116,.8);">Speak into the meeting — interrupt or queue your turn</div>
-          </div>
-          <div id="ceo-mic-status" style="font-size:10px;font-weight:700;color:rgba(255,255,255,.3);padding:3px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.1);">STANDBY</div>
-        </div>
-
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
-          <!-- Type or speak -->
-          <textarea id="ceo-input" placeholder="Type your statement or question to the board..." rows="2"
-            style="flex:1;border:1.5px solid rgba(245,158,11,.25);border-radius:9px;padding:9px 13px;font-size:13px;
-                   font-family:'Inter',sans-serif;color:white;background:rgba(245,158,11,.06);outline:none;resize:none;"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ceoPushToMeeting();}"></textarea>
-        </div>
-
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <!-- Interrupt — pauses AI, CEO speaks now -->
-          <button onclick="ceoInterrupt()" id="ceo-interrupt-btn"
-            style="flex:1;background:linear-gradient(135deg,rgba(220,38,38,.7),rgba(153,27,27,.8));color:white;
-                   border:1px solid rgba(220,38,38,.5);border-radius:9px;padding:9px 14px;font-size:12px;
-                   font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;justify-content:center;">
-            ⚡ Interrupt Now
-          </button>
-          <!-- Queue — CEO speaks on next turn -->
-          <button onclick="ceoQueue()" id="ceo-queue-btn"
-            style="flex:1;background:linear-gradient(135deg,rgba(37,99,235,.3),rgba(29,78,216,.2));color:rgba(147,197,253,.9);
-                   border:1px solid rgba(37,99,235,.4);border-radius:9px;padding:9px 14px;font-size:12px;
-                   font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;justify-content:center;">
-            ⏭ Queue My Turn
-          </button>
-          <!-- Mic button for voice input -->
-          <button onclick="toggleCeoMic()" id="ceo-mic-btn"
-            style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.12);
-                   border-radius:9px;padding:9px 14px;font-size:18px;cursor:pointer;transition:all .2s;"
-            title="Use microphone">🎤</button>
-        </div>
-
-        <div id="ceo-queue-notice" style="display:none;margin-top:8px;padding:7px 12px;background:rgba(37,99,235,.15);
-             border-radius:7px;font-size:11px;color:rgba(147,197,253,.9);border:1px solid rgba(37,99,235,.25);">
-          ⏭ Your message is queued — you'll speak after the current agent finishes.
-        </div>
-      </div>
+      
 
       <div id="broadcast-responses-main" class="broadcast-responses"></div>
       </div><!-- end broadcast tab -->
@@ -4373,13 +4325,18 @@ function resetMeeting(){
 }
 
 async function toggleAutoMeeting(){
-  const btn = document.getElementById('auto-meeting-btn');
+  // Find button — update all instances in case of tab switching
+  const updateMeetingBtn = (html, bg) => {
+    document.querySelectorAll('#auto-meeting-btn').forEach(b=>{
+      b.innerHTML=html; b.style.background=bg;
+    });
+  };
   if(!apiKey){ openApiModal(); return; }
 
   if(isAutoMeetingActive){
     isAutoMeetingActive = false;
     stopSpeech(); // also resolves any pending speakText promise via _speechResolve
-    if(btn){ btn.innerHTML='▶️ Resume Board Meeting'; btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)'; }
+    updateMeetingBtn('▶️ Resume Board Meeting','linear-gradient(135deg,#f59e0b,#d97706)');
     // Hide thinking bar and reset sidebar highlights
     const thinkEl = document.getElementById('allhands-thinking');
     if(thinkEl) thinkEl.classList.remove('show');
@@ -4406,7 +4363,7 @@ async function toggleAutoMeeting(){
   }
 
   isAutoMeetingActive = true;
-  if(btn){ btn.innerHTML='⏸ Pause Meeting'; btn.style.background='rgba(220,38,38,.75)'; }
+  updateMeetingBtn('⏸ Pause Meeting','rgba(220,38,38,.75)');
 
   runAutoMeetingLoop(topic);
 }
@@ -4601,8 +4558,9 @@ Rules for your response:
     }catch(err){
       console.error('[Meeting] Error:', err);
       isAutoMeetingActive = false;
-      const btn = document.getElementById('auto-meeting-btn');
-      if(btn){ btn.innerHTML='⚠️ Error — Retry'; btn.style.background='rgba(220,38,38,.5)'; }
+      document.querySelectorAll('#auto-meeting-btn').forEach(b=>{
+        b.innerHTML='⚠️ Error — Retry'; b.style.background='rgba(220,38,38,.5)';
+      });
       if(thinkingEl) thinkingEl.classList.remove('show');
       addActivity('⚠️ Board meeting error: '+err.message);
       break;
@@ -4624,18 +4582,23 @@ let ceoRecognition = null;
 
 // ── INTERRUPT: pause AI, inject CEO message immediately ──
 async function ceoInterrupt(){
-  const text = document.getElementById('ceo-input').value.trim();
-  if(!text){ alert('Type your message first.'); return; }
+  const input = document.getElementById('ceo-input');
+  const text = input ? input.value.trim() : '';
+
+  // If no text and mic is available — start mic automatically
+  if(!text){
+    toggleCeoMic();
+    return;
+  }
 
   // Pause the meeting
   const wasActive = isAutoMeetingActive;
   if(wasActive){
     isAutoMeetingActive = false;
     stopSpeech();
-    await new Promise(r => setTimeout(r, 400)); // Let current audio stop
+    await new Promise(r => setTimeout(r, 300));
   }
 
-  // Inject CEO message into transcript and UI
   ceoSpeakIntoMeeting(text, wasActive);
 }
 
@@ -4703,72 +4666,89 @@ async function ceoSpeakIntoMeeting(text, resumeAfter){
 
 // ── MIC BUTTON: Web Speech API ──
 function toggleCeoMic(){
-  const btn = document.getElementById('ceo-mic-btn');
+  const btn    = document.getElementById('ceo-mic-btn');
   const status = document.getElementById('ceo-mic-status');
 
+  // If already listening — stop and auto-send what was captured
   if(ceoMicActive){
     if(ceoRecognition) ceoRecognition.stop();
     ceoMicActive = false;
-    btn.textContent = '🎤';
-    btn.style.background = 'rgba(255,255,255,.06)';
-    btn.style.color = 'rgba(255,255,255,.6)';
-    status.textContent = 'STANDBY';
-    status.style.color = 'rgba(255,255,255,.3)';
+    if(btn){ btn.textContent='🎤'; btn.style.background='rgba(255,255,255,.06)'; btn.style.color='rgba(255,255,255,.6)'; }
+    if(status){ status.textContent='STANDBY'; status.style.color='rgba(255,255,255,.3)'; }
+
+    // Auto-send whatever was captured
+    const inp = document.getElementById('ceo-input');
+    const captured = inp ? inp.value.trim() : '';
+    if(captured){
+      setTimeout(()=>ceoInterrupt(), 300); // brief pause then interrupt
+    }
     return;
   }
 
-  // Check browser support
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SpeechRecognition){
-    alert('Voice input not supported in this browser. Try Chrome or Edge.');
+    alert('Voice input not supported in this browser. Please use Chrome or Edge.');
     return;
   }
 
+  // Clear previous input
+  const inp = document.getElementById('ceo-input');
+  if(inp) inp.value = '';
+
   ceoRecognition = new SpeechRecognition();
-  ceoRecognition.continuous = true;
+  ceoRecognition.continuous = false; // single utterance — stops automatically when you pause
   ceoRecognition.interimResults = true;
   ceoRecognition.lang = 'en-US';
 
   ceoRecognition.onstart = () => {
     ceoMicActive = true;
-    btn.textContent = '🔴';
-    btn.style.background = 'rgba(220,38,38,.3)';
-    btn.style.color = '#fca5a5';
-    status.textContent = 'LISTENING...';
-    status.style.color = '#fca5a5';
+    if(btn){ btn.textContent='⏹ Done'; btn.style.background='rgba(220,38,38,.4)'; btn.style.color='#fca5a5'; }
+    if(status){ status.textContent='🎤 LISTENING...'; status.style.color='#fca5a5'; }
+    // Pause the meeting while CEO speaks
+    if(isAutoMeetingActive){
+      isAutoMeetingActive = false;
+      stopSpeech();
+    }
   };
 
   ceoRecognition.onresult = (event) => {
-    let interim = '';
-    let final = '';
+    let finalText = '';
+    let interimText = '';
     for(let i = event.resultIndex; i < event.results.length; i++){
       if(event.results[i].isFinal){
-        final += event.results[i][0].transcript;
+        finalText += event.results[i][0].transcript + ' ';
       } else {
-        interim += event.results[i][0].transcript;
+        interimText += event.results[i][0].transcript;
       }
     }
-    const inp = document.getElementById('ceo-input');
-    // Show interim results in italics via placeholder trick
-    if(final) inp.value = (inp.value + ' ' + final).trim();
-    if(interim) inp.placeholder = '🎤 ' + interim + '...';
+    if(inp){
+      if(finalText) inp.value = (inp.value + ' ' + finalText).trim();
+      if(interimText) inp.placeholder = '🎤 ' + interimText + '...';
+    }
   };
 
   ceoRecognition.onend = () => {
     ceoMicActive = false;
-    btn.textContent = '🎤';
-    btn.style.background = 'rgba(255,255,255,.06)';
-    btn.style.color = 'rgba(255,255,255,.6)';
-    status.textContent = 'STANDBY';
-    status.style.color = 'rgba(255,255,255,.3)';
-    document.getElementById('ceo-input').placeholder = 'Type your statement or question to the board...';
+    if(btn){ btn.textContent='🎤'; btn.style.background='rgba(255,255,255,.06)'; btn.style.color='rgba(255,255,255,.6)'; }
+    if(status){ status.textContent='STANDBY'; status.style.color='rgba(255,255,255,.3)'; }
+    if(inp) inp.placeholder = 'Type your statement or question to the board...';
+
+    // Auto-send whatever was captured — no button press needed
+    const captured = inp ? inp.value.trim() : '';
+    if(captured){
+      if(status){ status.textContent='SPEAKING...'; status.style.color='#fcd34d'; }
+      setTimeout(()=>ceoSpeakIntoMeeting(captured, true), 400);
+    }
   };
 
   ceoRecognition.onerror = (e) => {
-    console.error('[Mic]', e.error);
+    console.error('[CEO Mic]', e.error);
     ceoMicActive = false;
-    btn.textContent = '🎤';
-    if(e.error === 'not-allowed') alert('Microphone access denied. Please allow mic access and try again.');
+    if(btn){ btn.textContent='🎤'; btn.style.background=''; btn.style.color=''; }
+    if(e.error==='not-allowed') alert('Microphone access denied. Allow mic access in your browser settings.');
+    if(e.error==='no-speech'){
+      if(status){ status.textContent='STANDBY'; status.style.color='rgba(255,255,255,.3)'; }
+    }
   };
 
   ceoRecognition.start();
