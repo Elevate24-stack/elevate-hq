@@ -3773,6 +3773,8 @@ async function speakText(text, voiceId, onDone) {
   }
   // Stop any current speech
   stopSpeech();
+  // Register the onDone callback so stopSpeech can resolve it if interrupted
+  _speechResolve = onDone || null;
 
   // Clean text — remove markdown, trim to reasonable length
   const clean = text
@@ -3813,11 +3815,13 @@ async function speakText(text, voiceId, onDone) {
     currentAudio.play();
     currentAudio.onended = () => {
       isSpeaking = false;
+      _speechResolve = null;
       URL.revokeObjectURL(url);
       if(onDone) onDone();
     };
     currentAudio.onerror = () => {
       isSpeaking = false;
+      _speechResolve = null;
       if(onDone) onDone();
     };
   } catch(e) {
@@ -3827,6 +3831,8 @@ async function speakText(text, voiceId, onDone) {
   }
 }
 
+let _speechResolve = null; // holds the resolve() of the current speakText promise
+
 function stopSpeech() {
   if(currentAudio) {
     currentAudio.pause();
@@ -3834,6 +3840,11 @@ function stopSpeech() {
     currentAudio = null;
   }
   isSpeaking = false;
+  // CRITICAL: resolve any pending speakText promise so the meeting loop unblocks
+  if(_speechResolve){
+    _speechResolve();
+    _speechResolve = null;
+  }
   // Reset all speak buttons
   document.querySelectorAll('.speak-btn').forEach(b => {
     b.textContent = '🔊';
@@ -4367,11 +4378,14 @@ async function toggleAutoMeeting(){
 
   if(isAutoMeetingActive){
     isAutoMeetingActive = false;
-    stopSpeech();
+    stopSpeech(); // also resolves any pending speakText promise via _speechResolve
     if(btn){ btn.innerHTML='▶️ Resume Board Meeting'; btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)'; }
-    document.getElementById('allhands-thinking').classList.remove('show');
+    // Hide thinking bar and reset sidebar highlights
+    const thinkEl = document.getElementById('allhands-thinking');
+    if(thinkEl) thinkEl.classList.remove('show');
+    document.querySelectorAll('.dept-btn').forEach(b=>b.style.background='');
     addActivity('⏸ Board meeting paused');
-    // Save meeting to history when stopped
+    // Save transcript to history
     const topic = document.getElementById('allhands-input2')?.value||'Board Meeting';
     if(meetingTranscript && meetingRound>0){
       recordMeetingToHistory(topic, meetingTranscript, meetingRound);
@@ -4476,7 +4490,14 @@ Rules for your response:
 - Company profit target is 30% GP — factor this into any financial or bid discussions`;
 
     try{
+      // Check pause before making the API call
+      if(!isAutoMeetingActive) break;
+
       const res = await callClaude(dept.systemPrompt, [{role:'user', content:prompt}], 400);
+
+      // Check pause after API returns (could have been paused while waiting)
+      if(!isAutoMeetingActive) break;
+
       const cleanRes = stripMarkdown(res).trim();
       meetingTranscript += '\n'+dept.name+': '+cleanRes+'\n';
 
@@ -4520,6 +4541,9 @@ Rules for your response:
         const waitMs = Math.max(1500, cleanRes.length * 30);
         await new Promise(r => setTimeout(r, waitMs));
       }
+
+      // Check pause IMMEDIATELY after audio finishes
+      if(!isAutoMeetingActive) break;
 
       queryCount++;
       document.getElementById('metric-queries').textContent = queryCount;
