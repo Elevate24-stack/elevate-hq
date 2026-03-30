@@ -885,10 +885,27 @@ textarea{resize:vertical;min-height:80px;}
   <div class="modal-box">
     <div class="modal-header"><h2>🔑 AI Engine Setup</h2><button class="modal-close" onclick="closeApiModal()">✕</button></div>
     <div class="modal-body">
-      <div class="notice-box"><strong>Anthropic API Key Required</strong><br>Powers all 7 AI agents. Stored in memory only — never saved.</div>
-      <div class="form-group" style="margin-bottom:14px;"><label>Anthropic API Key</label><input type="text" id="api-key-input" placeholder="sk-ant-api03-..." style="font-family:monospace;"></div>
-      <button class="btn-primary" onclick="saveApiKey()">✅ Activate AI Team</button>
-      <p style="font-size:11px;color:rgba(255,255,255,.38);margin-top:10px;">Your key is sent only to Anthropic's API. <a href="https://console.anthropic.com" target="_blank" style="color:#93c5fd;">Get a key →</a></p>
+      <div class="notice-box"><strong>API Keys</strong><br>Both keys are saved permanently in your browser — enter once, never again.</div>
+
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Anthropic API Key</label>
+        <input type="text" id="api-key-input" placeholder="sk-ant-api03-..." style="font-family:monospace;">
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>ElevenLabs API Key <span style="color:rgba(255,255,255,.35);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;">— for agent voices 🎙️</span></label>
+        <input type="text" id="el-key-input" placeholder="sk_..." style="font-family:monospace;">
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:5px;">Get yours at <a href="https://elevenlabs.io" target="_blank" style="color:#93c5fd;">elevenlabs.io</a> → Profile → API Keys</div>
+      </div>
+
+      <button class="btn-primary" onclick="saveApiKey()">✅ Save & Activate AI Team</button>
+
+      <div style="display:flex;gap:10px;margin-top:10px;">
+        <button class="btn-secondary" style="flex:1;font-size:11px;" onclick="clearChatMemory()">🗑️ Clear Chat History</button>
+        <button class="btn-secondary" style="flex:1;font-size:11px;" onclick="clearApiKey()">🔑 Change Keys</button>
+      </div>
+
+      <p style="font-size:11px;color:rgba(255,255,255,.28);margin-top:12px;">Keys stored locally in your browser only — never sent anywhere except their respective APIs.</p>
     </div>
   </div>
 </div>
@@ -1120,54 +1137,46 @@ function appendMsg(deptId,text,role,name=''){
   const log=document.getElementById('chat-'+deptId);if(!log)return;
   const div=document.createElement('div');div.className='chat-msg '+role;
   const ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  const dept = DEPARTMENTS.find(d=>d.name===name);
-  const speakBtnHtml = (role==='agent' && dept && elKey)
-    ? `<button class="speak-btn" title="Listen" onclick="toggleSpeak(this,${JSON.stringify(text).replace(/`/g,'\`')},\'${dept?.voiceId||''}\')"`
-      + ` style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;margin-top:7px;transition:all .2s;">🔊</button>`
-    : '';
-  div.innerHTML=(role==='agent'&&name?`<strong>${name}</strong><br><br>`:'')+esc(text)+speakBtnHtml+`<div class="chat-msg-meta">${name||'You'} · ${ts}</div>`;
+  div.dataset.rawText = text;
+  div.dataset.agentName = name;
+
+  let speakBtnHtml = '';
+  if(role==='agent' && name){
+    const deptObj = DEPARTMENTS.find(d=>d.name===name);
+    const vid = deptObj?.voiceId||'';
+    if(elKey && vid){
+      speakBtnHtml = '<div style="margin-top:8px;">'
+        + '<button class="speak-btn" data-voice="'+vid+'" onclick="handleSpeakBtn(this)" '
+        + 'style="background:linear-gradient(135deg,rgba(37,99,235,.2),rgba(29,78,216,.15));'
+        + 'border:1px solid rgba(37,99,235,.4);color:rgba(147,197,253,.9);'
+        + 'border-radius:7px;padding:5px 12px;font-size:11px;font-weight:600;'
+        + 'cursor:pointer;display:inline-flex;align-items:center;gap:5px;">🔊 Hear '+name.split(' ')[0]+'</button>'
+        + '</div>';
+    } else {
+      speakBtnHtml = '<div style="margin-top:8px;">'
+        + '<button onclick="openApiModal()" '
+        + 'style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);'
+        + 'color:rgba(255,255,255,.3);border-radius:7px;padding:5px 12px;font-size:11px;'
+        + 'cursor:pointer;display:inline-flex;align-items:center;gap:5px;" '
+        + 'title="Add ElevenLabs key to enable voice">🔊 Add Voice Key</button>'
+        + '</div>';
+    }
+  }
+
+  div.innerHTML=(role==='agent'&&name?'<strong>'+name+'</strong><br><br>':'')+esc(text)+speakBtnHtml+'<div class="chat-msg-meta">'+(name||'You')+' · '+ts+'</div>';
   log.appendChild(div);log.scrollTop=log.scrollHeight;
-  // Persist chat histories to localStorage
   saveChatHistories();
 }
 
-function saveChatHistories(){
-  try{
-    const toSave={};
-    DEPARTMENTS.forEach(d=>{
-      if(chatHistories[d.id]&&chatHistories[d.id].length>1){ // skip if only welcome msg
-        toSave[d.id]=chatHistories[d.id].slice(-30); // keep last 30 messages
-      }
-    });
-    localStorage.setItem('elevate_chats', JSON.stringify(toSave));
-    localStorage.setItem('elevate_query_count', queryCount);
-  }catch(e){console.warn('Could not save chats:',e);}
+function handleSpeakBtn(btn){
+  const msgDiv = btn.closest('.chat-msg');
+  const text = msgDiv ? msgDiv.dataset.rawText : '';
+  const voiceId = btn.dataset.voice;
+  if(!text || !voiceId){ console.warn('[Voice] missing text or voiceId'); return; }
+  toggleSpeak(btn, text, voiceId);
 }
 
-function restoreChatHistories(){
-  try{
-    const saved=localStorage.getItem('elevate_chats');
-    if(!saved)return;
-    const data=JSON.parse(saved);
-    DEPARTMENTS.forEach(dept=>{
-      if(!data[dept.id]||!data[dept.id].length)return;
-      chatHistories[dept.id]=data[dept.id];
-      const log=document.getElementById('chat-'+dept.id);
-      if(!log)return;
-      // Clear welcome message and restore saved messages
-      log.innerHTML='';
-      data[dept.id].forEach(msg=>{
-        const div=document.createElement('div');
-        div.className='chat-msg '+(msg.role==='user'?'user':'agent');
-        const name=msg.role==='assistant'?dept.name:'';
-        div.innerHTML=(name?`<strong>${name}</strong><br><br>`:'')+esc(msg.content)+'<div class="chat-msg-meta">'+(name||'You')+' · Saved</div>';
-        log.appendChild(div);
-      });
-      log.scrollTop=log.scrollHeight;
-    });
-    console.log('[Memory] Chat histories restored');
-  }catch(e){console.warn('Could not restore chats:',e);}
-}
+
 function appendTyping(deptId,id){
   const log=document.getElementById('chat-'+deptId);if(!log)return;
   const div=document.createElement('div');div.className='chat-msg agent';div.id=id;
@@ -2088,6 +2097,8 @@ function saveApiKey(){
   closeApiModal();
   updateKeyIndicator(true);
   addActivity('🔑 AI engine activated — all 7 agents online'+(elKey?' + 🎙️ Voice enabled':''));
+  // Refresh speak buttons now that keys are set
+  setTimeout(refreshSpeakButtons, 100);
 }
 
 function updateKeyIndicator(active){
@@ -2618,27 +2629,22 @@ function stopSpeech() {
   });
 }
 
-function toggleSpeak(btn, textOrId, voiceId) {
-  if(isSpeaking) {
+function toggleSpeak(btn, text, voiceId) {
+  if(isSpeaking){
     stopSpeech();
+    btn.innerHTML = '🔊 ' + (btn.innerHTML.includes('Hear') ? btn.innerHTML.split('Hear')[1].trim() : 'Speak');
+    btn.style.background = '';btn.style.borderColor = '';btn.style.color = '';
     return;
   }
-  // textOrId can be a raw string or an element ID
-  let text = textOrId;
-  if(typeof textOrId === 'string' && document.getElementById(textOrId)){
-    text = document.getElementById(textOrId).innerText || textOrId;
-  }
-  btn.textContent = '⏹ Stop';
-  btn.title = 'Stop speaking';
-  btn.style.background = 'rgba(245,158,11,.25)';
+  if(!text || !voiceId){ console.warn('[Voice] No text or voiceId'); return; }
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = '⏹ Stop';
+  btn.style.background = 'rgba(245,158,11,.2)';
   btn.style.borderColor = 'rgba(245,158,11,.5)';
   btn.style.color = '#fcd34d';
-  speakText(text, voiceId, () => {
-    btn.textContent = btn.textContent.includes('Hear') ? '🔊 Hear '+btn.dataset.name : '🔊';
-    btn.title = 'Listen';
-    btn.style.background = '';
-    btn.style.borderColor = '';
-    btn.style.color = '';
+  speakText(String(text), voiceId, ()=>{
+    btn.innerHTML = originalHTML;
+    btn.style.background = '';btn.style.borderColor = '';btn.style.color = '';
   });
 }
 
