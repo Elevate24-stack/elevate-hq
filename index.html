@@ -664,6 +664,214 @@ textarea{resize:vertical;min-height:80px;}
       <div class="crm-pipeline" id="crm-pipeline"></div>
     </div>
 
+
+    <!-- HR MODULE -->
+    <div id="view-hr" class="dept-view">
+      <div class="content-title">👥 HR Module</div>
+      <div class="content-subtitle">Staff profiles, payroll tracking, onboarding, certifications and HR documents</div>
+
+      <div class="metrics-row">
+        <div class="metric-card"><div class="metric-label">Total Staff</div><div class="metric-value" id="hr-total">0</div><div class="metric-sub">Active employees</div></div>
+        <div class="metric-card"><div class="metric-label">On Job</div><div class="metric-value" id="hr-active">0</div><div class="metric-sub">Currently deployed</div></div>
+        <div class="metric-card"><div class="metric-label">Certifications</div><div class="metric-value" id="hr-certs">0</div><div class="metric-sub">Active credentials</div></div>
+        <div class="metric-card"><div class="metric-label">Avg Pay Rate</div><div class="metric-value" id="hr-avg-pay">$0</div><div class="metric-sub">Per hour</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><h3>➕ Add Employee</h3><p>Add a crew member, subcontractor, or office staff</p></div>
+        <div class="panel-body">
+          <div class="form-grid">
+            <div class="form-group"><label>Full Name</label><input type="text" id="hr-name" placeholder="e.g. James Carter"></div>
+            <div class="form-group"><label>Role / Position</label><input type="text" id="hr-role" placeholder="e.g. Lead Framer, Project Manager"></div>
+            <div class="form-group"><label>Department</label>
+              <select id="hr-dept">
+                <option>Field Crew</option><option>Estimating</option><option>Operations</option>
+                <option>Sales</option><option>Finance</option><option>Marketing</option><option>Tech</option><option>Admin</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Employment Type</label>
+              <select id="hr-type"><option>Full-Time W2</option><option>Part-Time W2</option><option>1099 Contractor</option><option>Subcontractor</option></select>
+            </div>
+            <div class="form-group"><label>Pay Rate ($/hr)</label><input type="text" id="hr-pay" placeholder="e.g. 28"></div>
+            <div class="form-group"><label>Phone</label><input type="text" id="hr-phone" placeholder="(404) 555-0000"></div>
+            <div class="form-group"><label>Start Date</label><input type="text" id="hr-start" placeholder="e.g. Jan 2024"></div>
+            <div class="form-group"><label>Certifications</label><input type="text" id="hr-cert" placeholder="OSHA 10, Forklift, CDL..."></div>
+          </div>
+          <div class="form-group" style="margin-bottom:14px;"><label>Notes</label><textarea id="hr-notes" placeholder="Skills, equipment operated, emergency contact, performance notes..." rows="2"></textarea></div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn-primary" style="flex:1;" onclick="addEmployee()">➕ Add to Roster</button>
+            <button class="btn-secondary" onclick="hrAiAssist()" style="white-space:nowrap;">🤖 AI HR Assist</button>
+          </div>
+          <div class="thinking-bar" id="hr-thinking"><div class="spinner"></div><span class="thinking-text">HR AI processing...</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><h3>👥 Employee Roster</h3><p>Your full team — click any employee for details and AI assistance</p></div>
+        <div class="panel-body" style="padding:10px;">
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <input type="text" id="hr-search" placeholder="Search employees..." style="flex:1;min-width:160px;" oninput="renderRoster()">
+            <select id="hr-filter-dept" onchange="renderRoster()" style="min-width:130px;"><option value="">All Departments</option><option>Field Crew</option><option>Estimating</option><option>Operations</option><option>Sales</option><option>Finance</option><option>Marketing</option><option>Tech</option><option>Admin</option></select>
+            <select id="hr-filter-type" onchange="renderRoster()" style="min-width:130px;"><option value="">All Types</option><option>Full-Time W2</option><option>Part-Time W2</option><option>1099 Contractor</option><option>Subcontractor</option></select>
+          </div>
+          <div id="hr-roster"></div>
+        </div>
+      </div>
+
+      <div id="hr-ai-output"></div>
+    </div>
+
+    <!-- LIVE ESTIMATOR -->
+    <div id="view-estimator" class="dept-view">
+      <div class="content-title">🧮 Live Estimating Calculator</div>
+      <div class="content-subtitle">Marcus builds real-time line-item estimates using Elevate's 2026 Atlanta pricing — export as branded proposal</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+        <div class="panel" style="margin-bottom:0;">
+          <div class="panel-header"><h3>📋 Project Info</h3><p>Basic project details</p></div>
+          <div class="panel-body">
+            <div class="form-group" style="margin-bottom:10px;"><label>Project Name</label><input type="text" id="est-project" placeholder="e.g. Buckhead Commercial Build-Out"></div>
+            <div class="form-group" style="margin-bottom:10px;"><label>Client</label><input type="text" id="est-client" placeholder="Client or GC name"></div>
+            <div class="form-group" style="margin-bottom:10px;"><label>Location / Address</label><input type="text" id="est-location" placeholder="Atlanta metro area"></div>
+            <div class="form-group" style="margin-bottom:10px;">
+              <label>Project Type</label>
+              <select id="est-proj-type">
+                <option>Commercial Build-Out</option><option>Residential New Build</option>
+                <option>Roofing - Residential</option><option>Roofing - Commercial</option>
+                <option>Concrete & Flatwork</option><option>Framing Only</option>
+                <option>Mitigation & Restoration</option><option>Welding & Steel</option>
+                <option>Full Renovation</option><option>Custom</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Special Notes</label><textarea id="est-notes" placeholder="Any special requirements, site conditions, timeline..." rows="2"></textarea></div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-bottom:0;">
+          <div class="panel-header"><h3>📐 Add Line Items</h3><p>Build your scope item by item</p></div>
+          <div class="panel-body">
+            <div class="form-group" style="margin-bottom:10px;">
+              <label>Work Category</label>
+              <select id="est-category" onchange="updateEstUnit()">
+                <option value="framing-res">Framing — Residential</option>
+                <option value="framing-com">Framing — Commercial</option>
+                <option value="framing-steel">Steel Framing Add-On</option>
+                <option value="roofing-shingle">Roofing — Asphalt Shingles</option>
+                <option value="roofing-metal">Roofing — Metal</option>
+                <option value="roofing-tpo">Roofing — Commercial TPO</option>
+                <option value="roofing-repair">Roofing — Emergency Repair</option>
+                <option value="concrete-pad">Concrete Pad (unreinforced)</option>
+                <option value="concrete-slab">Concrete Slab (reinforced)</option>
+                <option value="concrete-commercial">Concrete — Commercial</option>
+                <option value="concrete-driveway">Concrete Driveway</option>
+                <option value="concrete-patio">Concrete Patio</option>
+                <option value="concrete-stamped">Stamped Concrete</option>
+                <option value="welding-structural">Welding — Structural Steel</option>
+                <option value="welding-repair">Welding — Repair</option>
+                <option value="welding-mobile">Welding — Mobile Trip Charge</option>
+                <option value="mitigation-water">Mitigation — Water Extraction</option>
+                <option value="mitigation-mold">Mitigation — Mold Remediation</option>
+                <option value="mitigation-fire">Mitigation — Fire Damage</option>
+                <option value="demo">Demo — Concrete</option>
+                <option value="grading">Grading / Site Prep</option>
+                <option value="custom">Custom Line Item</option>
+              </select>
+            </div>
+            <div class="form-grid" style="margin-bottom:10px;">
+              <div class="form-group"><label>Description</label><input type="text" id="est-desc" placeholder="e.g. Main floor framing"></div>
+              <div class="form-group"><label>Quantity</label><input type="text" id="est-qty" placeholder="e.g. 2000" oninput="calcLineTotal()"></div>
+              <div class="form-group"><label id="est-unit-label">Unit</label><input type="text" id="est-unit" placeholder="sq ft" readonly style="opacity:.6;"></div>
+              <div class="form-group"><label>Rate ($/unit)</label><input type="text" id="est-rate" placeholder="auto-filled" oninput="calcLineTotal()"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+              <div style="flex:1;background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.25);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;color:#93c5fd;">
+                Line Total: <span id="est-line-total">$0</span>
+              </div>
+              <button class="btn-primary" style="width:auto;padding:9px 18px;" onclick="addLineItem()">+ Add</button>
+            </div>
+            <button class="btn-secondary" style="width:100%;font-size:12px;" onclick="aiEstimateScope()">🤖 AI Auto-Estimate from Notes</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+          <div><h3>💰 Estimate Summary</h3><p>Live pricing breakdown — Atlanta 2026 rates</p></div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-secondary btn-sm" onclick="clearEstimate()">🗑 Clear</button>
+            <button class="btn-gold btn-sm" onclick="exportEstimateToProposal()">📋 Send to Proposal</button>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:0;">
+          <div id="est-line-items" style="min-height:80px;"></div>
+          <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;color:rgba(255,255,255,.6);">
+              <span>Subtotal</span><span id="est-subtotal">$0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;color:rgba(255,255,255,.6);">
+              <span>Overhead (18%)</span><span id="est-overhead">$0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;color:rgba(255,255,255,.6);">
+              <span>Profit Margin (12%)</span><span id="est-profit">$0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,.12);font-size:17px;font-weight:800;color:white;">
+              <span>TOTAL ESTIMATE</span><span id="est-total" style="color:#6ee7b7;">$0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="thinking-bar" id="est-thinking"><div class="spinner"></div><span class="thinking-text" id="est-thinking-text">Marcus is building your estimate...</span></div>
+      <div id="est-ai-output"></div>
+    </div>
+
+    <!-- CONTRACT GENERATOR -->
+    <div id="view-contracts" class="dept-view">
+      <div class="content-title">📝 Contract Generator</div>
+      <div class="content-subtitle">Jennifer Harrison drafts Georgia-compliant construction contracts — ready to sign</div>
+
+      <div class="panel">
+        <div class="panel-header"><h3>⚖️ Contract Details</h3><p>Fill in the details — Jennifer handles the legal language</p></div>
+        <div class="panel-body">
+          <div class="form-grid">
+            <div class="form-group"><label>Contract Type</label>
+              <select id="con-type">
+                <option>Residential Construction Agreement</option>
+                <option>Commercial Construction Agreement</option>
+                <option>Subcontractor Agreement</option>
+                <option>Roofing Contract</option>
+                <option>Renovation Contract</option>
+                <option>Mitigation & Restoration Contract</option>
+                <option>Lien Waiver</option>
+                <option>Change Order</option>
+                <option>Letter of Intent</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Client / Owner Name</label><input type="text" id="con-client" placeholder="Full legal name or company name"></div>
+            <div class="form-group"><label>Client Address</label><input type="text" id="con-client-addr" placeholder="Full address including city, state, zip"></div>
+            <div class="form-group"><label>Project Address</label><input type="text" id="con-proj-addr" placeholder="Job site address"></div>
+            <div class="form-group"><label>Contract Value ($)</label><input type="text" id="con-value" placeholder="e.g. 85,000"></div>
+            <div class="form-group"><label>Start Date</label><input type="text" id="con-start" placeholder="e.g. April 1, 2026"></div>
+            <div class="form-group"><label>Completion Date</label><input type="text" id="con-end" placeholder="e.g. June 30, 2026"></div>
+            <div class="form-group"><label>Payment Terms</label>
+              <select id="con-payment">
+                <option>50% deposit, 50% on completion</option>
+                <option>33% deposit, 33% midpoint, 34% completion</option>
+                <option>25% deposit, progress billing, 10% retention</option>
+                <option>Net 30 upon invoice</option>
+                <option>Custom payment schedule</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:14px;"><label>Scope of Work</label><textarea id="con-scope" placeholder="Describe all work to be performed — be specific about materials, phases, and deliverables..." rows="3"></textarea></div>
+          <div class="form-group" style="margin-bottom:14px;"><label>Special Clauses or Requirements</label><textarea id="con-special" placeholder="e.g. Client to provide site access by 7am, specific material brands required, warranty terms..." rows="2"></textarea></div>
+          <button class="btn-primary" onclick="generateContract()">⚖️ Generate Contract</button>
+          <div class="thinking-bar" id="con-thinking"><div class="spinner"></div><span class="thinking-text" id="con-thinking-text">Jennifer is drafting your contract...</span></div>
+        </div>
+      </div>
+      <div id="con-output"></div>
+    </div>
+
     <!-- DEPT CHAT VIEWS -->
     <div id="dept-chat-views"></div>
 
@@ -697,7 +905,7 @@ textarea{resize:vertical;min-height:80px;}
 // =====================================================
 // STATE & DATA
 // =====================================================
-let apiKey='', queryCount=0;
+let apiKey='', elKey='', queryCount=0;
 let tasks=[], leads=[], emailItems=[], broadcastHistory=[];
 let currentContentType='blog';
 let originalPhotoData=null;
@@ -712,37 +920,37 @@ const COMPANY = {
 };
 
 const DEPARTMENTS=[
-  {id:"estimation",name:"Marcus Rodriguez",role:"Project Estimation Specialist",icon:"📐",bg:"rgba(29,78,216,0.25)",color:"#93c5fd",
+  {id:"estimation",name:"Marcus Rodriguez",role:"Project Estimation Specialist",icon:"📐",bg:"rgba(29,78,216,0.25)",color:"#93c5fd",voiceId:"CwhRBWXzGAHq8TQ4Fs17",voiceName:"Roger",
    tags:["Takeoffs","Bids","Pricing","Scope"],
    desc:"15+ years in construction estimating, bid reviews, pricing logic, scope-gap detection.",
    quickActions:["Review bid package","Estimate commercial build","Identify scope gaps","Pricing sanity check","Material takeoff"],
    systemPrompt:`You are Marcus Rodriguez, Project Estimation Specialist at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). 15+ years in estimating, bid reviews, pricing, scope-gap detection, takeoffs. Services: Framing, Roofing, Welding, Residential, Commercial, Mitigation & Restoration. Give precise, specific estimates with Atlanta-area pricing. Be direct and professional. Stay in character.`},
-  {id:"finance",name:"Sarah Chen",role:"Chief Financial Officer",icon:"💰",bg:"rgba(16,185,129,0.25)",color:"#6ee7b7",
+  {id:"finance",name:"Sarah Chen",role:"Chief Financial Officer",icon:"💰",bg:"rgba(16,185,129,0.25)",color:"#6ee7b7",voiceId:"XB0fDUnXU5powFXDhCwa",voiceName:"Charlotte",
    tags:["Margins","Cash Flow","Overhead","P&L"],
    desc:"Construction finance expert focused on margin control, overhead allocation, and profitable growth.",
    quickActions:["Analyze project margins","Cash flow advice","Overhead review","Job costing","Bid profitability"],
    systemPrompt:`You are Sarah Chen, CFO at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Expert in construction finance, margin control (typical GP 15-35%), overhead (10-20%), cash flow, profitability. Give sharp, numbers-driven financial guidance. Stay in character.`},
-  {id:"operations",name:"David Thompson",role:"Chief Operating Officer",icon:"🏗️",bg:"rgba(245,158,11,0.25)",color:"#fcd34d",
+  {id:"operations",name:"David Thompson",role:"Chief Operating Officer",icon:"🏗️",bg:"rgba(245,158,11,0.25)",color:"#fcd34d",voiceId:"nPczCjzI2devNBz1zQrb",voiceName:"Brian",
    tags:["Scheduling","Workflow","Field Ops","QC"],
    desc:"Oversees project operations, scheduling, workflow planning, field execution, and quality control.",
    quickActions:["Build project schedule","Crew planning","Subcontractor management","Phase sequencing","QC checklist"],
    systemPrompt:`You are David Thompson, COO at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Expert in project operations, scheduling, field execution, subcontractor management, QC. Give realistic, practical operational guidance with timelines and crew considerations. Stay in character.`},
-  {id:"legal",name:"Jennifer Harrison",role:"Corporate Legal Advisor",icon:"⚖️",bg:"rgba(236,72,153,0.25)",color:"#f9a8d4",
+  {id:"legal",name:"Jennifer Harrison",role:"Corporate Legal Advisor",icon:"⚖️",bg:"rgba(236,72,153,0.25)",color:"#f9a8d4",voiceId:"pFZP5JQG7iQjIQuC4Bku",voiceName:"Lily",
    tags:["Contracts","Risk","Liability","Compliance"],
    desc:"Construction attorney specializing in contracts, risk mitigation, and liability protection.",
    quickActions:["Review contract terms","Identify legal risks","Lien waivers","Payment disputes","Scope exclusions"],
    systemPrompt:`You are Jennifer Harrison, Corporate Legal Advisor at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Specializing in Georgia construction law, contracts, risk, lien law, liability. Give protective legal guidance. Note this is general guidance, not formal legal advice. Stay in character.`},
-  {id:"sales",name:"Michael Foster",role:"Sales Director",icon:"🤝",bg:"rgba(124,58,237,0.25)",color:"#c4b5fd",
+  {id:"sales",name:"Michael Foster",role:"Sales Director",icon:"🤝",bg:"rgba(124,58,237,0.25)",color:"#c4b5fd",voiceId:"TX3LPaxmHKxFdv7VOQHJ",voiceName:"Liam",
    tags:["Proposals","CRM","Follow-up","Closing"],
    desc:"Expert in construction proposal positioning, client relationships, and closing strategies.",
    quickActions:["Win this bid","Follow-up strategy","Handle objection","Proposal positioning","Upsell opportunities"],
    systemPrompt:`You are Michael Foster, Sales Director at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA). Expert in construction sales, proposal positioning, client relationships, follow-up, closing. Give confident, strategic sales advice. Stay in character.`},
-  {id:"marketing",name:"Lisa Park",role:"Marketing Manager",icon:"📣",bg:"rgba(249,115,22,0.25)",color:"#fdba74",
+  {id:"marketing",name:"Lisa Park",role:"Marketing Manager",icon:"📣",bg:"rgba(249,115,22,0.25)",color:"#fdba74",voiceId:"EXAVITQu4vr4xnSDxMaL",voiceName:"Sarah",
    tags:["Brand","Content","Leads","Social"],
    desc:"Brand messaging, polished content creation, trust-building, and lead generation for Elevate.",
    quickActions:["Write a blog post","Social media content","Lead gen ideas","Project showcase","Email campaign"],
    systemPrompt:`You are Lisa Park, Marketing Manager at Elevate Construction LLC (GaElevate.com, 404-719-1888, Atlanta GA, 3343 Peachtree Rd NE). Expert in construction branding, content marketing, social media, SEO content, lead generation. Always write with Elevate's brand voice: professional, bold, trustworthy. Include the website and phone number naturally. Stay in character.`},
-  {id:"tech",name:"Alex Kumar",role:"Technology & SEO Director",icon:"💻",bg:"rgba(34,197,94,0.25)",color:"#86efac",
+  {id:"tech",name:"Alex Kumar",role:"Technology & SEO Director",icon:"💻",bg:"rgba(34,197,94,0.25)",color:"#86efac",voiceId:"onwK4e9ZLuTAKqWW03F9",voiceName:"Daniel",
    tags:["SEO","Website","Tech","Automation"],
    desc:"Drives digital presence, SEO, website optimization, and workflow automation for Elevate.",
    quickActions:["SEO audit tips","Improve GaElevate.com","Google Business tips","Local SEO strategy","Tech tools for construction"],
@@ -787,6 +995,9 @@ function buildSidebar(){
     {id:'email',icon:'📬',name:'Email Center',title:'Outlook / Gmail'},
     {id:'filedrop',icon:'📂',name:'File Drop',title:'Smart Document Inbox'},
     {id:'crm',icon:'💼',name:'Lead Pipeline',title:'CRM & Houzz Leads'},
+    {id:'hr',icon:'👥',name:'HR Module',title:'Staff, Payroll & Docs'},
+    {id:'estimator',icon:'🧮',name:'Estimator',title:'Live Line-Item Bids'},
+    {id:'contracts',icon:'📝',name:'Contracts',title:'GA Legal Templates'},
   ];
   navItems.forEach(item=>{
     const btn=document.createElement('button');
@@ -909,7 +1120,12 @@ function appendMsg(deptId,text,role,name=''){
   const log=document.getElementById('chat-'+deptId);if(!log)return;
   const div=document.createElement('div');div.className='chat-msg '+role;
   const ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  div.innerHTML=(role==='agent'&&name?`<strong>${name}</strong><br><br>`:'')+esc(text)+`<div class="chat-msg-meta">${name||'You'} · ${ts}</div>`;
+  const dept = DEPARTMENTS.find(d=>d.name===name);
+  const speakBtnHtml = (role==='agent' && dept && elKey)
+    ? `<button class="speak-btn" title="Listen" onclick="toggleSpeak(this,${JSON.stringify(text).replace(/`/g,'\`')},\'${dept?.voiceId||''}\')"`
+      + ` style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;margin-top:7px;transition:all .2s;">🔊</button>`
+    : '';
+  div.innerHTML=(role==='agent'&&name?`<strong>${name}</strong><br><br>`:'')+esc(text)+speakBtnHtml+`<div class="chat-msg-meta">${name||'You'} · ${ts}</div>`;
   log.appendChild(div);log.scrollTop=log.scrollHeight;
   // Persist chat histories to localStorage
   saveChatHistories();
@@ -1000,23 +1216,93 @@ async function _runBroadcast(text,outputId,inputId,thinking,thinkingText){
 
   if(!outputEl)return;
   outputEl.innerHTML='';
+
+  // Collect ordered responses for sequential board-meeting playback
+  const boardResponses=[];
+
   DEPARTMENTS.forEach(dept=>{
     const r=responses.find(x=>x.dept.id===dept.id);
     if(!r)return;
+
     const card=document.createElement('div');
     card.className='broadcast-card';
+    card.dataset.voiceId=dept.voiceId||'';
+    card.dataset.txt=r.res;
+
     card.innerHTML=`
-      <div class="broadcast-card-header">
-        <div style="width:36px;height:36px;border-radius:50%;background:${dept.bg};display:flex;align-items:center;justify-content:center;font-size:16px;border:1.5px solid ${dept.color}33;">${dept.icon}</div>
-        <div><div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.85);">${dept.name}</div><div style="font-size:11px;color:${dept.color};font-weight:600;">${dept.role}</div></div>
-        <button class="btn-secondary btn-sm" style="margin-left:auto;" onclick="selectDept('${dept.id}')">Chat →</button>
+      <div class="broadcast-card-header" style="display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.07);">
+        <div style="width:38px;height:38px;border-radius:50%;background:${dept.bg};display:flex;align-items:center;justify-content:center;font-size:17px;border:1.5px solid ${dept.color};flex-shrink:0;">${dept.icon}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;color:white;">${dept.name}</div>
+          <div style="font-size:11px;color:${dept.color};font-weight:600;">${dept.role}</div>
+        </div>
+        <button class="btn-secondary btn-sm" onclick="selectDept('${dept.id}')" style="font-size:11px;">Chat →</button>
+        ${elKey&&dept.voiceId?`<button class="speak-btn btn-secondary btn-sm" title="Hear ${dept.name.split(' ')[0]}"
+          onclick="toggleSpeak(this,'${dept.id}-resp-txt','${dept.voiceId}')"
+          style="font-size:11px;">🔊</button>`:''}
       </div>
-      <div class="broadcast-card-body">${esc(r.res)}</div>`;
+      <div class="broadcast-card-body" id="${dept.id}-resp-txt">${esc(r.res)}</div>`;
+
     outputEl.appendChild(card);
     showBubble(dept.id,text.length>24?text.substring(0,24)+'...':text);
+
+    if(dept.voiceId) boardResponses.push({name:dept.name,text:r.res,voiceId:dept.voiceId});
   });
+
+  // Board Meeting "Play All" button
+  if(elKey && boardResponses.length){
+    const playAllWrap=document.createElement('div');
+    playAllWrap.style.cssText='text-align:center;padding:14px 0 4px;';
+    playAllWrap.innerHTML=`
+      <button id="play-all-btn" onclick="startBoardMeeting(this,'${outputId}')"
+        style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:10px;
+               padding:11px 28px;font-size:13px;font-weight:700;cursor:pointer;
+               box-shadow:0 4px 18px rgba(245,158,11,.35);transition:all .25s;display:inline-flex;align-items:center;gap:8px;">
+        🎙️ Play Full Board Meeting
+      </button>
+      <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:7px;">Each executive speaks in order — ${boardResponses.length} voices</div>`;
+    outputEl.appendChild(playAllWrap);
+  }
+
   queryCount+=7;document.getElementById('metric-queries').textContent=queryCount;
-  addActivity(`📢 All-hands broadcast: "${text.substring(0,40)}..."`);
+  localStorage.setItem('elevate_query_count',queryCount);
+  addActivity('📢 All-hands broadcast: "'+text.substring(0,40)+'..."');
+}
+
+async function startBoardMeeting(btn, outputId){
+  if(isSpeaking){ stopSpeech(); btn.innerHTML='🎙️ Play Full Board Meeting'; return; }
+  const outputEl=document.getElementById(outputId);
+  if(!outputEl)return;
+
+  // Collect all cards in order
+  const cards=[...outputEl.querySelectorAll('.broadcast-card')];
+  const queue=cards.map(card=>({
+    text: card.dataset.txt||card.querySelector('.broadcast-card-body')?.innerText||'',
+    voiceId: card.dataset.voiceId||''
+  })).filter(x=>x.voiceId&&x.text);
+
+  if(!queue.length)return;
+
+  btn.innerHTML='⏹ Stop Meeting';
+  btn.style.background='rgba(220,38,38,.7)';
+
+  for(let i=0;i<queue.length;i++){
+    if(!isSpeaking && i>0) break; // stopped
+    const item=queue[i];
+    // Highlight the current speaker card
+    cards.forEach((c,ci)=>c.style.borderColor=ci===i?'rgba(245,158,11,.7)':'');
+    cards[i]?.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+    await new Promise(resolve=>{
+      speakText(item.text, item.voiceId, resolve);
+    });
+    if(i<queue.length-1) await new Promise(r=>setTimeout(r,500));
+  }
+
+  // Reset
+  cards.forEach(c=>c.style.borderColor='');
+  btn.innerHTML='🎙️ Play Full Board Meeting';
+  btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';
 }
 function setAllHands(txt){
   const el=document.getElementById('allhands-input2');
@@ -1098,7 +1384,7 @@ function renderBrandedProposal(container,projName,client,date,est,proposalText){
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <button class="btn-secondary" onclick="copyText('${encodeURIComponent(proposalText)}')">📋 Copy</button>
         <button class="btn-secondary" onclick="downloadTxt('${encodeURIComponent(proposalText)}','${encodeURIComponent(projName)}')">💾 Download .txt</button>
-        <button class="btn-secondary" onclick="printProposal()">🖨️ Print / PDF</button>
+        <button class="btn-secondary" onclick="printProposal()" style="background:rgba(37,99,235,.18);color:#93c5fd;border-color:rgba(37,99,235,.4);">📄 Download PDF</button>
       </div>
     </div>
     <div class="doc-footer">
@@ -1108,7 +1394,107 @@ function renderBrandedProposal(container,projName,client,date,est,proposalText){
   </div>`;
 }
 
-function printProposal(){window.print();}
+function printProposal(){
+  const projName = document.getElementById('p-name').value||'Proposal';
+  const client   = document.getElementById('p-client').value||'Client';
+  const date     = document.getElementById('p-date').value||'';
+  const est      = document.getElementById('p-est').value||'';
+  const body     = document.querySelector('#proposal-output .doc-body');
+  const rawText  = body ? body.innerText : '';
+  downloadBrandedPDF(rawText, projName, client, date, est, 'Proposal');
+}
+
+function downloadBrandedPDF(text, projectName, authorName, date, estNum, docType){
+  if(!window.jspdf||!window.jspdf.jsPDF){alert('PDF library loading, please try again in a moment.');return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+  const W=215.9,H=279.4,margin=18,cW=W-margin*2;
+
+  // Header background
+  doc.setFillColor(13,27,46);doc.rect(0,0,W,42,'F');
+  doc.setFillColor(245,158,11);doc.rect(0,42,W,2.5,'F');
+
+  // Company name
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(16);
+  doc.text('ELEVATE CONSTRUCTION LLC',margin,14);
+
+  // Tagline
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(147,197,253);
+  doc.text('Commercial Build  |  High-End Restoration  |  Licensed & Insured  |  Atlanta, GA',margin,21);
+
+  // Contact
+  doc.setTextColor(200,220,255);doc.setFontSize(8);
+  doc.text('404-719-1888',W-margin,14,{align:'right'});
+  doc.text('GaElevate.com',W-margin,20,{align:'right'});
+  doc.text('3343 Peachtree Rd NE Ste 145',W-margin,26,{align:'right'});
+  doc.text('Atlanta, GA 30326',W-margin,32,{align:'right'});
+
+  // Doc type badge
+  doc.setFillColor(29,78,216);doc.roundedRect(margin,28,55,9,2,2,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(8);
+  doc.text((docType||'Document').toUpperCase(),margin+27.5,33.8,{align:'center'});
+
+  // Meta row
+  let yPos=52;
+  doc.setDrawColor(219,234,254);doc.setFillColor(20,35,60);
+  doc.rect(margin,yPos,cW,18,'FD');
+  const metaItems=[
+    {label:'DOCUMENT',value:projectName||docType||'Document'},
+    {label:'PREPARED BY',value:authorName||'Elevate Construction LLC'},
+    {label:'DATE',value:date||new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})},
+    {label:'REFERENCE',value:estNum||'EC-'+Date.now().toString().slice(-6)}
+  ];
+  metaItems.forEach((item,i)=>{
+    const x=margin+i*(cW/4)+4;
+    doc.setTextColor(147,197,253);doc.setFont('helvetica','bold');doc.setFontSize(7);
+    doc.text(item.label,x,yPos+6);
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+    doc.text((item.value.length>28?item.value.slice(0,25)+'...':item.value),x,yPos+13);
+  });
+
+  // Body content
+  yPos=78;
+  doc.setTextColor(230,240,255);doc.setFont('helvetica','normal');doc.setFontSize(10);
+  const lines=doc.splitTextToSize(text||'',cW-4);
+  const lineH=5.2,footerY=H-18;
+
+  for(let i=0;i<lines.length;i++){
+    if(yPos+lineH>footerY){
+      addPDFFooter(doc,W,H,margin);
+      doc.addPage();
+      doc.setFillColor(13,27,46);doc.rect(0,0,W,14,'F');
+      doc.setFillColor(245,158,11);doc.rect(0,14,W,1.5,'F');
+      doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(9);
+      doc.text('ELEVATE CONSTRUCTION LLC  —  '+(docType||'Document').toUpperCase(),margin,9);
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(147,197,253);
+      doc.text('GaElevate.com  |  404-719-1888',W-margin,9,{align:'right'});
+      yPos=24;
+    }
+    const line=lines[i];
+    const isHeader=/^[A-Z0-9][A-Z0-9\s.:&\-]{4,}$/.test(line.trim())&&line.trim().length>3;
+    if(isHeader){
+      doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(255,255,255);
+      doc.setFillColor(29,78,216);doc.rect(margin-3,yPos-3.5,1.5,5.5,'F');
+    } else {
+      doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(220,235,255);
+    }
+    doc.text(line,margin,yPos);
+    yPos+=lineH;
+    if(isHeader)yPos+=1.5;
+  }
+  addPDFFooter(doc,W,H,margin);
+  const safeName=(projectName||docType||'Elevate-Doc').replace(/[^a-zA-Z0-9\s\-]/g,'').replace(/\s+/g,'-').slice(0,40);
+  doc.save('Elevate-'+safeName+'.pdf');
+}
+
+function addPDFFooter(doc,W,H,margin){
+  const fy=H-14;
+  doc.setFillColor(13,27,46);doc.rect(0,fy,W,14,'F');
+  doc.setFillColor(245,158,11);doc.rect(0,fy,W,1,'F');
+  doc.setTextColor(147,180,220);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+  doc.text('© '+new Date().getFullYear()+' Elevate Construction LLC  ·  3343 Peachtree Rd NE Ste 145 MB 2131, Atlanta GA 30326',margin,fy+7);
+  doc.text('404-719-1888  ·  GaElevate.com  ·  Licensed & Insured',W-margin,fy+7,{align:'right'});
+}
 
 // =====================================================
 // MARKETING STUDIO
@@ -1697,9 +2083,11 @@ function saveApiKey(){
   if(!k){alert('Please enter your API key.');return;}
   apiKey=k;
   localStorage.setItem('elevate_api_key', k);
+  const el = document.getElementById('el-key-input').value.trim();
+  if(el){ elKey=el; localStorage.setItem('elevate_el_key', el); }
   closeApiModal();
   updateKeyIndicator(true);
-  addActivity('🔑 AI engine activated — all 7 agents online');
+  addActivity('🔑 AI engine activated — all 7 agents online'+(elKey?' + 🎙️ Voice enabled':''));
 }
 
 function updateKeyIndicator(active){
@@ -1759,6 +2147,12 @@ window.addEventListener('DOMContentLoaded',()=>{
     updateKeyIndicator(true);
     addActivity('🔑 API key restored — agents ready');
   }
+  const savedEl = localStorage.getItem('elevate_el_key');
+  if(savedEl){
+    elKey = savedEl;
+    document.getElementById('el-key-input').value = savedEl;
+    addActivity('🎙️ ElevenLabs voice restored');
+  }
 
   // Query count
   const savedQ = localStorage.getItem('elevate_query_count');
@@ -1775,6 +2169,9 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   // Only show API modal if no saved key
   setTimeout(()=>{ if(!apiKey) openApiModal(); }, 800);
+  initEstimator();
+  renderRoster();
+  updateHRMetrics();
 });
 
 // =====================================================
@@ -2137,6 +2534,477 @@ async function readPDFForProposal(file){
     return{type:'fallback',name:file.name,ext:'pdf',size:file.size};
   }
 }
+
+// =====================================================
+// ELEVENLABS VOICE ENGINE
+// Board meeting voices — each agent has their own
+// =====================================================
+let currentAudio = null;
+let isSpeaking = false;
+
+async function speakText(text, voiceId, onDone) {
+  if(!elKey) {
+    if(onDone) onDone();
+    return;
+  }
+  // Stop any current speech
+  stopSpeech();
+
+  // Clean text — remove markdown, trim to reasonable length
+  const clean = text
+    .replace(/\*\*(.+?)\*\*/g,'$1')
+    .replace(/#{1,6}\s/g,'')
+    .replace(/\n{3,}/g,'\n\n')
+    .slice(0, 3000);
+
+  try {
+    const res = await fetch('https://api.elevenlabs.io/v1/text-to-speech/'+voiceId+'/stream', {
+      method: 'POST',
+      headers: {
+        'xi-api-key': elKey,
+        'Content-Type': 'application/json',
+        'Accept': 'audio/mpeg'
+      },
+      body: JSON.stringify({
+        text: clean,
+        model_id: 'eleven_turbo_v2_5',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+          style: 0.3,
+          use_speaker_boost: true
+        }
+      })
+    });
+    if(!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      console.error('[Voice] ElevenLabs error:', err);
+      if(onDone) onDone();
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    currentAudio = new Audio(url);
+    isSpeaking = true;
+    currentAudio.play();
+    currentAudio.onended = () => {
+      isSpeaking = false;
+      URL.revokeObjectURL(url);
+      if(onDone) onDone();
+    };
+    currentAudio.onerror = () => {
+      isSpeaking = false;
+      if(onDone) onDone();
+    };
+  } catch(e) {
+    console.error('[Voice] Error:', e);
+    isSpeaking = false;
+    if(onDone) onDone();
+  }
+}
+
+function stopSpeech() {
+  if(currentAudio) {
+    currentAudio.pause();
+    currentAudio.src = '';
+    currentAudio = null;
+  }
+  isSpeaking = false;
+  // Reset all speak buttons
+  document.querySelectorAll('.speak-btn').forEach(b => {
+    b.textContent = '🔊';
+    b.title = 'Listen';
+    b.style.background = '';
+  });
+}
+
+function toggleSpeak(btn, textOrId, voiceId) {
+  if(isSpeaking) {
+    stopSpeech();
+    return;
+  }
+  // textOrId can be a raw string or an element ID
+  let text = textOrId;
+  if(typeof textOrId === 'string' && document.getElementById(textOrId)){
+    text = document.getElementById(textOrId).innerText || textOrId;
+  }
+  btn.textContent = '⏹ Stop';
+  btn.title = 'Stop speaking';
+  btn.style.background = 'rgba(245,158,11,.25)';
+  btn.style.borderColor = 'rgba(245,158,11,.5)';
+  btn.style.color = '#fcd34d';
+  speakText(text, voiceId, () => {
+    btn.textContent = btn.textContent.includes('Hear') ? '🔊 Hear '+btn.dataset.name : '🔊';
+    btn.title = 'Listen';
+    btn.style.background = '';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+  });
+}
+
+// Board meeting: speak all broadcast responses sequentially with a pause between agents
+async function speakBroadcast(responses) {
+  if(!elKey || !responses.length) return;
+  stopSpeech();
+  for(const r of responses) {
+    await new Promise(resolve => {
+      const intro = r.name.split(' ')[0] + ' says... ';
+      speakText(r.text, r.voiceId, resolve);
+    });
+    // 600ms pause between speakers — feels like a real board meeting
+    await new Promise(r => setTimeout(r, 600));
+  }
+}
+
+// =====================================================
+// HR MODULE
+// =====================================================
+let employees = JSON.parse(localStorage.getItem('elevate_employees')||'[]');
+
+function saveEmployees(){localStorage.setItem('elevate_employees',JSON.stringify(employees));}
+
+function addEmployee(){
+  const name=document.getElementById('hr-name').value.trim();
+  if(!name){alert('Please enter a name.');return;}
+  const emp={
+    id:Date.now(),
+    name,
+    role:document.getElementById('hr-role').value.trim(),
+    dept:document.getElementById('hr-dept').value,
+    type:document.getElementById('hr-type').value,
+    pay:document.getElementById('hr-pay').value.trim(),
+    phone:document.getElementById('hr-phone').value.trim(),
+    start:document.getElementById('hr-start').value.trim(),
+    cert:document.getElementById('hr-cert').value.trim(),
+    notes:document.getElementById('hr-notes').value.trim(),
+    status:'Active'
+  };
+  employees.push(emp);
+  saveEmployees();
+  renderRoster();
+  updateHRMetrics();
+  ['hr-name','hr-role','hr-pay','hr-phone','hr-start','hr-cert','hr-notes'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  addActivity('👤 Employee added: '+name);
+}
+
+function renderRoster(){
+  const roster=document.getElementById('hr-roster');
+  if(!roster)return;
+  const search=(document.getElementById('hr-search')?.value||'').toLowerCase();
+  const deptF=document.getElementById('hr-filter-dept')?.value||'';
+  const typeF=document.getElementById('hr-filter-type')?.value||'';
+  const filtered=employees.filter(e=>{
+    const matchSearch=!search||e.name.toLowerCase().includes(search)||e.role.toLowerCase().includes(search);
+    const matchDept=!deptF||e.dept===deptF;
+    const matchType=!typeF||e.type===typeF;
+    return matchSearch&&matchDept&&matchType;
+  });
+  if(!filtered.length){
+    roster.innerHTML='<div style="text-align:center;padding:30px;color:rgba(255,255,255,.35);font-size:13px;">No employees found. Add your first team member above.</div>';
+    return;
+  }
+  roster.innerHTML=filtered.map(emp=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);transition:background .15s;cursor:pointer;" 
+         onmouseover="this.style.background='rgba(255,255,255,.04)'" onmouseout="this.style.background=''"
+         onclick="openEmpModal(${emp.id})">
+      <div style="width:40px;height:40px;border-radius:50%;background:rgba(37,99,235,.25);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👤</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:13px;color:rgba(255,255,255,.88);">${emp.name}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.45);">${emp.role||'—'} · ${emp.dept}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:12px;font-weight:600;color:#6ee7b7;">${emp.pay?'$'+emp.pay+'/hr':''}</div>
+        <div style="font-size:10px;padding:2px 8px;border-radius:20px;margin-top:3px;
+          background:${emp.type.includes('W2')?'rgba(37,99,235,.2)':'rgba(245,158,11,.2)'};
+          color:${emp.type.includes('W2')?'#93c5fd':'#fcd34d'};
+          border:1px solid ${emp.type.includes('W2')?'rgba(37,99,235,.3)':'rgba(245,158,11,.3)'};">${emp.type}</div>
+      </div>
+      <button onclick="event.stopPropagation();removeEmployee(${emp.id})" 
+        style="background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.25);color:#fca5a5;border-radius:6px;padding:4px 9px;font-size:11px;cursor:pointer;">✕</button>
+    </div>`).join('');
+}
+
+function removeEmployee(id){
+  if(!confirm('Remove this employee?'))return;
+  employees=employees.filter(e=>e.id!==id);
+  saveEmployees();renderRoster();updateHRMetrics();
+}
+
+function openEmpModal(id){
+  const emp=employees.find(e=>e.id===id);
+  if(!emp)return;
+  document.getElementById('modal-title').textContent='👤 '+emp.name;
+  document.getElementById('modal-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      ${[['Role',emp.role],['Department',emp.dept],['Type',emp.type],['Pay Rate',emp.pay?'$'+emp.pay+'/hr':'—'],
+         ['Phone',emp.phone||'—'],['Start Date',emp.start||'—'],['Certifications',emp.cert||'—'],['Status',emp.status]
+        ].map(([l,v])=>`<div><div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;">${l}</div><div style="font-size:13px;color:rgba(255,255,255,.85);font-weight:600;">${v}</div></div>`).join('')}
+    </div>
+    ${emp.notes?`<div style="background:rgba(255,255,255,.05);border-radius:8px;padding:12px;font-size:12px;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:14px;">${emp.notes}</div>`:''}
+    <button class="btn-primary" onclick="hrAiAssistFor(${emp.id})">🤖 AI Advice for ${emp.name.split(' ')[0]}</button>
+    <div id="emp-ai-out" style="margin-top:12px;"></div>`;
+  document.getElementById('task-modal').classList.add('show');
+}
+
+function updateHRMetrics(){
+  document.getElementById('hr-total').textContent=employees.length;
+  document.getElementById('hr-active').textContent=employees.filter(e=>e.status==='Active').length;
+  document.getElementById('hr-certs').textContent=employees.filter(e=>e.cert).length;
+  const pays=employees.filter(e=>e.pay&&!isNaN(e.pay)).map(e=>parseFloat(e.pay));
+  document.getElementById('hr-avg-pay').textContent=pays.length?'$'+(pays.reduce((a,b)=>a+b,0)/pays.length).toFixed(0):'$0';
+}
+
+async function hrAiAssist(){
+  if(!apiKey){openApiModal();return;}
+  const thinking=document.getElementById('hr-thinking');
+  thinking.classList.add('show');
+  const dept=document.getElementById('hr-dept').value;
+  const type=document.getElementById('hr-type').value;
+  const role=document.getElementById('hr-role').value;
+  const pay=document.getElementById('hr-pay').value;
+  const sys=`You are Diana Wells, HR Director for Elevate Construction LLC in Atlanta, GA. Give practical, Georgia-specific HR guidance. Address payroll compliance (W2 vs 1099 rules), OSHA requirements for construction crews, competitive pay rates for Atlanta construction workers, and onboarding best practices.`;
+  const res=await callClaude(sys,[{role:'user',content:`New hire context: Role="${role}", Type="${type}", Dept="${dept}", Pay="$${pay}/hr". Give me: 1) Is this pay competitive for Atlanta? 2) Key onboarding steps. 3) Any compliance considerations. 4) Recommended certifications for this role.`}],800);
+  thinking.classList.remove('show');
+  document.getElementById('hr-ai-output').innerHTML=`<div class="panel"><div class="panel-header"><h3>🤖 HR AI Guidance</h3></div><div class="panel-body"><div style="font-size:13px;line-height:1.8;color:rgba(255,255,255,.82);white-space:pre-wrap;">${esc(res)}</div></div></div>`;
+}
+
+async function hrAiAssistFor(empId){
+  if(!apiKey){openApiModal();return;}
+  const emp=employees.find(e=>e.id===empId);if(!emp)return;
+  const out=document.getElementById('emp-ai-out');
+  out.innerHTML='<div style="color:rgba(147,197,253,.8);font-size:12px;">AI thinking...</div>';
+  const sys=`You are Diana Wells, HR Director for Elevate Construction LLC Atlanta. Give direct, practical HR guidance.`;
+  const res=await callClaude(sys,[{role:'user',content:`Employee: ${emp.name}, Role: ${emp.role}, Dept: ${emp.dept}, Type: ${emp.type}, Pay: $${emp.pay}/hr, Certs: ${emp.cert||'none'}, Notes: ${emp.notes||'none'}. Give performance guidance, any compliance flags, and recommendations for this employee.`}],600);
+  out.innerHTML=`<div style="font-size:12px;line-height:1.75;color:rgba(255,255,255,.8);white-space:pre-wrap;background:rgba(255,255,255,.04);padding:12px;border-radius:8px;">${esc(res)}</div>`;
+}
+
+// =====================================================
+// LIVE ESTIMATOR
+// =====================================================
+const PRICE_MAP={
+  'framing-res':    {rate:10,  unit:'sq ft',  label:'Sq Ft'},
+  'framing-com':    {rate:15,  unit:'sq ft',  label:'Sq Ft'},
+  'framing-steel':  {rate:4,   unit:'sq ft',  label:'Sq Ft'},
+  'roofing-shingle':{rate:500, unit:'square', label:'Squares (100 sq ft)'},
+  'roofing-metal':  {rate:1000,unit:'square', label:'Squares (100 sq ft)'},
+  'roofing-tpo':    {rate:750, unit:'square', label:'Squares (100 sq ft)'},
+  'roofing-repair': {rate:225, unit:'hour',   label:'Hours'},
+  'concrete-pad':   {rate:8.5, unit:'sq ft',  label:'Sq Ft'},
+  'concrete-slab':  {rate:9.5, unit:'sq ft',  label:'Sq Ft'},
+  'concrete-commercial':{rate:15,unit:'sq ft',label:'Sq Ft'},
+  'concrete-driveway':{rate:10, unit:'sq ft', label:'Sq Ft'},
+  'concrete-patio': {rate:9,   unit:'sq ft',  label:'Sq Ft'},
+  'concrete-stamped':{rate:15, unit:'sq ft',  label:'Sq Ft'},
+  'welding-structural':{rate:55,unit:'hour',  label:'Hours'},
+  'welding-repair': {rate:100, unit:'hour',   label:'Hours'},
+  'welding-mobile': {rate:75,  unit:'trip',   label:'Trips'},
+  'mitigation-water':{rate:4.5,unit:'sq ft',  label:'Sq Ft'},
+  'mitigation-mold':{rate:22,  unit:'sq ft',  label:'Sq Ft'},
+  'mitigation-fire':{rate:6,   unit:'sq ft',  label:'Sq Ft'},
+  'demo':           {rate:1.6, unit:'sq ft',  label:'Sq Ft'},
+  'grading':        {rate:1.2, unit:'sq ft',  label:'Sq Ft'},
+  'custom':         {rate:0,   unit:'unit',   label:'Units'},
+};
+
+let lineItems=[];
+
+function updateEstUnit(){
+  const cat=document.getElementById('est-category').value;
+  const info=PRICE_MAP[cat]||{rate:0,unit:'unit',label:'Units'};
+  document.getElementById('est-unit').value=info.unit;
+  document.getElementById('est-unit-label').textContent=info.label;
+  document.getElementById('est-rate').value=cat==='custom'?'':info.rate;
+  calcLineTotal();
+}
+
+function calcLineTotal(){
+  const qty=parseFloat(document.getElementById('est-qty').value)||0;
+  const rate=parseFloat(document.getElementById('est-rate').value)||0;
+  document.getElementById('est-line-total').textContent='$'+fmt(qty*rate);
+}
+
+function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});}
+
+function addLineItem(){
+  const cat=document.getElementById('est-category').value;
+  const desc=document.getElementById('est-desc').value.trim()||PRICE_MAP[cat]?.unit||'Item';
+  const qty=parseFloat(document.getElementById('est-qty').value);
+  const rate=parseFloat(document.getElementById('est-rate').value);
+  const unit=document.getElementById('est-unit').value;
+  if(!qty||!rate){alert('Enter a quantity and rate.');return;}
+  const item={id:Date.now(),cat,desc,qty,rate,unit,total:qty*rate};
+  lineItems.push(item);
+  renderEstimate();
+  document.getElementById('est-qty').value='';
+  document.getElementById('est-desc').value='';
+  document.getElementById('est-line-total').textContent='$0';
+}
+
+function removeLineItem(id){
+  lineItems=lineItems.filter(i=>i.id!==id);
+  renderEstimate();
+}
+
+function renderEstimate(){
+  const el=document.getElementById('est-line-items');
+  if(!lineItems.length){
+    el.innerHTML='<div style="text-align:center;padding:24px;color:rgba(255,255,255,.3);font-size:13px;">No line items yet — add work categories above</div>';
+    ['est-subtotal','est-overhead','est-profit','est-total'].forEach(id=>document.getElementById(id).textContent='$0');
+    return;
+  }
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:0;font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em;padding:10px 20px;border-bottom:1px solid rgba(255,255,255,.08);">
+      <span>Description</span><span>Qty</span><span>Rate</span><span>Total</span><span></span>
+    </div>`+
+    lineItems.map(item=>`
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:0;padding:11px 20px;border-bottom:1px solid rgba(255,255,255,.05);align-items:center;">
+      <span style="font-size:13px;color:rgba(255,255,255,.85);">${item.desc}</span>
+      <span style="font-size:12px;color:rgba(255,255,255,.55);">${item.qty} ${item.unit}</span>
+      <span style="font-size:12px;color:rgba(255,255,255,.55);">$${item.rate}/${item.unit}</span>
+      <span style="font-size:13px;font-weight:700;color:#93c5fd;">$${fmt(item.total)}</span>
+      <button onclick="removeLineItem(${item.id})" style="background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.2);color:#fca5a5;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;">✕</button>
+    </div>`).join('');
+
+  const sub=lineItems.reduce((a,i)=>a+i.total,0);
+  const overhead=sub*0.18;
+  const profit=sub*0.12;
+  const total=sub+overhead+profit;
+  document.getElementById('est-subtotal').textContent='$'+fmt(sub);
+  document.getElementById('est-overhead').textContent='$'+fmt(overhead);
+  document.getElementById('est-profit').textContent='$'+fmt(profit);
+  document.getElementById('est-total').textContent='$'+fmt(total);
+}
+
+function clearEstimate(){if(confirm('Clear all line items?')){lineItems=[];renderEstimate();}}
+
+function exportEstimateToProposal(){
+  if(!lineItems.length){alert('Add line items first.');return;}
+  const sub=lineItems.reduce((a,i)=>a+i.total,0);
+  const total=sub*1.30;
+  const scope=lineItems.map(i=>`• ${i.desc}: ${i.qty} ${i.unit} @ $${i.rate}/${i.unit} = $${fmt(i.total)}`).join('\n');
+  document.getElementById('p-name').value=document.getElementById('est-project').value||'Construction Project';
+  document.getElementById('p-client').value=document.getElementById('est-client').value||'';
+  document.getElementById('p-type').value=document.getElementById('est-proj-type').value;
+  document.getElementById('p-date').value=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('p-valid').value='30 days';
+  document.getElementById('p-scope').value=scope+'\n\nLocation: '+(document.getElementById('est-location').value||'Atlanta, GA')+'\nTotal Estimate: $'+fmt(total)+'\n\n'+(document.getElementById('est-notes').value||'');
+  showView('proposal');
+  addActivity('🧮 Estimate exported to Proposal Generator');
+}
+
+async function aiEstimateScope(){
+  if(!apiKey){openApiModal();return;}
+  const notes=document.getElementById('est-notes').value.trim();
+  const type=document.getElementById('est-proj-type').value;
+  if(!notes){alert('Add project notes first so Marcus can estimate.');return;}
+  const thinking=document.getElementById('est-thinking');
+  const thinkingText=document.getElementById('est-thinking-text');
+  thinking.classList.add('show');
+  thinkingText.textContent='Marcus is analyzing your scope...';
+  const dept=DEPARTMENTS.find(d=>d.id==='estimation');
+  const res=await callClaude(dept.systemPrompt,[{role:'user',content:`Build a line-item estimate for this project:\nType: ${type}\nNotes: ${notes}\n\nList each line item as: CATEGORY | DESCRIPTION | QUANTITY | UNIT | RATE. Use Elevate's 2026 Atlanta pricing. Be specific and complete.`}],1200);
+  thinking.classList.remove('show');
+  document.getElementById('est-ai-output').innerHTML=`
+    <div class="panel"><div class="panel-header"><h3>📐 Marcus's Estimate</h3><p>AI-generated line items — add them manually above or copy</p></div>
+    <div class="panel-body"><div style="font-size:13px;line-height:1.9;color:rgba(255,255,255,.82);white-space:pre-wrap;">${esc(res)}</div>
+    ${elKey&&dept.voiceId?`<button class="speak-btn btn-secondary" style="margin-top:10px;" onclick="toggleSpeak(this,'${esc(res)}','${dept.voiceId}')">🔊 Hear Marcus</button>`:''}
+    </div></div>`;
+  queryCount++;document.getElementById('metric-queries').textContent=queryCount;
+  localStorage.setItem('elevate_query_count',queryCount);
+}
+
+// init estimator
+function initEstimator(){updateEstUnit();renderEstimate();}
+
+// =====================================================
+// CONTRACT GENERATOR
+// =====================================================
+async function generateContract(){
+  if(!apiKey){openApiModal();return;}
+  const btn=document.querySelector('#view-contracts .btn-primary');
+  const thinking=document.getElementById('con-thinking');
+  const thinkingText=document.getElementById('con-thinking-text');
+  const output=document.getElementById('con-output');
+  if(btn)btn.disabled=true;
+  thinking.classList.add('show');
+  output.innerHTML='';
+
+  const type=document.getElementById('con-type').value;
+  const client=document.getElementById('con-client').value;
+  const clientAddr=document.getElementById('con-client-addr').value;
+  const projAddr=document.getElementById('con-proj-addr').value;
+  const value=document.getElementById('con-value').value;
+  const start=document.getElementById('con-start').value;
+  const end=document.getElementById('con-end').value;
+  const payment=document.getElementById('con-payment').value;
+  const scope=document.getElementById('con-scope').value;
+  const special=document.getElementById('con-special').value;
+
+  const steps=['Reviewing Georgia construction law...','Drafting liability clauses...','Adding payment terms...','Including lien waiver provisions...','Finalizing compliance language...'];
+  let si=0;
+  const st=setInterval(()=>{if(si<steps.length)thinkingText.textContent=steps[si++];},1800);
+
+  const dept=DEPARTMENTS.find(d=>d.id==='legal');
+  const sys=dept.systemPrompt+` You are drafting a formal construction contract. Use proper Georgia legal language. Include all standard construction contract clauses: parties, scope, payment, change orders, delays, warranties, dispute resolution (Georgia arbitration), lien rights, termination, insurance requirements, and signature blocks. Format clearly with numbered sections. Do NOT use markdown — write plain professional text only.`;
+
+  try{
+    const res=await callClaude(sys,[{role:'user',content:`Draft a ${type} with these details:
+Client: ${client}
+Client Address: ${clientAddr}
+Project Address: ${projAddr}  
+Contract Value: $${value}
+Start Date: ${start}
+Completion Date: ${end}
+Payment Terms: ${payment}
+Scope of Work: ${scope}
+Special Requirements: ${special||'None'}
+Contractor: Elevate Construction LLC, 3343 Peachtree Rd NE Ste 145 MB 2131, Atlanta GA 30326, 404-719-1888, GaElevate.com`}],4000);
+
+    clearInterval(st);thinking.classList.remove('show');if(btn)btn.disabled=false;
+
+    output.innerHTML=`
+      <div class="branded-doc" style="margin-top:16px;">
+        <div class="doc-header">
+          <div class="doc-logo-row">
+            <div><div class="doc-company-name">⚖️ ${type.toUpperCase()}</div>
+            <div class="doc-tagline">Elevate Construction LLC · Georgia Licensed & Insured</div></div>
+            <div style="text-align:right;font-size:11px;opacity:.8;">
+              <div>📞 404-719-1888</div><div>GaElevate.com</div>
+            </div>
+          </div>
+          <div class="doc-meta" style="margin-top:14px;">
+            <div class="doc-meta-item"><strong>Client</strong>${client}</div>
+            <div class="doc-meta-item"><strong>Value</strong>$${value}</div>
+            <div class="doc-meta-item"><strong>Start</strong>${start}</div>
+            <div class="doc-meta-item"><strong>Completion</strong>${end}</div>
+          </div>
+        </div>
+        <div class="doc-body">
+          <div style="font-size:13px;line-height:2;color:rgba(255,255,255,.85);white-space:pre-wrap;">${esc(res)}</div>
+          <hr class="section-divider">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn-secondary" onclick="copyText('${encodeURIComponent(res)}')">📋 Copy Contract</button>
+            <button class="btn-secondary" onclick="downloadTxt('${encodeURIComponent(res)}','${encodeURIComponent(type)}')">💾 Download .txt</button>
+            <button class="btn-secondary" onclick="downloadBrandedPDF(decodeURIComponent('${encodeURIComponent(res)}'),'${type}','Jennifer Harrison - Legal','${start}','','${type}')" style="background:rgba(37,99,235,.18);color:#93c5fd;border-color:rgba(37,99,235,.4);">📄 Download PDF</button>
+            ${elKey&&dept.voiceId?`<button class="speak-btn btn-secondary" onclick="toggleSpeak(this,'${encodeURIComponent(res)}','${dept.voiceId}')">🔊 Hear Jennifer Read It</button>`:''}
+          </div>
+        </div>
+        <div class="doc-footer">
+          <span>⚠️ This contract is AI-generated. Have a licensed Georgia attorney review before execution.</span>
+        </div>
+      </div>`;
+
+    addActivity('📝 Contract generated: '+type+' for '+client);
+    queryCount++;document.getElementById('metric-queries').textContent=queryCount;
+    localStorage.setItem('elevate_query_count',queryCount);
+  }catch(e){
+    clearInterval(st);thinking.classList.remove('show');if(btn)btn.disabled=false;
+    output.innerHTML=`<div class="error-box">Error: ${e.message}</div>`;
+  }
+}
 </script>
 </body>
 </html>
+
