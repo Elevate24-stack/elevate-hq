@@ -283,6 +283,7 @@ textarea{resize:vertical;min-height:80px;}
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
     <span style="font-size:11px;color:rgba(255,255,255,.5);"><span class="status-dot"></span>All systems online</span>
+    <span id="server-status" style="font-size:10px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);">⚡ Server...</span>
     <div id="email-badge" onclick="showView('email')" style="display:none;background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;"></div>
     <div class="logo-badge">404-719-1888</div>
     <button class="btn-secondary btn-sm" onclick="openApiModal()">⚙ API Key</button>
@@ -364,9 +365,61 @@ textarea{resize:vertical;min-height:80px;}
             <textarea id="allhands-input2" placeholder="Type a company-wide message or question..." rows="4" style="border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;font-size:13px;font-family:'Inter',sans-serif;width:100%;resize:vertical;outline:none;background:rgba(255,255,255,.05);color:white;"></textarea>
           </div>
           <button class="btn-primary" style="margin-top:12px;" onclick="broadcastToAll2()">📢 Send to All Departments</button>
+          <div style="display:flex;gap:10px;margin-top:10px;">
+            <button id="auto-meeting-btn" class="btn-gold" style="flex:1;" onclick="toggleAutoMeeting()">🎙️ Start Autonomous Board Meeting</button>
+            <button class="btn-secondary" style="flex:1;" onclick="resetMeeting()">🔄 Reset Meeting</button>
+          </div>
           <div class="thinking-bar" id="allhands-thinking"><div class="spinner"></div><span class="thinking-text" id="allhands-thinking-text">Consulting all departments...</span></div>
         </div>
       </div>
+
+      <!-- CEO SPEAK PANEL -->
+      <div id="ceo-speak-panel" style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(13,27,46,.8));border:1.5px solid rgba(245,158,11,.3);border-radius:13px;padding:16px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👑</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:13px;color:white;">CEO — You</div>
+            <div style="font-size:11px;color:rgba(253,186,116,.8);">Speak into the meeting — interrupt or queue your turn</div>
+          </div>
+          <div id="ceo-mic-status" style="font-size:10px;font-weight:700;color:rgba(255,255,255,.3);padding:3px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.1);">STANDBY</div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <!-- Type or speak -->
+          <textarea id="ceo-input" placeholder="Type your statement or question to the board..." rows="2"
+            style="flex:1;border:1.5px solid rgba(245,158,11,.25);border-radius:9px;padding:9px 13px;font-size:13px;
+                   font-family:'Inter',sans-serif;color:white;background:rgba(245,158,11,.06);outline:none;resize:none;"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ceoPushToMeeting();}"></textarea>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <!-- Interrupt — pauses AI, CEO speaks now -->
+          <button onclick="ceoInterrupt()" id="ceo-interrupt-btn"
+            style="flex:1;background:linear-gradient(135deg,rgba(220,38,38,.7),rgba(153,27,27,.8));color:white;
+                   border:1px solid rgba(220,38,38,.5);border-radius:9px;padding:9px 14px;font-size:12px;
+                   font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;justify-content:center;">
+            ⚡ Interrupt Now
+          </button>
+          <!-- Queue — CEO speaks on next turn -->
+          <button onclick="ceoQueue()" id="ceo-queue-btn"
+            style="flex:1;background:linear-gradient(135deg,rgba(37,99,235,.3),rgba(29,78,216,.2));color:rgba(147,197,253,.9);
+                   border:1px solid rgba(37,99,235,.4);border-radius:9px;padding:9px 14px;font-size:12px;
+                   font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;justify-content:center;">
+            ⏭ Queue My Turn
+          </button>
+          <!-- Mic button for voice input -->
+          <button onclick="toggleCeoMic()" id="ceo-mic-btn"
+            style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.12);
+                   border-radius:9px;padding:9px 14px;font-size:18px;cursor:pointer;transition:all .2s;"
+            title="Use microphone">🎤</button>
+        </div>
+
+        <div id="ceo-queue-notice" style="display:none;margin-top:8px;padding:7px 12px;background:rgba(37,99,235,.15);
+             border-radius:7px;font-size:11px;color:rgba(147,197,253,.9);border:1px solid rgba(37,99,235,.25);">
+          ⏭ Your message is queued — you'll speak after the current agent finishes.
+        </div>
+      </div>
+
       <div id="broadcast-responses2" class="broadcast-responses"></div>
     </div>
 
@@ -668,7 +721,16 @@ textarea{resize:vertical;min-height:80px;}
     <!-- HR MODULE -->
     <div id="view-hr" class="dept-view">
       <div class="content-title">👥 HR Module</div>
-      <div class="content-subtitle">Staff profiles, payroll tracking, onboarding, certifications and HR documents</div>
+      <div class="content-subtitle">Staff roster, onboarding, HR documents, contractor agreements — all generated and stored automatically</div>
+
+      <div class="tab-bar" id="hr-tabs">
+        <div class="tab active" onclick="switchTab('hr','roster')">👥 Roster</div>
+        <div class="tab" onclick="switchTab('hr','docs')">📄 HR Documents</div>
+        <div class="tab" onclick="switchTab('hr','webhook')">🔗 Website Leads</div>
+        <div class="tab" onclick="switchTab('hr','email-connect')">📧 Email Setup</div>
+      </div>
+
+      <div id="hr-roster" class="tab-content active" style="padding-top:18px;">
 
       <div class="metrics-row">
         <div class="metric-card"><div class="metric-label">Total Staff</div><div class="metric-value" id="hr-total">0</div><div class="metric-sub">Active employees</div></div>
@@ -719,7 +781,167 @@ textarea{resize:vertical;min-height:80px;}
       </div>
 
       <div id="hr-ai-output"></div>
-    </div>
+      </div><!-- end hr-roster tab -->
+
+      <!-- HR DOCUMENTS TAB -->
+      <div id="hr-docs" class="tab-content" style="padding-top:18px;">
+
+        <div class="panel">
+          <div class="panel-header"><h3>📄 Generate HR Document</h3><p>Select an employee and document type — AI generates it instantly, ready to download</p></div>
+          <div class="panel-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Employee / Contractor</label>
+                <select id="doc-emp-select"><option value="">Select from roster...</option></select>
+              </div>
+              <div class="form-group">
+                <label>Document Type</label>
+                <select id="doc-type">
+                  <option>W2 Employee Onboarding Package</option>
+                  <option>1099 Contractor Agreement</option>
+                  <option>Subcontractor Agreement</option>
+                  <option>OSHA Safety Acknowledgment</option>
+                  <option>Employee Handbook Acknowledgment</option>
+                  <option>Direct Deposit Authorization</option>
+                  <option>Emergency Contact Form</option>
+                  <option>Non-Disclosure Agreement (NDA)</option>
+                  <option>Performance Review Form</option>
+                  <option>Termination / Separation Agreement</option>
+                  <option>Independent Contractor Checklist (IRS)</option>
+                  <option>Lien Waiver (Subcontractor)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label>Additional Notes / Special Terms</label>
+              <textarea id="doc-notes" placeholder="Any specific terms, project names, pay rates, start dates to include..." rows="2"></textarea>
+            </div>
+            <button class="btn-primary" onclick="generateHRDoc()">📄 Generate Document</button>
+            <div class="thinking-bar" id="hr-doc-thinking"><div class="spinner"></div><span class="thinking-text" id="hr-doc-thinking-text">Generating document...</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h3>📁 Saved Documents</h3><p>All generated HR documents — download or regenerate anytime</p></div>
+          <div class="panel-body" style="padding:10px;">
+            <div id="hr-doc-list" style="min-height:60px;"></div>
+          </div>
+        </div>
+        <div id="hr-doc-output"></div>
+      </div>
+
+      <!-- WEBSITE WEBHOOK TAB -->
+      <div id="hr-webhook" class="tab-content" style="padding-top:18px;">
+        <div class="panel">
+          <div class="panel-header"><h3>🔗 Website Contact Form → Lead Pipeline</h3><p>When someone fills out your contact form on GaElevate.com, leads flow here automatically</p></div>
+          <div class="panel-body">
+            <div class="notice-box" style="margin-bottom:16px;">
+              <strong>How this works:</strong> Your GaElevate.com contact form sends data to a webhook URL. This app receives it and automatically creates a new CRM lead. No manual entry needed.
+            </div>
+
+            <div style="margin-bottom:16px;">
+              <label style="font-size:10.5px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.07em;">Your Webhook Receiver URL</label>
+              <div style="display:flex;gap:8px;margin-top:6px;">
+                <div style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:10px 14px;font-family:monospace;font-size:12px;color:#93c5fd;overflow-x:auto;">
+                  https://elevate24-stack.github.io/elevate-hq/?lead=1&name={name}&email={email}&phone={phone}&message={message}&source=website
+                </div>
+                <button onclick="copyWebhookUrl()" class="btn-secondary" style="white-space:nowrap;">📋 Copy</button>
+              </div>
+              <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:6px;">Replace {name}, {email}, {phone}, {message} with your form field variables</div>
+            </div>
+
+            <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:14px;margin-bottom:16px;">
+              <div style="font-weight:700;font-size:13px;color:white;margin-bottom:10px;">📋 Setup Instructions</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.65);line-height:2;">
+                <div><strong style="color:#93c5fd;">GoDaddy Website Builder:</strong> Go to Forms → Contact Form → Settings → Notifications → Add Webhook URL above</div>
+                <div><strong style="color:#93c5fd;">WordPress (Contact Form 7):</strong> Install "CF7 to Webhook" plugin → paste URL</div>
+                <div><strong style="color:#93c5fd;">Squarespace:</strong> Form Block → Storage → Webhooks → paste URL</div>
+                <div><strong style="color:#93c5fd;">Any HTML form:</strong> Add <code style="color:#fcd34d;">action="URL"</code> to your form tag with method GET</div>
+              </div>
+            </div>
+
+            <div style="font-weight:700;font-size:13px;color:white;margin-bottom:10px;">🧪 Test Webhook — Simulate a Lead</div>
+            <div class="form-grid">
+              <div class="form-group"><label>Name</label><input type="text" id="wh-name" placeholder="Test Customer" value="Test Customer"></div>
+              <div class="form-group"><label>Email</label><input type="text" id="wh-email" placeholder="test@email.com" value="test@example.com"></div>
+              <div class="form-group"><label>Phone</label><input type="text" id="wh-phone" placeholder="(404) 555-0000" value="(404) 555-0000"></div>
+              <div class="form-group"><label>Source</label><input type="text" id="wh-source" value="GaElevate.com" placeholder="Website"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;"><label>Message / Project Description</label><textarea id="wh-message" rows="2" placeholder="Interested in roofing estimate for my home...">Need a roofing estimate for 2,200 sq ft residential. Looking to start in 30 days.</textarea></div>
+            <button class="btn-primary" onclick="testWebhookLead()">🧪 Simulate Website Lead → Add to CRM</button>
+          </div>
+        </div>
+        <div id="webhook-result"></div>
+      </div>
+
+      <!-- EMAIL SETUP TAB -->
+      <div id="hr-email-connect" class="tab-content" style="padding-top:18px;">
+        <div class="panel">
+          <div class="panel-header"><h3>📧 Email Integration Setup</h3><p>Connect Gmail and Outlook to pull leads automatically into your pipeline</p></div>
+          <div class="panel-body">
+            <div class="notice-box" style="margin-bottom:16px;">
+              Full email automation requires a Node.js backend server. Below is your complete setup guide and what each part costs.
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+              <div style="background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:14px;">
+                <div style="font-size:16px;margin-bottom:8px;">📧 Gmail</div>
+                <div style="font-weight:700;font-size:13px;color:white;margin-bottom:6px;">Google Workspace API</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.8;">
+                  1. Go to <a href="https://console.cloud.google.com" target="_blank" style="color:#93c5fd;">console.cloud.google.com</a><br>
+                  2. Create project → Enable Gmail API<br>
+                  3. Create OAuth credentials<br>
+                  4. Set up Pub/Sub webhook → points to your Node.js server<br>
+                  5. Server catches email → creates CRM lead automatically
+                </div>
+                <div style="margin-top:10px;padding:6px 10px;background:rgba(16,185,129,.15);border-radius:6px;font-size:11px;color:#6ee7b7;font-weight:600;">FREE — Google API is free for this usage</div>
+              </div>
+
+              <div style="background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:14px;">
+                <div style="font-size:16px;margin-bottom:8px;">📨 Outlook</div>
+                <div style="font-weight:700;font-size:13px;color:white;margin-bottom:6px;">Microsoft Graph API</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.8;">
+                  1. Go to <a href="https://portal.azure.com" target="_blank" style="color:#93c5fd;">portal.azure.com</a><br>
+                  2. App registrations → New registration<br>
+                  3. Add Mail.Read permission<br>
+                  4. Set up Graph API subscription webhook<br>
+                  5. Server catches email → creates CRM lead automatically
+                </div>
+                <div style="margin-top:10px;padding:6px 10px;background:rgba(16,185,129,.15);border-radius:6px;font-size:11px;color:#6ee7b7;font-weight:600;">FREE — Microsoft Graph API is free</div>
+              </div>
+            </div>
+
+            <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:14px;margin-bottom:16px;">
+              <div style="font-weight:700;font-size:13px;color:white;margin-bottom:8px;">🖥️ Backend Server Options (to run webhooks)</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.65);line-height:2.1;">
+                <div><strong style="color:#fcd34d;">Railway.app</strong> — Deploy Node.js free tier, ~$5/mo after. Easiest setup. ⭐ Recommended</div>
+                <div><strong style="color:#fcd34d;">Render.com</strong> — Free tier available, spins down after inactivity</div>
+                <div><strong style="color:#fcd34d;">Vercel</strong> — Great for serverless functions, free tier</div>
+                <div><strong style="color:#fcd34d;">Supabase</strong> — Postgres database + edge functions, free tier</div>
+              </div>
+            </div>
+
+            <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;">
+              <div style="font-weight:700;font-size:13px;color:white;margin-bottom:8px;">📞 AI Receptionist (Dialpad)</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.65);line-height:2.1;">
+                <div><strong style="color:#93c5fd;">Vapi.ai</strong> — Best ultra-low latency voice AI. $0.05/min. Configure Dialpad to forward to Vapi SIP endpoint.</div>
+                <div><strong style="color:#93c5fd;">Bland AI</strong> — Specialized for business calls, good for scheduling. ~$0.09/min</div>
+                <div><strong style="color:#93c5fd;">Retell AI</strong> — Great customization, $0.07/min</div>
+                <div style="margin-top:6px;color:rgba(255,255,255,.4);">All three connect to your Node.js brain via webhooks — caller asks a question, Vapi calls your server, server pulls from your database, Vapi speaks the answer back. Sub-1 second latency.</div>
+              </div>
+            </div>
+
+            <div style="margin-top:16px;padding:12px 14px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);border-radius:10px;">
+              <div style="font-weight:700;font-size:13px;color:white;margin-bottom:6px;">🚀 Ready to build the backend?</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:10px;">Tell Claude: "Build me the Node.js backend for Elevate HQ with Gmail webhook, Outlook webhook, and Vapi receptionist integration" — I'll generate the complete server code.</div>
+              <button class="btn-primary" onclick="generateBackendCode()">⚡ Generate Node.js Backend Code</button>
+              <div id="backend-output" style="margin-top:12px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end view-hr -->
 
     <!-- LIVE ESTIMATOR -->
     <div id="view-estimator" class="dept-view">
@@ -882,30 +1104,80 @@ textarea{resize:vertical;min-height:80px;}
 
 <!-- API MODAL -->
 <div class="modal-overlay" id="api-modal">
-  <div class="modal-box">
-    <div class="modal-header"><h2>🔑 AI Engine Setup</h2><button class="modal-close" onclick="closeApiModal()">✕</button></div>
+  <div class="modal-box" style="max-width:500px;">
+    <div class="modal-header">
+      <h2>⚡ Elevate HQ — Setup</h2>
+      <button class="modal-close" onclick="closeApiModal()">✕</button>
+    </div>
     <div class="modal-body">
-      <div class="notice-box"><strong>API Keys</strong><br>Both keys are saved permanently in your browser — enter once, never again.</div>
 
-      <div class="form-group" style="margin-bottom:14px;">
-        <label>Anthropic API Key</label>
-        <input type="text" id="api-key-input" placeholder="sk-ant-api03-..." style="font-family:monospace;">
+      <!-- KEY 1: ANTHROPIC -->
+      <div style="background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:34px;height:34px;border-radius:50%;background:rgba(37,99,235,.3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🤖</div>
+          <div>
+            <div style="font-weight:700;font-size:13px;color:white;">Anthropic API Key</div>
+            <div style="font-size:11px;color:rgba(147,197,253,.7);">Powers all 7 AI agents — <strong style="color:#93c5fd;">REQUIRED</strong></div>
+          </div>
+          <div id="anthropic-status" style="margin-left:auto;font-size:11px;font-weight:700;color:rgba(255,255,255,.3);">NOT SET</div>
+        </div>
+        <div style="position:relative;">
+          <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." style="font-family:monospace;margin-bottom:8px;padding-right:40px;"
+            oninput="document.getElementById('anthropic-status').textContent=this.value.trim()?'ENTERED ✓':'NOT SET';document.getElementById('anthropic-status').style.color=this.value.trim()?'#6ee7b7':'rgba(255,255,255,.3)'">
+          <button onclick="toggleKeyVis('api-key-input',this)" type="button" style="position:absolute;right:10px;top:9px;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:14px;">👁</button>
+        </div>
+        <div style="font-size:10px;color:rgba(255,255,255,.3);">
+          Get yours at <a href="https://console.anthropic.com" target="_blank" style="color:#93c5fd;">console.anthropic.com</a> → API Keys
+        </div>
       </div>
 
-      <div class="form-group" style="margin-bottom:16px;">
-        <label>ElevenLabs API Key <span style="color:rgba(255,255,255,.35);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;">— for agent voices 🎙️</span></label>
-        <input type="text" id="el-key-input" placeholder="sk_..." style="font-family:monospace;">
-        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:5px;">Get yours at <a href="https://elevenlabs.io" target="_blank" style="color:#93c5fd;">elevenlabs.io</a> → Profile → API Keys</div>
+      <!-- KEY 2: ELEVENLABS -->
+      <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:34px;height:34px;border-radius:50%;background:rgba(245,158,11,.25);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🎙️</div>
+          <div>
+            <div style="font-weight:700;font-size:13px;color:white;">ElevenLabs API Key</div>
+            <div style="font-size:11px;color:rgba(253,186,116,.7);">Agent voices & board meeting — <strong style="color:#fcd34d;">OPTIONAL</strong></div>
+          </div>
+          <div id="el-status" style="margin-left:auto;font-size:11px;font-weight:700;color:rgba(255,255,255,.3);">NOT SET</div>
+        </div>
+        <div style="position:relative;">
+          <input type="password" id="el-key-input" placeholder="sk_..." style="font-family:monospace;margin-bottom:8px;padding-right:40px;"
+            oninput="document.getElementById('el-status').textContent=this.value.trim()?'ENTERED ✓':'NOT SET';document.getElementById('el-status').style.color=this.value.trim()?'#fcd34d':'rgba(255,255,255,.3)'">
+          <button onclick="toggleKeyVis('el-key-input',this)" type="button" style="position:absolute;right:10px;top:9px;background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:14px;">👁</button>
+        </div>
+        <div style="font-size:10px;color:rgba(255,255,255,.3);">
+          Get yours at <a href="https://elevenlabs.io" target="_blank" style="color:#fcd34d;">elevenlabs.io</a> → Profile → API Keys (default permissions)
+        </div>
       </div>
 
-      <button class="btn-primary" onclick="saveApiKey()">✅ Save & Activate AI Team</button>
+      <!-- SAVE BUTTON -->
+      <button class="btn-primary" onclick="saveApiKey()" style="margin-bottom:8px;">✅ Save Keys & Activate AI Team</button>
 
-      <div style="display:flex;gap:10px;margin-top:10px;">
-        <button class="btn-secondary" style="flex:1;font-size:11px;" onclick="clearChatMemory()">🗑️ Clear Chat History</button>
-        <button class="btn-secondary" style="flex:1;font-size:11px;" onclick="clearApiKey()">🔑 Change Keys</button>
+      <!-- TEST BUTTON -->
+      <button class="btn-secondary" style="width:100%;" onclick="testApiKey()">🧪 Test Anthropic Connection</button>
+      <div id="api-test-result" style="margin-top:8px;font-size:12px;display:none;padding:8px 12px;border-radius:7px;line-height:1.5;"></div>
+
+      <!-- MANAGEMENT -->
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="btn-secondary" style="flex:1;font-size:11px;" onclick="clearChatMemory()">🗑️ Clear Chats</button>
+        <button class="btn-secondary" style="flex:1;font-size:11px;" onclick="clearApiKey()">🔄 Reset Keys</button>
+      </div>
+      <div style="border-top:1px solid rgba(255,255,255,.07);margin-top:12px;padding-top:12px;">
+        <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;">💾 Data Backup</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-secondary" style="flex:1;font-size:11px;" onclick="exportHQData()">💾 Download Backup</button>
+          <button class="btn-secondary" style="flex:1;font-size:11px;" onclick="document.getElementById('import-hq').click()">📂 Load Backup</button>
+          <input type="file" id="import-hq" accept=".json" style="display:none;" onchange="importHQData(event)">
+        </div>
       </div>
 
-      <p style="font-size:11px;color:rgba(255,255,255,.28);margin-top:12px;">Keys stored locally in your browser only — never sent anywhere except their respective APIs.</p>
+      <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid rgba(255,255,255,.06);">
+        <div style="font-size:10px;color:rgba(255,255,255,.35);line-height:1.8;">
+          🔒 <strong style="color:rgba(255,255,255,.5);">Your keys never leave your browser.</strong> They are saved to localStorage on your device and sent only to their respective APIs (Anthropic & ElevenLabs) — never to any third party.
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -919,6 +1191,11 @@ textarea{resize:vertical;min-height:80px;}
 </div>
 
 <script>
+// =====================================================
+// SERVER CONFIG
+// =====================================================
+const SERVER_URL = 'https://elevate-hq-production.up.railway.app';
+
 // =====================================================
 // STATE & DATA
 // =====================================================
@@ -2038,10 +2315,12 @@ function stripMarkdown(text){
 
 async function callClaude(system,messages,maxTokens=1000){
   // Build request body — messages content can be string or array (for vision/files)
+  // Inject live company context into every agent call
+  const liveContext = buildDynamicContext();
   const body={
-    model:'claude-sonnet-4-5',
+    model:'claude-sonnet-4-5-20250929',
     max_tokens:maxTokens,
-    system:system,
+    system:system + liveContext,
     messages:messages
   };
   console.log('[callClaude] Sending request, maxTokens='+maxTokens+', messages='+messages.length);
@@ -2056,9 +2335,10 @@ async function callClaude(system,messages,maxTokens=1000){
     body:JSON.stringify(body)
   });
   if(!res.ok){
-    const e=await res.json().catch(()=>({}));
-    const msg=e.error?.message||'HTTP '+res.status;
-    console.error('[callClaude] API error:',msg,e);
+    let errBody={};
+    try{ errBody=await res.json(); }catch(ex){}
+    const msg = errBody.error?.message || ('HTTP '+res.status+' — check your API key is valid and has credits');
+    console.error('[callClaude] API error:',res.status, msg, errBody);
     throw new Error(msg);
   }
   const d=await res.json();
@@ -2094,10 +2374,16 @@ function saveApiKey(){
   localStorage.setItem('elevate_api_key', k);
   const el = document.getElementById('el-key-input').value.trim();
   if(el){ elKey=el; localStorage.setItem('elevate_el_key', el); }
+  // Update visual indicators
+  const as = document.getElementById('anthropic-status');
+  if(as){ as.textContent='SAVED ✓'; as.style.color='#6ee7b7'; }
+  if(elKey){
+    const es = document.getElementById('el-status');
+    if(es){ es.textContent='SAVED ✓'; es.style.color='#fcd34d'; }
+  }
   closeApiModal();
   updateKeyIndicator(true);
   addActivity('🔑 AI engine activated — all 7 agents online'+(elKey?' + 🎙️ Voice enabled':''));
-  // Refresh speak buttons now that keys are set
   setTimeout(refreshSpeakButtons, 100);
 }
 
@@ -2156,12 +2442,18 @@ window.addEventListener('DOMContentLoaded',()=>{
     apiKey = savedKey;
     document.getElementById('api-key-input').value = savedKey;
     updateKeyIndicator(true);
+    // Update status indicator
+    const as = document.getElementById('anthropic-status');
+    if(as){ as.textContent='SAVED ✓'; as.style.color='#6ee7b7'; }
     addActivity('🔑 API key restored — agents ready');
   }
   const savedEl = localStorage.getItem('elevate_el_key');
   if(savedEl){
     elKey = savedEl;
     document.getElementById('el-key-input').value = savedEl;
+    // Update status indicator
+    const es = document.getElementById('el-status');
+    if(es){ es.textContent='SAVED ✓'; es.style.color='#fcd34d'; }
     addActivity('🎙️ ElevenLabs voice restored');
   }
 
@@ -2693,6 +2985,7 @@ function addEmployee(){
     const el=document.getElementById(id);if(el)el.value='';
   });
   addActivity('👤 Employee added: '+name);
+  populateDocEmpSelect();
 }
 
 function renderRoster(){
@@ -3008,6 +3301,817 @@ Contractor: Elevate Construction LLC, 3343 Peachtree Rd NE Ste 145 MB 2131, Atla
   }catch(e){
     clearInterval(st);thinking.classList.remove('show');if(btn)btn.disabled=false;
     output.innerHTML=`<div class="error-box">Error: ${e.message}</div>`;
+  }
+}
+
+async function testApiKey(){
+  const k = document.getElementById('api-key-input').value.trim();
+  const result = document.getElementById('api-test-result');
+  if(!k){ result.style.display='block';result.style.background='rgba(220,38,38,.15)';result.style.color='#fca5a5';result.textContent='⚠️ Enter your API key first.';return; }
+  result.style.display='block';result.style.background='rgba(37,99,235,.15)';result.style.color='#93c5fd';result.textContent='🔄 Testing connection...';
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-5-20250929',max_tokens:20,messages:[{role:'user',content:'Say OK'}]})
+    });
+    const d = await res.json();
+    if(res.ok && d.content?.[0]?.text){
+      result.style.background='rgba(16,185,129,.15)';result.style.color='#6ee7b7';
+      result.textContent='✅ API key works! Response: '+d.content[0].text;
+    } else {
+      result.style.background='rgba(220,38,38,.15)';result.style.color='#fca5a5';
+      result.textContent='❌ Error: '+(d.error?.message||'Unknown error — check your key');
+    }
+  }catch(e){
+    result.style.background='rgba(220,38,38,.15)';result.style.color='#fca5a5';
+    result.textContent='❌ Connection failed: '+e.message;
+  }
+}
+
+function toggleKeyVis(inputId, btn){
+  const inp = document.getElementById(inputId);
+  if(!inp) return;
+  if(inp.type === 'password'){
+    inp.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    inp.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
+// =====================================================
+// DYNAMIC CONTEXT INJECTION
+// Gives agents awareness of live company state
+// =====================================================
+function buildDynamicContext(){
+  try{
+    const openTasks = (tasks||[]).filter(t=>!t.done).slice(0,10)
+      .map(t=>`- ${t.title} [${t.dept}/${t.priority}]`).join('\n');
+    const activePipeline = (leads||[]).filter(l=>l.stage!=='won');
+    const pipelineVal = activePipeline.reduce((acc,l)=>{
+      const n=parseInt((l.value||'').replace(/[^0-9]/g,''));
+      return acc+(isNaN(n)?0:n);
+    },0);
+    const empCount = (employees||[]).length;
+    const wonLeads = (leads||[]).filter(l=>l.stage==='won').length;
+
+    return `
+
+--- LIVE ELEVATE HQ CONTEXT (${new Date().toLocaleDateString()}) ---
+Open Tasks: ${(tasks||[]).filter(t=>!t.done).length} open
+${openTasks||'No open tasks.'}
+Active Pipeline: ${activePipeline.length} leads | Value: $${pipelineVal.toLocaleString()}
+Won Jobs: ${wonLeads} | Total Staff: ${empCount}
+---`;
+  }catch(e){ return ''; }
+}
+
+// =====================================================
+// DATA BACKUP & RESTORE
+// =====================================================
+function exportHQData(){
+  const data={
+    tasks: tasks||[],
+    leads: leads||[],
+    employees: employees||[],
+    chatHistories: chatHistories||{},
+    queryCount: queryCount||0,
+    exportDate: new Date().toISOString(),
+    version: 'ElevateHQ-v3'
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='Elevate_HQ_Backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  URL.revokeObjectURL(url);
+  addActivity('💾 Full HQ backup downloaded');
+}
+
+function importHQData(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(data.tasks)   { tasks=data.tasks;      localStorage.setItem('elevate_tasks', JSON.stringify(tasks)); }
+      if(data.leads)   { leads=data.leads;      localStorage.setItem('elevate_leads', JSON.stringify(leads)); }
+      if(data.employees){ employees=data.employees; localStorage.setItem('elevate_employees', JSON.stringify(employees)); }
+      if(data.chatHistories){
+        Object.assign(chatHistories, data.chatHistories);
+        localStorage.setItem('elevate_chats', JSON.stringify(data.chatHistories));
+        setTimeout(()=>restoreChatHistories(), 200);
+      }
+      if(data.queryCount){ queryCount=data.queryCount; document.getElementById('metric-queries').textContent=queryCount; }
+      // Refresh all UI
+      try{ renderTasks(); }catch(x){}
+      try{ renderPipeline(); updateCRMMetrics(); }catch(x){}
+      try{ renderRoster(); updateHRMetrics(); }catch(x){}
+      try{ updateTaskMetric(); }catch(x){}
+      closeApiModal();
+      addActivity('📂 HQ data restored from backup — '+new Date(data.exportDate||Date.now()).toLocaleDateString());
+    }catch(err){
+      alert('Invalid backup file. Make sure you selected an Elevate HQ backup JSON.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// =====================================================
+// AUTONOMOUS VOICE BOARD MEETING
+// Agents respond to each other in a continuous loop
+// =====================================================
+let isAutoMeetingActive = false;
+let meetingTranscript = '';
+let currentSpeakerIndex = 0;
+let meetingRound = 0;
+
+function resetMeeting(){
+  isAutoMeetingActive = false;
+  meetingTranscript = '';
+  currentSpeakerIndex = 0;
+  meetingRound = 0;
+  stopSpeech();
+  const btn = document.getElementById('auto-meeting-btn');
+  if(btn){ btn.innerHTML='🎙️ Start Autonomous Board Meeting'; btn.style.background=''; }
+  const out = document.getElementById('broadcast-responses2');
+  if(out) out.innerHTML='';
+  addActivity('🔄 Board meeting reset');
+}
+
+async function toggleAutoMeeting(){
+  const btn = document.getElementById('auto-meeting-btn');
+  if(!apiKey){ openApiModal(); return; }
+
+  if(isAutoMeetingActive){
+    isAutoMeetingActive = false;
+    stopSpeech();
+    if(btn){ btn.innerHTML='▶️ Resume Board Meeting'; btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)'; }
+    document.getElementById('allhands-thinking').classList.remove('show');
+    addActivity('⏸ Board meeting paused');
+    return;
+  }
+
+  const topic = document.getElementById('allhands-input2').value.trim() || 'Quarterly Growth and Operations Strategy for Elevate Construction LLC';
+  if(!meetingTranscript){
+    meetingTranscript = 'BOARD MEETING — ' + new Date().toLocaleString() + '\nTOPIC: ' + topic + '\n';
+    // Clear previous responses
+    const out = document.getElementById('broadcast-responses2');
+    if(out) out.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(255,255,255,.4);font-size:13px;border:1px dashed rgba(255,255,255,.1);border-radius:10px;margin-bottom:10px;">🎙️ Autonomous Board Meeting Starting...<br><small style="opacity:.6;">Agents will speak to each other in order. Each builds on the previous response.</small></div>';
+  }
+
+  isAutoMeetingActive = true;
+  if(btn){ btn.innerHTML='⏸ Pause Meeting'; btn.style.background='rgba(220,38,38,.75)'; }
+
+  runAutoMeetingLoop(topic);
+}
+
+async function runAutoMeetingLoop(topic){
+  const outputEl = document.getElementById('broadcast-responses2');
+  const thinkingEl = document.getElementById('allhands-thinking');
+  const thinkingText = document.getElementById('allhands-thinking-text');
+
+  while(isAutoMeetingActive){
+    const dept = DEPARTMENTS[currentSpeakerIndex];
+    if(thinkingText) thinkingText.textContent = dept.icon+' '+dept.name.split(' ')[0]+' is speaking...';
+    if(thinkingEl) thinkingEl.classList.add('show');
+
+    // Highlight whose turn it is in sidebar
+    document.querySelectorAll('.dept-btn').forEach(b=>b.style.background='');
+    const activeBtn = document.getElementById('btn-'+dept.id);
+    if(activeBtn) activeBtn.style.background='rgba(245,158,11,.2)';
+
+    const recentTranscript = meetingTranscript.split('\n').slice(-20).join('\n');
+
+    const prompt = `We are in a live executive board meeting for Elevate Construction LLC.
+
+Meeting Transcript (recent):
+${recentTranscript}
+
+You are ${dept.name}, ${dept.role}. It is your turn to speak.
+- Respond directly to what the last speaker said
+- You may agree, respectfully push back, ask another executive a question, or add your department's perspective
+- Be specific to construction business — reference real numbers, timelines, or department concerns
+- Keep it to 2-3 sentences max — this is spoken dialogue, not a report
+- NO markdown, NO bullet points, NO formatting — plain conversational speech only
+- Start with your reaction or response, not with your name`;
+
+    try{
+      const res = await callClaude(dept.systemPrompt, [{role:'user', content:prompt}], 350);
+      const cleanRes = stripMarkdown(res).trim();
+      meetingTranscript += '\n'+dept.name+': '+cleanRes+'\n';
+
+      // Build card
+      const card = document.createElement('div');
+      card.className = 'broadcast-card';
+      card.style.borderLeft = '3px solid '+dept.color;
+      card.style.animation = 'slideIn .3s ease';
+      card.innerHTML = `
+        <div class="broadcast-card-header">
+          <div style="width:34px;height:34px;border-radius:50%;background:${dept.bg};display:flex;align-items:center;justify-content:center;font-size:16px;border:1.5px solid ${dept.color};">${dept.icon}</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;color:white;">${dept.name}</div>
+            <div style="font-size:11px;color:${dept.color};font-weight:600;">${dept.role}</div>
+          </div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);">Round ${meetingRound+1}</div>
+        </div>
+        <div class="broadcast-card-body" style="color:rgba(255,255,255,.88);">${esc(cleanRes)}</div>`;
+
+      // Insert at top so newest is first
+      if(outputEl.firstChild && outputEl.firstChild.id!=='meeting-intro'){
+        outputEl.insertBefore(card, outputEl.firstChild);
+      } else {
+        outputEl.appendChild(card);
+      }
+      outputEl.scrollTop = 0;
+
+      // Speak and wait for completion before next speaker
+      if(elKey && dept.voiceId){
+        await new Promise(resolve => speakText(cleanRes, dept.voiceId, resolve));
+      } else {
+        // No voice — wait proportional to text length
+        const waitMs = Math.max(2500, cleanRes.length * 45);
+        await new Promise(r => setTimeout(r, waitMs));
+      }
+
+      queryCount++; 
+      document.getElementById('metric-queries').textContent = queryCount;
+      localStorage.setItem('elevate_query_count', queryCount);
+
+    }catch(err){
+      console.error('[Meeting] Error:', err);
+      isAutoMeetingActive = false;
+      const btn = document.getElementById('auto-meeting-btn');
+      if(btn){ btn.innerHTML='⚠️ Error — Retry'; btn.style.background='rgba(220,38,38,.5)'; }
+      if(thinkingEl) thinkingEl.classList.remove('show');
+      addActivity('⚠️ Board meeting error: '+err.message);
+      break;
+    }
+
+    if(!isAutoMeetingActive) break;
+
+    // Check if CEO has queued a message — insert before next speaker
+    if(ceoQueued && ceoQueuedMsg){
+      const qMsg = ceoQueuedMsg;
+      ceoQueued = false;
+      ceoQueuedMsg = '';
+      document.getElementById('ceo-queue-notice').style.display = 'none';
+      document.getElementById('ceo-mic-status').textContent = 'STANDBY';
+      document.getElementById('ceo-mic-status').style.color = 'rgba(255,255,255,.3)';
+      await ceoSpeakIntoMeeting(qMsg, false);
+      await new Promise(r => setTimeout(r, 600));
+      if(!isAutoMeetingActive) break;
+    }
+
+    // Move to next speaker (round robin)
+    currentSpeakerIndex = (currentSpeakerIndex + 1) % DEPARTMENTS.length;
+    if(currentSpeakerIndex === 0) meetingRound++;
+
+    // Natural pause between speakers
+    await new Promise(r => setTimeout(r, 800));
+  }
+
+  if(thinkingEl) thinkingEl.classList.remove('show');
+  // Reset sidebar highlights
+  document.querySelectorAll('.dept-btn').forEach(b=>b.style.background='');
+}
+
+// =====================================================
+// CEO VOICE INPUT — Board Meeting
+// CEO can interrupt or queue into the autonomous meeting
+// =====================================================
+let ceoQueued = false;
+let ceoQueuedMsg = '';
+let ceoMicActive = false;
+let ceoRecognition = null;
+
+// ── INTERRUPT: pause AI, inject CEO message immediately ──
+async function ceoInterrupt(){
+  const text = document.getElementById('ceo-input').value.trim();
+  if(!text){ alert('Type your message first.'); return; }
+
+  // Pause the meeting
+  const wasActive = isAutoMeetingActive;
+  if(wasActive){
+    isAutoMeetingActive = false;
+    stopSpeech();
+    await new Promise(r => setTimeout(r, 400)); // Let current audio stop
+  }
+
+  // Inject CEO message into transcript and UI
+  ceoSpeakIntoMeeting(text, wasActive);
+}
+
+// ── QUEUE: CEO speaks on next natural turn ──
+function ceoQueue(){
+  const text = document.getElementById('ceo-input').value.trim();
+  if(!text){ alert('Type your message first.'); return; }
+  ceoQueued = true;
+  ceoQueuedMsg = text;
+  document.getElementById('ceo-queue-notice').style.display = 'block';
+  document.getElementById('ceo-mic-status').textContent = 'QUEUED';
+  document.getElementById('ceo-mic-status').style.color = '#93c5fd';
+  document.getElementById('ceo-input').value = '';
+  addActivity('👑 CEO message queued for next turn');
+}
+
+// ── CORE: Inject CEO message into meeting ──
+async function ceoSpeakIntoMeeting(text, resumeAfter){
+  const outputEl = document.getElementById('broadcast-responses2');
+
+  // Add to transcript
+  meetingTranscript += '\nCEO: ' + text + '\n';
+
+  // Build CEO card
+  const card = document.createElement('div');
+  card.className = 'broadcast-card';
+  card.style.cssText = 'border-left:3px solid #f59e0b;border-color:rgba(245,158,11,.7);background:rgba(245,158,11,.07);';
+  card.innerHTML = `
+    <div class="broadcast-card-header" style="background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(13,27,46,.8));">
+      <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);
+                  display:flex;align-items:center;justify-content:center;font-size:16px;border:1.5px solid rgba(245,158,11,.5);">👑</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:white;">CEO — You</div>
+        <div style="font-size:11px;color:rgba(253,186,116,.8);font-weight:600;">Interrupted the meeting</div>
+      </div>
+      <div style="font-size:10px;color:rgba(245,158,11,.7);font-weight:700;">LIVE</div>
+    </div>
+    <div class="broadcast-card-body" style="color:rgba(255,215,120,.95);font-weight:500;">${esc(text)}</div>`;
+
+  outputEl.insertBefore(card, outputEl.firstChild);
+  outputEl.scrollTop = 0;
+
+  // Clear input
+  document.getElementById('ceo-input').value = '';
+  document.getElementById('ceo-queue-notice').style.display = 'none';
+  document.getElementById('ceo-mic-status').textContent = 'SPOKE';
+  document.getElementById('ceo-mic-status').style.color = '#fcd34d';
+
+  addActivity('👑 CEO spoke in board meeting');
+
+  // Wait a beat then resume if it was running
+  if(resumeAfter){
+    await new Promise(r => setTimeout(r, 1200));
+    isAutoMeetingActive = true;
+    const btn = document.getElementById('auto-meeting-btn');
+    if(btn){ btn.innerHTML='⏸ Pause Meeting'; btn.style.background='rgba(220,38,38,.75)'; }
+    document.getElementById('ceo-mic-status').textContent = 'STANDBY';
+    document.getElementById('ceo-mic-status').style.color = 'rgba(255,255,255,.3)';
+    runAutoMeetingLoop('');
+  } else {
+    document.getElementById('ceo-mic-status').textContent = 'STANDBY';
+    document.getElementById('ceo-mic-status').style.color = 'rgba(255,255,255,.3)';
+  }
+}
+
+// ── MIC BUTTON: Web Speech API ──
+function toggleCeoMic(){
+  const btn = document.getElementById('ceo-mic-btn');
+  const status = document.getElementById('ceo-mic-status');
+
+  if(ceoMicActive){
+    if(ceoRecognition) ceoRecognition.stop();
+    ceoMicActive = false;
+    btn.textContent = '🎤';
+    btn.style.background = 'rgba(255,255,255,.06)';
+    btn.style.color = 'rgba(255,255,255,.6)';
+    status.textContent = 'STANDBY';
+    status.style.color = 'rgba(255,255,255,.3)';
+    return;
+  }
+
+  // Check browser support
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    alert('Voice input not supported in this browser. Try Chrome or Edge.');
+    return;
+  }
+
+  ceoRecognition = new SpeechRecognition();
+  ceoRecognition.continuous = true;
+  ceoRecognition.interimResults = true;
+  ceoRecognition.lang = 'en-US';
+
+  ceoRecognition.onstart = () => {
+    ceoMicActive = true;
+    btn.textContent = '🔴';
+    btn.style.background = 'rgba(220,38,38,.3)';
+    btn.style.color = '#fca5a5';
+    status.textContent = 'LISTENING...';
+    status.style.color = '#fca5a5';
+  };
+
+  ceoRecognition.onresult = (event) => {
+    let interim = '';
+    let final = '';
+    for(let i = event.resultIndex; i < event.results.length; i++){
+      if(event.results[i].isFinal){
+        final += event.results[i][0].transcript;
+      } else {
+        interim += event.results[i][0].transcript;
+      }
+    }
+    const inp = document.getElementById('ceo-input');
+    // Show interim results in italics via placeholder trick
+    if(final) inp.value = (inp.value + ' ' + final).trim();
+    if(interim) inp.placeholder = '🎤 ' + interim + '...';
+  };
+
+  ceoRecognition.onend = () => {
+    ceoMicActive = false;
+    btn.textContent = '🎤';
+    btn.style.background = 'rgba(255,255,255,.06)';
+    btn.style.color = 'rgba(255,255,255,.6)';
+    status.textContent = 'STANDBY';
+    status.style.color = 'rgba(255,255,255,.3)';
+    document.getElementById('ceo-input').placeholder = 'Type your statement or question to the board...';
+  };
+
+  ceoRecognition.onerror = (e) => {
+    console.error('[Mic]', e.error);
+    ceoMicActive = false;
+    btn.textContent = '🎤';
+    if(e.error === 'not-allowed') alert('Microphone access denied. Please allow mic access and try again.');
+  };
+
+  ceoRecognition.start();
+}
+
+
+// =====================================================
+// HR DOCUMENT GENERATOR
+// =====================================================
+let hrDocuments = JSON.parse(localStorage.getItem('elevate_hr_docs')||'[]');
+
+function saveHRDocs(){ localStorage.setItem('elevate_hr_docs', JSON.stringify(hrDocuments)); }
+
+function populateDocEmpSelect(){
+  const sel = document.getElementById('doc-emp-select');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">Select from roster...</option>';
+  employees.forEach(emp=>{
+    const opt = document.createElement('option');
+    opt.value = emp.id;
+    opt.textContent = emp.name + ' — ' + emp.role + ' (' + emp.type + ')';
+    sel.appendChild(opt);
+  });
+}
+
+function renderHRDocList(){
+  const list = document.getElementById('hr-doc-list');
+  if(!list) return;
+  if(!hrDocuments.length){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:13px;">No documents generated yet. Select an employee above and generate your first document.</div>';
+    return;
+  }
+  list.innerHTML = hrDocuments.slice().reverse().map((doc,i)=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.06);">
+      <div style="font-size:22px;">📄</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:13px;color:rgba(255,255,255,.85);">${doc.type}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">${doc.empName} · ${doc.date}</div>
+      </div>
+      <button onclick="downloadHRDoc(${hrDocuments.length-1-i})"
+        style="background:rgba(37,99,235,.2);color:#93c5fd;border:1px solid rgba(37,99,235,.3);
+               border-radius:7px;padding:5px 12px;font-size:11px;cursor:pointer;">💾 Download</button>
+      <button onclick="viewHRDoc(${hrDocuments.length-1-i})"
+        style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);
+               border-radius:7px;padding:5px 12px;font-size:11px;cursor:pointer;">👁 View</button>
+    </div>`).join('');
+}
+
+function downloadHRDoc(idx){
+  const doc = hrDocuments[idx];
+  if(!doc) return;
+  const blob = new Blob([doc.content], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='Elevate_'+doc.type.replace(/[^a-z0-9]/gi,'_')+'_'+doc.empName.replace(/\s/g,'_')+'.txt';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function viewHRDoc(idx){
+  const doc = hrDocuments[idx];
+  if(!doc) return;
+  document.getElementById('hr-doc-output').innerHTML=`
+    <div class="branded-doc" style="margin-top:16px;">
+      <div class="doc-header">
+        <div class="doc-logo-row">
+          <div><div class="doc-company-name">📄 ${doc.type}</div>
+          <div class="doc-tagline">Elevate Construction LLC · HR Document</div></div>
+          <div style="text-align:right;font-size:11px;opacity:.8;"><div>${doc.date}</div></div>
+        </div>
+      </div>
+      <div class="doc-body"><div style="font-size:13px;line-height:2;white-space:pre-wrap;">${esc(doc.content)}</div>
+      <hr class="section-divider">
+      <div style="display:flex;gap:10px;">
+        <button class="btn-secondary" onclick="downloadHRDoc(${idx})">💾 Download .txt</button>
+        <button class="btn-secondary" onclick="copyText('${encodeURIComponent(doc.content)}')">📋 Copy</button>
+      </div></div>
+    </div>`;
+  document.getElementById('hr-doc-output').scrollIntoView({behavior:'smooth'});
+}
+
+async function generateHRDoc(){
+  if(!apiKey){openApiModal();return;}
+  const empId = document.getElementById('doc-emp-select').value;
+  const docType = document.getElementById('doc-type').value;
+  const notes = document.getElementById('doc-notes').value;
+  const thinking = document.getElementById('hr-doc-thinking');
+  const thinkingText = document.getElementById('hr-doc-thinking-text');
+
+  let empInfo = 'New employee (not yet in roster)';
+  let empName = 'Employee';
+  if(empId){
+    const emp = employees.find(e=>String(e.id)===String(empId));
+    if(emp){
+      empName = emp.name;
+      empInfo = `Name: ${emp.name}, Role: ${emp.role}, Type: ${emp.type}, Dept: ${emp.dept}, Pay: $${emp.pay}/hr, Start: ${emp.start||'TBD'}, Certs: ${emp.cert||'None'}, Notes: ${emp.notes||'None'}`;
+    }
+  }
+
+  thinking.classList.add('show');
+  thinkingText.textContent = 'Generating '+docType+'...';
+
+  const sys = `You are Jennifer Harrison, Corporate Legal Advisor, and Diana Wells, HR Director at Elevate Construction LLC (404-719-1888, GaElevate.com, 3343 Peachtree Rd NE Ste 145 MB 2131, Atlanta GA 30326). 
+Generate a complete, professional, Georgia-compliant HR document. Use proper legal language appropriate for the document type. Include all required fields, signature lines, dates, and acknowledgments.
+FORMATTING RULES: Plain text only. No markdown, no asterisks, no pound signs. Use ALL CAPS for section headers. Use blank lines to separate sections. This will be printed and signed.`;
+
+  const userMsg = `Generate a complete ${docType} for Elevate Construction LLC.
+Employee Details: ${empInfo}
+Additional Notes: ${notes||'Standard terms apply'}
+Today's Date: ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
+Include: All standard clauses for this document type, Georgia-specific legal language where applicable, signature blocks for both parties, and all required disclosures.`;
+
+  try{
+    const res = await callClaude(sys, [{role:'user',content:userMsg}], 3000);
+    const clean = stripMarkdown(res);
+    thinking.classList.remove('show');
+
+    // Save document
+    const doc = {
+      id: Date.now(),
+      type: docType,
+      empName,
+      empId,
+      date: new Date().toLocaleDateString(),
+      content: clean
+    };
+    hrDocuments.push(doc);
+    saveHRDocs();
+    renderHRDocList();
+    viewHRDoc(hrDocuments.length-1);
+    addActivity('📄 HR doc generated: '+docType+' for '+empName);
+    queryCount++; document.getElementById('metric-queries').textContent=queryCount;
+    localStorage.setItem('elevate_query_count',queryCount);
+  }catch(err){
+    thinking.classList.remove('show');
+    document.getElementById('hr-doc-output').innerHTML=`<div class="error-box">Error: ${err.message}</div>`;
+  }
+}
+
+// =====================================================
+// WEBSITE WEBHOOK — Lead Intake
+// =====================================================
+function copyWebhookUrl(){
+  const url = 'https://elevate24-stack.github.io/elevate-hq/?lead=1&name={name}&email={email}&phone={phone}&message={message}&source=website';
+  navigator.clipboard.writeText(url).then(()=>addActivity('📋 Webhook URL copied'));
+}
+
+function checkWebhookParams(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('lead')==='1'){
+    const name    = params.get('name')   || 'Website Visitor';
+    const email   = params.get('email')  || '';
+    const phone   = params.get('phone')  || '';
+    const message = params.get('message')|| '';
+    const source  = params.get('source') || 'Website';
+    const proj    = params.get('project')|| 'Website Inquiry';
+    const budget  = params.get('budget') || 'TBD';
+    const address = params.get('address')|| '';
+
+    // 1. Save to local app CRM
+    const lead = {
+      id:      Date.now(),
+      name:    name + (email?' — '+email:''),
+      project: proj || (message.slice(0,60)||'Website Inquiry'),
+      value:   budget,
+      source,
+      phone,
+      email,
+      notes:   message,
+      stage:   'new'
+    };
+    leads.push(lead);
+    localStorage.setItem('elevate_leads', JSON.stringify(leads));
+    renderPipeline(); updateCRMMetrics();
+
+    // 2. Also send to Railway server for persistent storage
+    fetch(SERVER_URL+'/api/lead', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({name, email, phone, address,
+        project_type:proj, budget, source, message})
+    }).then(r=>r.json())
+      .then(d=>console.log('[Server] Lead saved:', d))
+      .catch(e=>console.warn('[Server] Lead save failed (offline?):', e.message));
+
+    // 3. Notify in UI
+    setTimeout(()=>{
+      addActivity('🔗 New lead from '+source+': '+name);
+      const badge = document.getElementById('email-badge');
+      if(badge){ badge.style.display='block'; badge.textContent='🔗 New Lead: '+name; }
+      showView('crm');
+    }, 1000);
+
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+}
+
+async function testWebhookLead(){
+  const name    = document.getElementById('wh-name').value.trim();
+  const email   = document.getElementById('wh-email').value.trim();
+  const phone   = document.getElementById('wh-phone').value.trim();
+  const message = document.getElementById('wh-message').value.trim();
+  const source  = document.getElementById('wh-source').value.trim() || 'Website';
+
+  const lead = {
+    id: Date.now(),
+    name: name + (email?' — '+email:''),
+    project: message.slice(0,70)||'Website Inquiry',
+    value: 'TBD',
+    source,
+    phone,
+    email,
+    notes: message,
+    stage: 'new'
+  };
+  leads.push(lead);
+  localStorage.setItem('elevate_leads', JSON.stringify(leads));
+  renderPipeline(); updateCRMMetrics();
+
+  // Also send to Railway server
+  fetch(SERVER_URL+'/api/lead', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name, email, phone, project_type:message.slice(0,60), source, message})
+  }).then(r=>r.json()).then(d=>{
+    document.getElementById('webhook-result').innerHTML=`
+      <div class="success-box" style="margin-top:12px;">
+        ✅ Lead created locally AND saved to your server!<br>
+        <strong>${name}</strong> is in your CRM Pipeline and Railway database.<br>
+        <small style="opacity:.7;">Server response: Lead ID ${d.lead_id||'saved'}</small>
+      </div>`;
+  }).catch(()=>{
+    document.getElementById('webhook-result').innerHTML=`
+      <div class="success-box" style="margin-top:12px;">
+        ✅ Lead created! <strong>${name}</strong> is now in your CRM Pipeline.<br>
+        <small style="opacity:.6;">(Server save pending — check Railway is online)</small>
+      </div>`;
+  });
+  addActivity('🔗 Test website lead created: '+name);
+
+  // Auto-route with AI
+  if(apiKey){
+    const dept = DEPARTMENTS.find(d=>d.id==='sales');
+    const res = await callClaude(dept.systemPrompt,
+      [{role:'user',content:`New website lead just came in:\nName: ${name}\nMessage: ${message}\nPhone: ${phone}\nEmail: ${email}\nGive me a quick 2-sentence action plan to follow up on this lead today.`}], 400);
+    document.getElementById('webhook-result').innerHTML += `
+      <div class="panel" style="margin-top:12px;">
+        <div class="panel-header"><h3>🤝 Michael's Follow-Up Plan</h3></div>
+        <div class="panel-body" style="font-size:13px;line-height:1.8;color:rgba(255,255,255,.82);">${esc(res)}</div>
+      </div>`;
+    queryCount++; document.getElementById('metric-queries').textContent=queryCount;
+    localStorage.setItem('elevate_query_count',queryCount);
+  }
+}
+
+// =====================================================
+// BACKEND CODE GENERATOR
+// =====================================================
+async function generateBackendCode(){
+  if(!apiKey){openApiModal();return;}
+  const out = document.getElementById('backend-output');
+  out.innerHTML='<div class="thinking-bar show" style="margin:0;"><div class="spinner"></div><span class="thinking-text">Generating your complete Node.js backend...</span></div>';
+
+  const sys = `You are a senior Node.js architect. Generate complete, production-ready Node.js code. Use Express.js. Include all imports, error handling, and inline comments explaining each section. Output plain code only — no markdown explanation outside of code comments.`;
+
+  const res = await callClaude(sys, [{role:'user',content:`Generate a complete Node.js Express server for Elevate Construction LLC with:
+
+1. Gmail webhook endpoint (POST /webhook/gmail) that:
+   - Receives Google Pub/Sub push notifications
+   - Parses the email sender, subject, and body snippet
+   - Creates a lead object and saves to a leads array (in-memory for now)
+   - Returns 200 OK
+
+2. Outlook/Microsoft Graph webhook endpoint (POST /webhook/outlook) that:
+   - Validates the clientState secret
+   - Handles Graph API validation token on first setup
+   - Parses new message notifications
+   - Creates a lead object similarly
+
+3. POST /api/lead endpoint that:
+   - Accepts {name, email, phone, message, source} from website contact form
+   - Saves lead and returns JSON success
+
+4. GET /api/leads that returns all leads as JSON
+
+5. A POST /api/vapi-webhook for Vapi.ai receptionist calls that:
+   - Receives call data from Vapi
+   - Looks up relevant leads/info based on caller question
+   - Returns a response string for Vapi to speak
+
+Include .env variables needed: PORT, GRAPH_CLIENT_SECRET, GMAIL_PUBSUB_TOKEN, VAPI_SECRET
+Company: Elevate Construction LLC, GaElevate.com, 404-719-1888, Atlanta GA`}], 4000);
+
+  out.innerHTML = `
+    <div class="panel" style="margin-top:0;">
+      <div class="panel-header"><h3>⚡ Your Node.js Backend — server.js</h3><p>Copy this into a new file called server.js and deploy to Railway.app</p></div>
+      <div class="panel-body">
+        <div style="font-size:11px;line-height:1.8;color:rgba(255,255,255,.8);white-space:pre-wrap;font-family:monospace;background:rgba(0,0,0,.3);padding:14px;border-radius:8px;max-height:450px;overflow-y:auto;">${esc(res)}</div>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+          <button class="btn-secondary" onclick="copyText('${encodeURIComponent(res)}')">📋 Copy Code</button>
+          <button class="btn-secondary" onclick="downloadTxt('${encodeURIComponent(res)}','server_js')">💾 Download server.js</button>
+          <a href="https://railway.app" target="_blank" class="btn-gold" style="text-decoration:none;padding:8px 16px;font-size:12px;">🚀 Deploy on Railway</a>
+        </div>
+      </div>
+    </div>`;
+  queryCount++; document.getElementById('metric-queries').textContent=queryCount;
+  localStorage.setItem('elevate_query_count',queryCount);
+  addActivity('⚡ Node.js backend code generated');
+}
+
+// =====================================================
+// SERVER SYNC — Ping Railway server on load
+// =====================================================
+async function pingServer(){
+  const statusEl = document.getElementById('server-status');
+  try{
+    const res = await fetch(SERVER_URL+'/test', {
+      signal: AbortSignal.timeout(5000)
+    });
+    const data = await res.json();
+    if(data.success){
+      if(statusEl){
+        statusEl.textContent = '⚡ Server Online';
+        statusEl.style.background = 'rgba(16,185,129,.15)';
+        statusEl.style.borderColor = 'rgba(16,185,129,.3)';
+        statusEl.style.color = '#6ee7b7';
+      }
+      console.log('[Server] Online — leads on server:', data.leads);
+
+      // Sync any server leads not in local CRM
+      syncServerLeads();
+    }
+  } catch(e){
+    if(statusEl){
+      statusEl.textContent = '⚡ Server Offline';
+      statusEl.style.background = 'rgba(220,38,38,.1)';
+      statusEl.style.borderColor = 'rgba(220,38,38,.2)';
+      statusEl.style.color = '#fca5a5';
+    }
+    console.warn('[Server] Offline or unreachable:', e.message);
+  }
+}
+
+async function syncServerLeads(){
+  try{
+    const res = await fetch(SERVER_URL+'/api/leads');
+    const data = await res.json();
+    if(!data.leads || !data.leads.length) return;
+
+    let newCount = 0;
+    data.leads.forEach(serverLead => {
+      // Check if this lead already exists locally
+      const exists = leads.some(l =>
+        l.email === serverLead.email ||
+        l.phone === serverLead.phone ||
+        (l.name && l.name.includes(serverLead.name.split(' ')[0]))
+      );
+      if(!exists){
+        leads.push({
+          id:      serverLead.id || Date.now(),
+          name:    serverLead.name,
+          project: serverLead.project_type || 'Server Lead',
+          value:   serverLead.budget || 'TBD',
+          source:  serverLead.source || 'Server',
+          phone:   serverLead.phone  || '',
+          email:   serverLead.email  || '',
+          notes:   serverLead.message|| '',
+          stage:   'new'
+        });
+        newCount++;
+      }
+    });
+
+    if(newCount > 0){
+      localStorage.setItem('elevate_leads', JSON.stringify(leads));
+      renderPipeline(); updateCRMMetrics();
+      addActivity('🔄 Synced '+newCount+' new lead(s) from server');
+    }
+  } catch(e){
+    console.warn('[Server] Lead sync failed:', e.message);
   }
 }
 </script>
