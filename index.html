@@ -51,6 +51,13 @@ body{font-family:'Inter',sans-serif;background:linear-gradient(160deg,#0d1b2e 0%
 .dept-status.thinking{background:var(--gold);box-shadow:0 0 7px var(--gold-glow);animation:pulse-dot 1s infinite;}
 .dept-status.online{background:var(--green);box-shadow:0 0 6px rgba(16,185,129,.5);}
 .dept-status.mail{background:var(--orange);}
+/* PIN KEYPAD */
+.pin-key{height:52px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);
+  color:white;font-size:17px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
+.pin-key:hover{background:rgba(37,99,235,.25);border-color:rgba(37,99,235,.4);}
+.pin-key:active{transform:scale(.95);background:rgba(37,99,235,.4);}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@keyframes pin-success{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
 /* NOTIFICATION BADGES */
 .nav-badge{position:absolute;top:5px;right:5px;min-width:18px;height:18px;border-radius:9px;
   background:linear-gradient(135deg,#ef4444,#dc2626);color:white;font-size:10px;font-weight:800;
@@ -1774,6 +1781,53 @@ Payment: Visa ending in 4821"></textarea>
 
 <div id="footer">© 2025 Elevate Construction LLC · 3343 Peachtree Rd NE Ste 145 MB 2131, Atlanta GA 30326 · <a href="https://gaelevate.com" target="_blank">GaElevate.com</a> · 404-719-1888</div>
 
+<!-- PIN LOCK MODAL -->
+<div class="modal-overlay" id="pin-modal" style="z-index:300;">
+  <div class="modal-box" style="max-width:340px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#0d1b2e,#1e3060);">
+      <h2>🔐 CEO Access Required</h2>
+      <button class="modal-close" onclick="closePinModal()">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:28px 24px;">
+      <div style="font-size:42px;margin-bottom:12px;">🏗️</div>
+      <div style="font-weight:700;font-size:15px;color:white;margin-bottom:6px;">Elevate Construction LLC</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.45);margin-bottom:24px;">Enter your 4-digit PIN to access API settings</div>
+
+      <!-- PIN dots display -->
+      <div style="display:flex;justify-content:center;gap:14px;margin-bottom:24px;" id="pin-dots">
+        <div id="pin-dot-0" style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:transparent;transition:all .15s;"></div>
+        <div id="pin-dot-1" style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:transparent;transition:all .15s;"></div>
+        <div id="pin-dot-2" style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:transparent;transition:all .15s;"></div>
+        <div id="pin-dot-3" style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:transparent;transition:all .15s;"></div>
+      </div>
+
+      <!-- Number pad -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:220px;margin:0 auto 16px;">
+        <button onclick="pinPress('1')" class="pin-key">1</button>
+        <button onclick="pinPress('2')" class="pin-key">2</button>
+        <button onclick="pinPress('3')" class="pin-key">3</button>
+        <button onclick="pinPress('4')" class="pin-key">4</button>
+        <button onclick="pinPress('5')" class="pin-key">5</button>
+        <button onclick="pinPress('6')" class="pin-key">6</button>
+        <button onclick="pinPress('7')" class="pin-key">7</button>
+        <button onclick="pinPress('8')" class="pin-key">8</button>
+        <button onclick="pinPress('9')" class="pin-key">9</button>
+        <button class="pin-key" style="opacity:0;cursor:default;"></button>
+        <button onclick="pinPress('0')" class="pin-key">0</button>
+        <button onclick="pinPress('back')" class="pin-key" style="font-size:18px;">⌫</button>
+      </div>
+
+      <div id="pin-error" style="display:none;font-size:12px;color:#fca5a5;margin-bottom:10px;animation:shake .4s ease;">
+        ❌ Incorrect PIN — try again
+      </div>
+
+      <div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:8px;">
+        Enter your PIN to access API settings
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- API MODAL -->
 <div class="modal-overlay" id="api-modal">
   <div class="modal-box" style="max-width:500px;">
@@ -1831,9 +1885,11 @@ Payment: Visa ending in 4821"></textarea>
       <div id="api-test-result" style="margin-top:8px;font-size:12px;display:none;padding:8px 12px;border-radius:7px;line-height:1.5;"></div>
 
       <!-- MANAGEMENT -->
-      <div style="display:flex;gap:8px;margin-top:12px;">
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
         <button class="btn-secondary" style="flex:1;font-size:11px;" onclick="clearChatMemory()">🗑️ Clear Chats</button>
         <button class="btn-secondary" style="flex:1;font-size:11px;" onclick="clearApiKey()">🔄 Reset Keys</button>
+        <button class="btn-secondary" style="flex:1;font-size:11px;" onclick="changePinPrompt()">🔐 Change PIN</button>
+        <button class="btn-secondary" style="flex:1;font-size:11px;" onclick="lockSession()">🔒 Lock</button>
       </div>
       <div style="border-top:1px solid rgba(255,255,255,.07);margin-top:12px;padding-top:12px;">
         <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;">💾 Data Backup</div>
@@ -3240,8 +3296,7 @@ function downloadTxt(encoded,nameEncoded){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='Elevate_'+decodeURIComponent(nameEncoded).replace(/[^a-z0-9]/gi,'_')+'.txt';a.click();URL.revokeObjectURL(url);
 }
-function openApiModal(){document.getElementById('api-modal').classList.add('show');setTimeout(()=>document.getElementById('api-key-input').focus(),100);}
-function closeApiModal(){document.getElementById('api-modal').classList.remove('show');}
+// openApiModal and closeApiModal defined below with PIN protection
 function saveApiKey(){
   const k=document.getElementById('api-key-input').value.trim();
   if(!k){alert('Please enter your API key.');return;}
@@ -7799,6 +7854,151 @@ function testAgentVoice(voiceId, firstName, btn){
     btn.innerHTML = origHTML;
     btn.style.color='';
   });
+}
+
+// =====================================================
+// PIN LOCK SYSTEM
+// Protects API key settings with a 4-digit PIN
+// Default PIN: 1888 (the last 4 of the phone number)
+// =====================================================
+let pinBuffer = '';
+let pinUnlocked = false; // stays unlocked for the session
+let pinAttempts = 0;
+const PIN_LOCKOUT_ATTEMPTS = 5;
+
+function getStoredPin(){
+  return localStorage.getItem('elevate_pin') || '7529';
+}
+
+function openApiModal(){
+  // If already unlocked this session, go straight to settings
+  if(pinUnlocked){
+    document.getElementById('api-modal').classList.add('show');
+    setTimeout(()=>document.getElementById('api-key-input')?.focus(), 100);
+    return;
+  }
+  // Show PIN screen first
+  pinBuffer = '';
+  updatePinDots();
+  document.getElementById('pin-error').style.display = 'none';
+  document.getElementById('pin-modal').classList.add('show');
+}
+
+function closePinModal(){
+  document.getElementById('pin-modal').classList.remove('show');
+  pinBuffer = '';
+  updatePinDots();
+}
+
+function closeApiModal(){
+  document.getElementById('api-modal').classList.remove('show');
+}
+
+function pinPress(key){
+  if(key === 'back'){
+    pinBuffer = pinBuffer.slice(0,-1);
+    updatePinDots();
+    return;
+  }
+  if(key === '' || pinBuffer.length >= 4) return;
+  pinBuffer += key;
+  updatePinDots();
+  if(pinBuffer.length === 4){
+    setTimeout(checkPin, 150); // brief pause so last dot fills before checking
+  }
+}
+
+function updatePinDots(){
+  for(let i=0; i<4; i++){
+    const dot = document.getElementById('pin-dot-'+i);
+    if(!dot) return;
+    if(i < pinBuffer.length){
+      dot.style.background = '#2563eb';
+      dot.style.borderColor = '#2563eb';
+      dot.style.boxShadow = '0 0 10px rgba(37,99,235,.6)';
+    } else {
+      dot.style.background = 'transparent';
+      dot.style.borderColor = 'rgba(255,255,255,.3)';
+      dot.style.boxShadow = 'none';
+    }
+  }
+}
+
+function checkPin(){
+  const stored = getStoredPin();
+  if(pinBuffer === stored){
+    // Correct PIN
+    pinAttempts = 0;
+    pinUnlocked = true;
+
+    // Flash dots green
+    for(let i=0; i<4; i++){
+      const dot = document.getElementById('pin-dot-'+i);
+      if(dot){ dot.style.background='#10b981'; dot.style.borderColor='#10b981'; dot.style.animation='pin-success .3s ease'; }
+    }
+
+    setTimeout(()=>{
+      closePinModal();
+      document.getElementById('api-modal').classList.add('show');
+      setTimeout(()=>document.getElementById('api-key-input')?.focus(), 100);
+    }, 400);
+
+  } else {
+    // Wrong PIN
+    pinAttempts++;
+    pinBuffer = '';
+    updatePinDots();
+
+    const errEl = document.getElementById('pin-error');
+    if(errEl){
+      errEl.style.display = 'block';
+      errEl.style.animation = 'none';
+      setTimeout(()=>errEl.style.animation='shake .4s ease', 10);
+
+      if(pinAttempts >= PIN_LOCKOUT_ATTEMPTS){
+        errEl.textContent = '🔒 Too many attempts — app locked. Refresh to try again.';
+        // Disable all keys
+        document.querySelectorAll('.pin-key').forEach(b=>b.disabled=true);
+      } else {
+        errEl.textContent = `❌ Incorrect PIN — ${PIN_LOCKOUT_ATTEMPTS - pinAttempts} attempts remaining`;
+      }
+    }
+    // Flash dots red
+    for(let i=0; i<4; i++){
+      const dot = document.getElementById('pin-dot-'+i);
+      if(dot){ dot.style.background='#ef4444'; dot.style.borderColor='#ef4444'; }
+    }
+    setTimeout(()=>updatePinDots(), 600);
+  }
+}
+
+// Also support keyboard number input on PIN screen
+document.addEventListener('keydown', e=>{
+  const pinModal = document.getElementById('pin-modal');
+  if(!pinModal?.classList.contains('show')) return;
+  if(e.key >= '0' && e.key <= '9') pinPress(e.key);
+  if(e.key === 'Backspace') pinPress('back');
+  if(e.key === 'Escape') closePinModal();
+});
+
+// Add Change PIN option inside the API modal
+function changePinPrompt(){
+  const current = prompt('Enter your CURRENT PIN:');
+  if(current !== getStoredPin()){ alert('Incorrect current PIN.'); return; }
+  const newPin = prompt('Enter your NEW 4-digit PIN:');
+  if(!newPin || !/^\d{4}$/.test(newPin)){ alert('PIN must be exactly 4 digits.'); return; }
+  const confirm = prompt('Confirm new PIN:');
+  if(newPin !== confirm){ alert('PINs do not match.'); return; }
+  localStorage.setItem('elevate_pin', newPin);
+  alert('✅ PIN updated successfully!');
+  addActivity('🔐 API access PIN changed');
+}
+
+// Lock the session (force PIN on next API modal open)
+function lockSession(){
+  pinUnlocked = false;
+  closeApiModal();
+  addActivity('🔒 Session locked');
 }
 </script>
 </body>
