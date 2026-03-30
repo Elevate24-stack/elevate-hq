@@ -869,6 +869,22 @@ textarea{resize:vertical;min-height:80px;}
             </div>
             <div class="form-group" style="margin-bottom:14px;"><label>Message / Project Description</label><textarea id="wh-message" rows="2" placeholder="Interested in roofing estimate for my home...">Need a roofing estimate for 2,200 sq ft residential. Looking to start in 30 days.</textarea></div>
             <button class="btn-primary" onclick="testWebhookLead()">🧪 Simulate Website Lead → Add to CRM</button>
+
+            <hr class="section-divider">
+            <div style="font-weight:700;font-size:13px;color:white;margin-bottom:10px;">⚡ Zapier → Railway Setup</div>
+            <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:14px;margin-bottom:12px;">
+              <div style="font-size:12px;color:rgba(255,255,255,.7);line-height:2.1;">
+                <div><strong style="color:#93c5fd;">Step 1</strong> — Open Zapier → Your Houzz Zap → Edit Action step</div>
+                <div><strong style="color:#93c5fd;">Step 2</strong> — Change Action to: <strong style="color:white;">Webhooks by Zapier → POST</strong></div>
+                <div><strong style="color:#93c5fd;">Step 3</strong> — Set URL to:</div>
+                <div style="font-family:monospace;font-size:11px;background:rgba(0,0,0,.3);padding:8px 12px;border-radius:6px;color:#6ee7b7;margin:6px 0;">https://elevate-hq-production.up.railway.app/webhook/zapier</div>
+                <div><strong style="color:#93c5fd;">Step 4</strong> — Payload Type: <strong style="color:white;">JSON</strong></div>
+                <div><strong style="color:#93c5fd;">Step 5</strong> — Map fields: name, email, phone, message, source="Houzz"</div>
+                <div><strong style="color:#93c5fd;">Step 6</strong> — Test & Turn On</div>
+              </div>
+            </div>
+            <button class="btn-secondary" style="width:100%;" onclick="testZapierEndpoint()">🧪 Test Railway Zapier Endpoint</button>
+            <div id="zapier-test-result" style="margin-top:8px;"></div>
           </div>
         </div>
         <div id="webhook-result"></div>
@@ -931,9 +947,60 @@ textarea{resize:vertical;min-height:80px;}
               </div>
             </div>
 
-            <div style="margin-top:16px;padding:12px 14px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);border-radius:10px;">
-              <div style="font-weight:700;font-size:13px;color:white;margin-bottom:6px;">🚀 Ready to build the backend?</div>
-              <div style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:10px;">Tell Claude: "Build me the Node.js backend for Elevate HQ with Gmail webhook, Outlook webhook, and Vapi receptionist integration" — I'll generate the complete server code.</div>
+            <!-- VAPI RECEPTIONIST SETUP -->
+            <div style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.25);border-radius:10px;padding:14px;margin-bottom:14px;">
+              <div style="font-weight:700;font-size:13px;color:white;margin-bottom:10px;">📞 Vapi AI Receptionist — Setup</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.65);line-height:2.1;margin-bottom:12px;">
+                <div><strong style="color:#c4b5fd;">Step 1</strong> — Go to <a href="https://vapi.ai" target="_blank" style="color:#93c5fd;">vapi.ai</a> → Create account → Dashboard</div>
+                <div><strong style="color:#c4b5fd;">Step 2</strong> — Create Assistant → Name: "Elevate Receptionist"</div>
+                <div><strong style="color:#c4b5fd;">Step 3</strong> — Set System Prompt (click Generate below)</div>
+                <div><strong style="color:#c4b5fd;">Step 4</strong> — Set Server URL to your Railway webhook:</div>
+                <div style="font-family:monospace;font-size:11px;background:rgba(0,0,0,.3);padding:8px 12px;border-radius:6px;color:#6ee7b7;margin:6px 0;">https://elevate-hq-production.up.railway.app/webhook/vapi</div>
+                <div><strong style="color:#c4b5fd;">Step 5</strong> — In Dialpad: Settings → Integrations → Forward calls to Vapi SIP endpoint</div>
+                <div><strong style="color:#c4b5fd;">Step 6</strong> — Enter your Vapi API key below and activate</div>
+              </div>
+              <div class="form-group" style="margin-bottom:10px;">
+                <label>Vapi API Key</label>
+                <input type="password" id="vapi-key-input" placeholder="vapi_..." style="font-family:monospace;">
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-primary" style="flex:1;" onclick="saveVapiKey()">💾 Save Vapi Key</button>
+                <button class="btn-secondary" style="flex:1;" onclick="generateVapiPrompt()">📝 Generate Receptionist Script</button>
+              </div>
+              <div id="vapi-output" style="margin-top:10px;"></div>
+            </div>
+
+            <!-- GMAIL SETUP -->
+            <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:14px;margin-bottom:14px;">
+              <div style="font-weight:700;font-size:13px;color:white;margin-bottom:8px;">📧 Gmail Webhook — Activate</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.65);line-height:2;">
+                <div><strong style="color:#93c5fd;">1.</strong> Go to <a href="https://console.cloud.google.com" target="_blank" style="color:#93c5fd;">console.cloud.google.com</a> → New Project: "ElevateHQ"</div>
+                <div><strong style="color:#93c5fd;">2.</strong> Enable Gmail API + Cloud Pub/Sub API</div>
+                <div><strong style="color:#93c5fd;">3.</strong> Create Pub/Sub Topic → Add subscription → Push endpoint:</div>
+                <div style="font-family:monospace;font-size:11px;background:rgba(0,0,0,.3);padding:7px 11px;border-radius:6px;color:#6ee7b7;margin:4px 0;">https://elevate-hq-production.up.railway.app/webhook/gmail</div>
+                <div><strong style="color:#93c5fd;">4.</strong> Create OAuth credentials → Authorize Gmail → Watch inbox</div>
+              </div>
+              <button class="btn-secondary" style="width:100%;margin-top:10px;" onclick="testGmailEndpoint()">🧪 Test Gmail Endpoint</button>
+              <div id="gmail-test-result" style="margin-top:8px;"></div>
+            </div>
+
+            <!-- OUTLOOK SETUP -->
+            <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:14px;margin-bottom:14px;">
+              <div style="font-weight:700;font-size:13px;color:white;margin-bottom:8px;">📨 Outlook Webhook — Activate</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.65);line-height:2;">
+                <div><strong style="color:#93c5fd;">1.</strong> Go to <a href="https://portal.azure.com" target="_blank" style="color:#93c5fd;">portal.azure.com</a> → App Registrations → New</div>
+                <div><strong style="color:#93c5fd;">2.</strong> Add permission: Microsoft Graph → Mail.Read</div>
+                <div><strong style="color:#93c5fd;">3.</strong> Create Graph subscription → notification URL:</div>
+                <div style="font-family:monospace;font-size:11px;background:rgba(0,0,0,.3);padding:7px 11px;border-radius:6px;color:#6ee7b7;margin:4px 0;">https://elevate-hq-production.up.railway.app/webhook/outlook</div>
+                <div><strong style="color:#93c5fd;">4.</strong> Subscribe to: /me/messages — change type: created</div>
+              </div>
+              <button class="btn-secondary" style="width:100%;margin-top:10px;" onclick="testOutlookEndpoint()">🧪 Test Outlook Endpoint</button>
+              <div id="outlook-test-result" style="margin-top:8px;"></div>
+            </div>
+
+            <div style="margin-top:4px;padding:12px 14px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);border-radius:10px;">
+              <div style="font-weight:700;font-size:13px;color:white;margin-bottom:6px;">🚀 Generate Backend Code</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:10px;">Regenerate your complete server.js with all latest integrations.</div>
               <button class="btn-primary" onclick="generateBackendCode()">⚡ Generate Node.js Backend Code</button>
               <div id="backend-output" style="margin-top:12px;"></div>
             </div>
@@ -4204,6 +4271,132 @@ function clearSampleDataIfPresent(){
     console.log('[Init] Cleared sample query count');
   }
 }
+
+// =====================================================
+// ZAPIER ENDPOINT TEST
+// =====================================================
+async function testZapierEndpoint(){
+  const result = document.getElementById('zapier-test-result');
+  result.innerHTML = '<div style="font-size:12px;color:#93c5fd;">Testing Zapier endpoint on Railway...</div>';
+  try{
+    const res = await fetch(SERVER_URL+'/webhook/zapier', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name: 'Zapier Test Lead',
+        email: 'test@zapier.com',
+        phone: '(404) 555-TEST',
+        message: 'This is a test lead from Zapier endpoint verification',
+        source: 'Zapier Test',
+        project_type: 'Test'
+      })
+    });
+    const data = await res.json();
+    result.innerHTML = data.success
+      ? '<div class="success-box" style="margin:0;">✅ Zapier endpoint is working! Lead ID: '+data.lead_id+' — Your Railway server is ready to receive Houzz leads via Zapier.</div>'
+      : '<div class="error-box" style="margin:0;">❌ Endpoint returned error: '+JSON.stringify(data)+'</div>';
+    if(data.success) syncServerLeads();
+  }catch(e){
+    result.innerHTML = '<div class="error-box" style="margin:0;">❌ Could not reach server: '+e.message+'</div>';
+  }
+}
+
+// =====================================================
+// GMAIL + OUTLOOK ENDPOINT TESTS
+// =====================================================
+async function testGmailEndpoint(){
+  const result = document.getElementById('gmail-test-result');
+  result.innerHTML = '<div style="font-size:12px;color:#93c5fd;">Testing Gmail endpoint...</div>';
+  try{
+    // Send a fake Pub/Sub notification
+    const fakeData = btoa(JSON.stringify({emailAddress:'test@gmail.com', historyId:'12345'}));
+    const res = await fetch(SERVER_URL+'/webhook/gmail', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({message:{data:fakeData, messageId:'test-123'}})
+    });
+    result.innerHTML = res.ok
+      ? '<div class="success-box" style="margin:0;">✅ Gmail endpoint is live and responding! Ready for Google Pub/Sub.</div>'
+      : '<div class="error-box" style="margin:0;">❌ Server returned: '+res.status+'</div>';
+  }catch(e){
+    result.innerHTML = '<div class="error-box" style="margin:0;">❌ '+e.message+'</div>';
+  }
+}
+
+async function testOutlookEndpoint(){
+  const result = document.getElementById('outlook-test-result');
+  result.innerHTML = '<div style="font-size:12px;color:#93c5fd;">Testing Outlook endpoint...</div>';
+  try{
+    const res = await fetch(SERVER_URL+'/webhook/outlook', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({value:[{changeType:'created',resource:'Messages',resourceData:{id:'test-123'}}]})
+    });
+    result.innerHTML = res.ok
+      ? '<div class="success-box" style="margin:0;">✅ Outlook endpoint is live! Ready for Microsoft Graph subscriptions.</div>'
+      : '<div class="error-box" style="margin:0;">❌ Server returned: '+res.status+'</div>';
+  }catch(e){
+    result.innerHTML = '<div class="error-box" style="margin:0;">❌ '+e.message+'</div>';
+  }
+}
+
+// =====================================================
+// VAPI RECEPTIONIST
+// =====================================================
+let vapiKey = localStorage.getItem('elevate_vapi_key')||'';
+
+function saveVapiKey(){
+  const k = document.getElementById('vapi-key-input').value.trim();
+  if(!k){ alert('Enter your Vapi API key first.'); return; }
+  vapiKey = k;
+  localStorage.setItem('elevate_vapi_key', k);
+  addActivity('📞 Vapi receptionist key saved');
+  document.getElementById('vapi-output').innerHTML = '<div class="success-box" style="margin:0;">✅ Vapi key saved. Your AI receptionist is ready to configure.</div>';
+}
+
+async function generateVapiPrompt(){
+  if(!apiKey){ openApiModal(); return; }
+  const out = document.getElementById('vapi-output');
+  out.innerHTML = '<div class="thinking-bar show" style="margin:0;"><div class="spinner"></div><span class="thinking-text">Writing your receptionist script...</span></div>';
+
+  const res = await callClaude(
+    'You are Jennifer Harrison, Corporate Legal Advisor, and Lisa Park, Marketing Manager at Elevate Construction LLC. Write a complete AI receptionist system prompt.',
+    [{role:'user', content:`Write a complete Vapi.ai system prompt for the Elevate Construction LLC AI receptionist. The receptionist should:
+- Greet callers warmly and professionally as "Elevate Construction, how can I help you today?"
+- Know all services: Framing (residential/commercial), Roofing, Concrete & Flatwork, Welding & Steel, Mitigation & Restoration
+- Collect caller name, phone, project type, and timeline for estimates
+- Handle emergency calls (storm damage, flooding) with urgency
+- Know company info: 404-719-1888, GaElevate.com, 3343 Peachtree Rd NE Ste 145, Atlanta GA 30326
+- Transfer to 404-719-1888 for urgent matters
+- Sound 100% human — never reveal it's an AI unless directly asked
+- Book callbacks by collecting name, phone, best time to call
+- Handle objections about pricing professionally
+- Know Atlanta metro service area
+Make it detailed, natural, and construction-industry specific. Plain text only, no markdown.`}],
+    2000
+  );
+
+  out.innerHTML = `
+    <div class="panel" style="margin-top:10px;">
+      <div class="panel-header"><h3>📞 Vapi Receptionist System Prompt</h3><p>Copy this into your Vapi assistant configuration</p></div>
+      <div class="panel-body">
+        <div style="font-size:12px;line-height:1.8;white-space:pre-wrap;color:rgba(255,255,255,.82);background:rgba(0,0,0,.2);padding:12px;border-radius:8px;max-height:300px;overflow-y:auto;">${esc(res)}</div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn-secondary" onclick="copyText('${encodeURIComponent(res)}')">📋 Copy Prompt</button>
+          <a href="https://vapi.ai" target="_blank" class="btn-gold" style="text-decoration:none;padding:8px 16px;font-size:12px;">🚀 Open Vapi.ai</a>
+        </div>
+      </div>
+    </div>`;
+  queryCount++; document.getElementById('metric-queries').textContent=queryCount;
+  localStorage.setItem('elevate_query_count',queryCount);
+  addActivity('📞 Vapi receptionist script generated');
+}
+
+// Restore Vapi key on load
+if(vapiKey && document.getElementById('vapi-key-input')){
+  document.getElementById('vapi-key-input').value = vapiKey;
+}
 </script>
 </body>
 </html>
+
