@@ -1,266 +1,169 @@
 // ================================================================
-// ELEVATE CONSTRUCTION LLC — HQ Backend Server
-// Handles: Lead intake, Gmail webhook, Outlook webhook,
-//          Zapier integration, Vapi receptionist
+// ELEVATE CONSTRUCTION LLC — HQ Backend Server v2
+// Persistent storage · Gmail · Outlook · Zapier · Vapi
 // Deploy on Railway.app
 // ================================================================
 
 const express = require('express');
 const cors    = require('cors');
+const fs      = require('fs');
+const path    = require('path');
 const app     = express();
 const PORT    = process.env.PORT || 3000;
 
-// ── Middleware ────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ── In-memory store (replace with database later) ─────────────
-let leads     = [];
-let tasks     = [];
-let employees = [];
-let emailLog  = [];
+// ── Persistent storage ────────────────────────────────────────
+const DATA_FILE = process.env.RAILWAY_VOLUME_MOUNT_PATH
+  ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'db.json')
+  : path.join(__dirname, 'db.json');
 
-// ================================================================
-// HEALTH CHECK
-// ================================================================
-app.get('/', (req, res) => {
-  res.json({
-    status:  'online',
-    company: 'Elevate Construction LLC',
-    version: '1.0.0',
-    message: 'Elevate HQ Backend is running',
-    endpoints: {
-      leads:          'POST /api/lead',
-      getLeads:       'GET  /api/leads',
-      zapier:         'POST /webhook/zapier',
-      gmail:          'POST /webhook/gmail',
-      outlook:        'POST /webhook/outlook',
-      vapi:           'POST /webhook/vapi',
-      test:           'GET  /test'
-    }
-  });
-});
+function loadDB(){
+  try{ if(fs.existsSync(DATA_FILE)) return JSON.parse(fs.readFileSync(DATA_FILE,'utf8')); }
+  catch(e){ console.error('[DB] Load error:',e.message); }
+  return { leads:[], tasks:[], employees:[], emailLog:[], callLog:[] };
+}
+function saveDB(db){
+  try{ fs.writeFileSync(DATA_FILE, JSON.stringify(db,null,2)); }
+  catch(e){ console.error('[DB] Save error:',e.message); }
+}
+function buildLead(data, source){
+  return {
+    id:           Date.now()+Math.floor(Math.random()*1000),
+    name:         data.name||'Unknown',
+    email:        data.email||'',
+    phone:        data.phone||'',
+    address:      data.address||'',
+    project_type: data.project_type||data.project||'Inquiry',
+    budget:       data.budget||'TBD',
+    timeline:     data.timeline||'Flexible',
+    source:       source||data.source||'Unknown',
+    message:      data.message||'',
+    stage:        'new',
+    created_at:   new Date().toISOString()
+  };
+}
 
-// ================================================================
-// TEST ENDPOINT — verify server is working
-// ================================================================
-app.get('/test', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Elevate HQ server is working!',
-    time:    new Date().toISOString(),
-    leads:   leads.length,
-    tasks:   tasks.length
-  });
-});
+let db = loadDB();
+console.log(`[DB] Loaded — ${db.leads.length} leads`);
 
-// ================================================================
-// LEAD INTAKE — from website contact form
-// Accepts POST from your GaElevate.com contact form
-// ================================================================
+// ── Health / Test ─────────────────────────────────────────────
+app.get('/', (req, res) => res.json({
+  status:'online', company:'Elevate Construction LLC', version:'2.0.0',
+  stats:{ leads:db.leads.length, tasks:db.tasks.length, calls:db.callLog.length }
+}));
+
+app.get('/test', (req, res) => res.json({
+  success:true, message:'Elevate HQ server is working!',
+  time:new Date().toISOString(), leads:db.leads.length, tasks:db.tasks.length,
+  storage:fs.existsSync(DATA_FILE)?'persistent':'in-memory'
+}));
+
+// ── Lead intake (POST) ────────────────────────────────────────
 app.post('/api/lead', (req, res) => {
-  const {
-    name, first_name, last_name,
-    email, phone, address,
-    project_type, budget, timeline,
-    source, message
-  } = req.body;
-
-  const lead = {
-    id:           Date.now(),
-    name:         name || `${first_name || ''} ${last_name || ''}`.trim() || 'Unknown',
-    email:        email   || '',
-    phone:        phone   || '',
-    address:      address || '',
-    project_type: project_type || 'Website Inquiry',
-    budget:       budget   || 'Not specified',
-    timeline:     timeline || 'Flexible',
-    source:       source   || 'Website',
-    message:      message  || '',
-    stage:        'new',
-    created_at:   new Date().toISOString()
-  };
-
-  leads.push(lead);
-  console.log(`[Lead] New lead from ${lead.source}: ${lead.name} — ${lead.phone}`);
-
-  res.json({ success: true, message: 'Lead received', lead_id: lead.id });
+  const lead = buildLead(req.body, req.body.source||'Website');
+  db.leads.push(lead); saveDB(db);
+  console.log(`[Lead] ${lead.name} from ${lead.source}`);
+  res.json({ success:true, lead_id:lead.id });
 });
 
-// ── Also accept GET (for URL-based webhook from contact form) ──
+// ── Lead intake (GET — for URL param webhooks) ────────────────
 app.get('/api/lead', (req, res) => {
-  const {
-    name, email, phone, address,
-    project, budget, timeline, source, message
-  } = req.query;
-
-  if(!name && !email && !phone) {
-    return res.json({ success: false, message: 'No lead data provided' });
-  }
-
-  const lead = {
-    id:           Date.now(),
-    name:         name    || 'Website Visitor',
-    email:        email   || '',
-    phone:        phone   || '',
-    address:      address || '',
-    project_type: project || 'Website Inquiry',
-    budget:       budget  || 'Not specified',
-    timeline:     timeline|| 'Flexible',
-    source:       source  || 'Website',
-    message:      message || '',
-    stage:        'new',
-    created_at:   new Date().toISOString()
-  };
-
-  leads.push(lead);
-  console.log(`[Lead] GET lead from ${lead.source}: ${lead.name}`);
-  res.json({ success: true, message: 'Lead received', lead_id: lead.id });
+  if(!req.query.name && !req.query.email && !req.query.phone)
+    return res.json({ success:false, message:'No data' });
+  const lead = buildLead(req.query, req.query.source||'Website');
+  db.leads.push(lead); saveDB(db);
+  res.json({ success:true, lead_id:lead.id });
 });
 
-// ================================================================
-// GET ALL LEADS — for your Elevate HQ app to fetch
-// ================================================================
+// ── Get all leads ─────────────────────────────────────────────
 app.get('/api/leads', (req, res) => {
-  res.json({
-    success: true,
-    count:   leads.length,
-    leads:   leads
-  });
+  res.json({ success:true, count:db.leads.length, leads:db.leads });
 });
 
-// ================================================================
-// ZAPIER WEBHOOK — receives Houzz leads via Zapier
-// In Zapier: Action = Webhooks by Zapier → POST → this URL
-// ================================================================
+// ── Zapier webhook (Houzz leads) ──────────────────────────────
 app.post('/webhook/zapier', (req, res) => {
-  const data = req.body;
-  console.log('[Zapier] Incoming webhook:', JSON.stringify(data).slice(0, 200));
-
-  const lead = {
-    id:           Date.now(),
-    name:         data.name         || data.contact_name || data.full_name || 'Houzz Lead',
-    email:        data.email        || '',
-    phone:        data.phone        || data.phone_number || '',
-    address:      data.address      || data.location || '',
-    project_type: data.project_type || data.service || data.category || 'Houzz Inquiry',
-    budget:       data.budget       || data.project_budget || 'Not specified',
-    source:       data.source       || 'Houzz via Zapier',
-    message:      data.message      || data.description || data.project_details || '',
-    stage:        'new',
-    raw:          data,
-    created_at:   new Date().toISOString()
-  };
-
-  leads.push(lead);
-  console.log(`[Zapier] Lead created: ${lead.name} from ${lead.source}`);
-  res.json({ success: true, lead_id: lead.id });
+  const d = req.body;
+  const lead = buildLead({
+    name:         d.name||d.contact_name||d.full_name||'Houzz Lead',
+    email:        d.email||d.email_address||'',
+    phone:        d.phone||d.phone_number||'',
+    address:      d.address||d.location||'',
+    project_type: d.project_type||d.service||d.category||'Houzz Inquiry',
+    budget:       d.budget||d.project_budget||'TBD',
+    message:      d.message||d.description||d.project_details||''
+  }, 'Houzz via Zapier');
+  db.leads.push(lead); saveDB(db);
+  console.log(`[Zapier] ${lead.name}`);
+  res.json({ success:true, lead_id:lead.id, name:lead.name });
 });
 
-// ================================================================
-// GMAIL WEBHOOK — receives emails via Google Cloud Pub/Sub
-// ================================================================
+// ── Gmail webhook (Google Pub/Sub) ────────────────────────────
 app.post('/webhook/gmail', (req, res) => {
-  try {
-    // Google sends base64-encoded message data
-    const message = req.body.message;
-    if(!message || !message.data) {
-      return res.status(200).json({ success: true }); // Always 200 to Gmail
+  try{
+    const msg = req.body.message;
+    if(msg?.data){
+      const decoded = Buffer.from(msg.data,'base64').toString('utf-8');
+      const parsed  = JSON.parse(decoded);
+      db.emailLog.push({ source:'gmail', email:parsed.emailAddress, received_at:new Date().toISOString() });
+      saveDB(db);
+      console.log('[Gmail] Notification for:', parsed.emailAddress);
     }
-
-    const decoded  = Buffer.from(message.data, 'base64').toString('utf-8');
-    const parsed   = JSON.parse(decoded);
-    const emailId  = parsed.emailAddress || 'unknown';
-
-    console.log('[Gmail] Pub/Sub notification for:', emailId);
-    emailLog.push({ source: 'gmail', data: parsed, received_at: new Date().toISOString() });
-
-    // TODO: Use Gmail API to fetch full email content and create lead
-    // For now we log receipt and acknowledge
-    res.status(200).json({ success: true });
-  } catch(err) {
-    console.error('[Gmail] Error:', err.message);
-    res.status(200).json({ success: true }); // Always 200 to prevent retries
-  }
+    res.status(200).json({ success:true });
+  }catch(e){ res.status(200).json({ success:true }); }
 });
 
-// ================================================================
-// OUTLOOK/MICROSOFT GRAPH WEBHOOK
-// ================================================================
+// ── Outlook webhook (Microsoft Graph) ────────────────────────
 app.post('/webhook/outlook', (req, res) => {
-  // Microsoft Graph sends a validationToken on first setup
-  const validationToken = req.query.validationToken;
-  if(validationToken) {
-    console.log('[Outlook] Validation request received');
-    return res.status(200).type('text/plain').send(validationToken);
-  }
-
-  try {
-    const notifications = req.body.value || [];
-    notifications.forEach(n => {
-      console.log('[Outlook] Notification:', n.changeType, n.resourceData?.id);
-      emailLog.push({ source: 'outlook', data: n, received_at: new Date().toISOString() });
+  if(req.query.validationToken)
+    return res.status(200).type('text/plain').send(req.query.validationToken);
+  try{
+    (req.body.value||[]).forEach(n=>{
+      db.emailLog.push({ source:'outlook', changeType:n.changeType, received_at:new Date().toISOString() });
     });
-    res.status(200).json({ success: true });
-  } catch(err) {
-    console.error('[Outlook] Error:', err.message);
-    res.status(200).json({ success: true });
-  }
+    saveDB(db);
+    res.status(200).json({ success:true });
+  }catch(e){ res.status(200).json({ success:true }); }
 });
 
-// ================================================================
-// VAPI RECEPTIONIST WEBHOOK
-// Vapi calls this when the AI receptionist needs info
-// ================================================================
+// ── Vapi receptionist webhook ─────────────────────────────────
 app.post('/webhook/vapi', (req, res) => {
-  const { message, call } = req.body;
-  const userSaid = message?.content || '';
+  const userSaid    = req.body?.message?.content||req.body?.transcript||'';
+  const callerPhone = req.body?.call?.customer?.number||'unknown';
+  const lower       = userSaid.toLowerCase();
 
-  console.log('[Vapi] Call received. Caller said:', userSaid.slice(0, 100));
+  console.log(`[Vapi] ${callerPhone}: "${userSaid.slice(0,80)}"`);
+  db.callLog.push({ phone:callerPhone, message:userSaid, received_at:new Date().toISOString() });
 
-  // Smart response logic based on what caller asked
-  let responseText = '';
-
-  const lower = userSaid.toLowerCase();
-
-  if(lower.includes('estimate') || lower.includes('quote') || lower.includes('price') || lower.includes('cost')) {
-    responseText = `I'd be happy to get you a free estimate! Our estimating specialist Marcus can review your project. Can I get your name and phone number so we can call you back within 24 hours? We serve the entire Atlanta metro area for framing, roofing, concrete, welding, and restoration.`;
-
-  } else if(lower.includes('emergency') || lower.includes('urgent') || lower.includes('flooding') || lower.includes('storm') || lower.includes('damage')) {
-    responseText = `This sounds like an urgent situation. Let me connect you with our operations team right away. Our emergency response line is available and we can typically have someone on-site within hours. Please hold while I transfer you, or call 404-719-1888 directly for the fastest response.`;
-
-  } else if(lower.includes('hours') || lower.includes('open') || lower.includes('available')) {
-    responseText = `Elevate Construction is available Monday through Friday 7am to 6pm, and Saturday 8am to 4pm for estimates. We offer 24-hour emergency response for storm damage and restoration. Is there something specific I can help you with today?`;
-
-  } else if(lower.includes('location') || lower.includes('address') || lower.includes('where')) {
-    responseText = `Elevate Construction LLC is based at 3343 Peachtree Road Northeast, Suite 145, Atlanta Georgia 30326. We serve the entire Atlanta metropolitan area including Buckhead, Midtown, Decatur, Marietta, and surrounding areas. Can I help you with anything else?`;
-
-  } else if(lower.includes('lead') || lower.includes('status') || lower.includes('project') || lower.includes('update')) {
-    const recentLeads = leads.slice(-3).map(l => `${l.name} — ${l.project_type}`).join(', ');
-    responseText = `I can see recent inquiries in our system. ${recentLeads ? 'Recent contacts include: ' + recentLeads + '.' : ''} For a specific project update, our project manager David Thompson can give you a full status report. Shall I have him call you back?`;
-
-  } else {
-    responseText = `Thank you for calling Elevate Construction LLC, Atlanta's premier commercial and residential construction company. We specialize in framing, roofing, welding, concrete work, and mitigation and restoration. How can I help you today? I can schedule a free estimate, connect you with a specialist, or answer questions about our services.`;
+  // Auto-create lead from call
+  if(callerPhone!=='unknown' && !db.leads.find(l=>l.phone===callerPhone)){
+    db.leads.push(buildLead({ name:'Phone Caller', phone:callerPhone, message:userSaid }, 'Vapi Phone Call'));
   }
+  saveDB(db);
 
-  // Vapi expects this response format
-  res.json({
-    results: [{
-      toolCallId: req.body.toolCallList?.[0]?.id || 'response',
-      result:     responseText
-    }]
-  });
+  let response = '';
+  if(lower.includes('estimate')||lower.includes('quote')||lower.includes('price'))
+    response = `Absolutely, I'd love to get you a free estimate! Our team responds within 24 hours. Can I get your name and best callback number?`;
+  else if(lower.includes('emergency')||lower.includes('flood')||lower.includes('storm')||lower.includes('damage'))
+    response = `I understand this is urgent. Our emergency response team is available now. Please call 404-719-1888 directly or give me your address and we'll dispatch someone immediately.`;
+  else if(lower.includes('hours')||lower.includes('open'))
+    response = `We're available Monday through Friday 7am to 6pm, Saturday 8am to 4pm, with 24-hour emergency response for storm and water damage.`;
+  else if(lower.includes('location')||lower.includes('address')||lower.includes('where'))
+    response = `Our office is at 3343 Peachtree Road Northeast Suite 145, Atlanta Georgia 30326. We serve the full Atlanta metro area.`;
+  else if(lower.includes('service')||lower.includes('specialize')||lower.includes('what do'))
+    response = `Elevate Construction specializes in commercial and residential framing, roofing, concrete and flatwork, welding and steel fabrication, and mitigation and restoration for water, fire, and storm damage. Which service can I help you with?`;
+  else
+    response = `Thank you for calling Elevate Construction LLC, Atlanta's premier builder. We specialize in framing, roofing, concrete, welding, and restoration. How can I help you today?`;
+
+  res.json({ results:[{ toolCallId:req.body?.toolCallList?.[0]?.id||'response', result:response }] });
 });
 
-// ================================================================
-// START SERVER
-// ================================================================
+// ── Start ─────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n✅ Elevate Construction HQ Server running on port ${PORT}`);
-  console.log(`   Company: Elevate Construction LLC`);
-  console.log(`   Website: GaElevate.com | 404-719-1888`);
-  console.log(`   Endpoints ready: /api/lead, /webhook/zapier, /webhook/gmail, /webhook/outlook, /webhook/vapi\n`);
+  console.log(`\n✅ Elevate HQ Server v2 — port ${PORT}`);
+  console.log(`   ${db.leads.length} leads stored | Storage: ${DATA_FILE}\n`);
 });
 
 module.exports = app;
