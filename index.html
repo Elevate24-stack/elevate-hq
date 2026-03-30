@@ -445,29 +445,34 @@ textarea{resize:vertical;min-height:80px;}
             </div>
             <div id="ceo-mic-status" style="font-size:10px;font-weight:700;color:rgba(255,255,255,.3);padding:3px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.1);">STANDBY</div>
           </div>
-          <div style="display:flex;gap:8px;margin-bottom:10px;">
-            <textarea id="ceo-input" placeholder="Type your statement or question to the board..." rows="2"
-              style="flex:1;border:1.5px solid rgba(245,158,11,.25);border-radius:9px;padding:9px 13px;font-size:13px;
-                     font-family:'Inter',sans-serif;color:white;background:rgba(245,158,11,.06);outline:none;resize:none;"
-              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ceoPushToMeeting();}"></textarea>
-          </div>
+          <!-- Text input row -->
+          <textarea id="ceo-input" placeholder="Type or use the mic — press Enter to interrupt..." rows="2"
+            style="width:100%;border:1.5px solid rgba(245,158,11,.25);border-radius:9px;padding:9px 13px;
+                   font-size:13px;font-family:'Inter',sans-serif;color:white;background:rgba(245,158,11,.06);
+                   outline:none;resize:none;margin-bottom:10px;"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ceoInterrupt();}"></textarea>
+
+          <!-- Big mic button + action buttons -->
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="toggleCeoMic()" id="ceo-mic-btn"
+              style="flex:2;background:linear-gradient(135deg,rgba(245,158,11,.25),rgba(217,119,6,.2));
+                     color:#fcd34d;border:1.5px solid rgba(245,158,11,.4);border-radius:9px;
+                     padding:10px 14px;font-size:14px;font-weight:700;cursor:pointer;
+                     transition:all .2s;display:inline-flex;align-items:center;gap:8px;justify-content:center;">
+              🎤 Press to Speak
+            </button>
             <button onclick="ceoInterrupt()" id="ceo-interrupt-btn"
-              style="flex:1;background:linear-gradient(135deg,rgba(220,38,38,.7),rgba(153,27,27,.8));color:white;
-                     border:1px solid rgba(220,38,38,.5);border-radius:9px;padding:9px 14px;font-size:12px;
-                     font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;justify-content:center;">
-              ⚡ Interrupt Now
+              style="flex:1;background:rgba(220,38,38,.2);color:#fca5a5;
+                     border:1px solid rgba(220,38,38,.35);border-radius:9px;
+                     padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;">
+              ⚡ Interrupt
             </button>
             <button onclick="ceoQueue()" id="ceo-queue-btn"
-              style="flex:1;background:linear-gradient(135deg,rgba(37,99,235,.3),rgba(29,78,216,.2));color:rgba(147,197,253,.9);
-                     border:1px solid rgba(37,99,235,.4);border-radius:9px;padding:9px 14px;font-size:12px;
-                     font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;justify-content:center;">
-              ⏭ Queue My Turn
+              style="flex:1;background:rgba(37,99,235,.15);color:#93c5fd;
+                     border:1px solid rgba(37,99,235,.3);border-radius:9px;
+                     padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;">
+              ⏭ Queue
             </button>
-            <button onclick="toggleCeoMic()" id="ceo-mic-btn"
-              style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.12);
-                     border-radius:9px;padding:9px 14px;font-size:18px;cursor:pointer;transition:all .2s;"
-              title="Use microphone">🎤</button>
           </div>
           <div id="ceo-queue-notice" style="display:none;margin-top:8px;padding:7px 12px;background:rgba(37,99,235,.15);
                border-radius:7px;font-size:11px;color:rgba(147,197,253,.9);border:1px solid rgba(37,99,235,.25);">
@@ -2176,7 +2181,7 @@ function setDeptStatus(deptId,state){
 // =====================================================
 async function broadcastToAll(){
   const text=document.getElementById('allhands-input')?.value?.trim();
-  if(!text){ alert('Please type a message first.'); return; }
+  if(!text){ document.getElementById('allhands-input')?.focus(); return; }
   if(!apiKey){openApiModal();return;}
   await _runBroadcast(text,'broadcast-responses','allhands-input');
 }
@@ -2187,8 +2192,8 @@ async function broadcastToAll2(){
   if(!text){ 
     // Switch to boardroom tab so user can see the input
     switchTab('allhands','boardroom');
+    switchTab('allhands','boardroom');
     setTimeout(()=>document.getElementById('allhands-input2')?.focus(), 300);
-    alert('Please type a message to broadcast to all departments.');
     return; 
   }
   if(!apiKey){openApiModal();return;}
@@ -2314,7 +2319,7 @@ function setBroadcastText(txt){
 async function runBroadcast(){
   const inputEl = document.getElementById('broadcast-input');
   const text = inputEl?.value?.trim();
-  if(!text){ alert('Please type a message to broadcast.'); return; }
+  if(!text){ document.getElementById('broadcast-input')?.focus(); return; }
   if(!apiKey){ openApiModal(); return; }
 
   // Show a local thinking indicator since allhands-thinking is in boardroom tab
@@ -4370,32 +4375,38 @@ async function toggleAutoMeeting(){
 
 // ── Detect if a response calls out someone by first name ─────
 function detectCalledName(text){
-  // Check if the response directly addresses or calls on another executive by first name
-  const firstNames = DEPARTMENTS.map(d=>({
-    firstName: d.name.split(' ')[0],
-    dept: d
-  }));
-
-  // Patterns: "Marcus, what do you think?" / "I'd ask David to..." / "Sarah, can you..."
-  // "over to Michael" / "Michael?" / "what does Marcus say"
-  for(const {firstName, dept} of firstNames){
-    const patterns = [
-      new RegExp(`\b${firstName},`, 'i'),                    // "Marcus, ..."
-      new RegExp(`\b${firstName}\?`, 'i'),                  // "Marcus?"
-      new RegExp(`over to ${firstName}`, 'i'),                // "over to Marcus"
-      new RegExp(`ask ${firstName}`, 'i'),                    // "I'd ask Marcus"
-      new RegExp(`${firstName}, (what|can|do|could|would|how|is|are)`, 'i'), // "Marcus, what..."
-      new RegExp(`(what|how) (does|do|would|will) ${firstName}`, 'i'),       // "what does Marcus..."
-      new RegExp(`${firstName} (needs?|should|has|can|will|would)`, 'i'),    // "Marcus needs to..."
-    ];
-    for(const re of patterns){
-      if(re.test(text)){
-        return dept;
-      }
+  // Simple, reliable name detection — no complex regex
+  const t = text.toLowerCase();
+  for(const dept of DEPARTMENTS){
+    const fn = dept.name.split(' ')[0].toLowerCase();
+    // Check for: "Marcus," / "Marcus?" / "marcus " at start of direct address
+    // "over to Marcus" / "ask Marcus" / "what does Marcus"
+    if(
+      t.includes(fn+',') ||
+      t.includes(fn+'?') ||
+      t.includes('over to '+fn) ||
+      t.includes('ask '+fn) ||
+      t.includes('what does '+fn) ||
+      t.includes('what do you think, '+fn) ||
+      t.includes(fn+', what') ||
+      t.includes(fn+', can') ||
+      t.includes(fn+', how') ||
+      t.includes(fn+', do') ||
+      t.includes(fn+', could') ||
+      t.includes(fn+', would') ||
+      t.includes(fn+', is') ||
+      t.includes(fn+' needs to') ||
+      t.includes(fn+' should') ||
+      t.includes('to '+fn+' on') ||
+      t.includes('right, '+fn) ||
+      t.includes('agree, '+fn)
+    ){
+      return dept;
     }
   }
   return null;
 }
+
 
 async function runAutoMeetingLoop(topic){
   const outputEl  = document.getElementById('broadcast-responses2');
@@ -4429,22 +4440,29 @@ async function runAutoMeetingLoop(topic){
       ? `NOTE: You were just addressed by name in the previous statement — respond directly to that person.`
       : '';
 
-    const prompt = `We are in a live executive board meeting for Elevate Construction LLC.
+    // Build targeted prompt — stronger name-calling instruction
+    const otherNames = DEPARTMENTS.filter(d=>d.id!==dept.id).map(d=>d.name.split(' ')[0]);
+    const randomColleague = otherNames[Math.floor(Math.random()*otherNames.length)];
+    const shouldCallSomeone = Math.random() > 0.4; // 60% chance to address someone directly
 
-Meeting Transcript (recent):
+    const prompt = `BOARD MEETING — Elevate Construction LLC
+Topic: ${topic||'General Operations'}
+
+Recent transcript:
 ${recentTranscript}
 
-You are ${dept.name}, ${dept.role}. ${calledNote}
+You are ${dept.name} (${dept.role}). ${calledNote}
 
-Rules for your response:
-- Speak directly to the last person who spoke OR to whoever called your name
-- You MAY call out a specific colleague by their FIRST NAME if you want their input (e.g. "Sarah, does that work for the budget?" or "David, can your crew handle that?")
-- Calling someone's name will make them speak NEXT — use this intentionally
-- React naturally — agree, push back, add a number, flag a risk, or ask a pointed question
-- Keep it SHORT: 1-3 sentences max — this is live spoken conversation
-- NO markdown, NO bullet points — plain conversational speech only
-- Do NOT start with your own name
-- Company profit target is 30% GP — factor this into any financial or bid discussions`;
+CRITICAL RULES:
+1. Keep it to 1-3 sentences ONLY — this is live spoken conversation
+2. NO markdown, NO lists, NO formatting — plain speech only
+3. Do NOT say your own name
+4. Company 30% GP profit target applies to all financial discussions
+5. ${shouldCallSomeone
+  ? `REQUIRED: End your response by directly addressing ${randomColleague} by first name — ask them a specific question or request their input. Example: "${randomColleague}, what's your take?" or "${randomColleague}, can you confirm that?"`
+  : `You may address a specific colleague by first name if their expertise is relevant`}
+
+Respond naturally to the last thing said. Be direct, specific, and conversational.`;
 
     try{
       // Check pause before making the API call
@@ -4605,7 +4623,7 @@ async function ceoInterrupt(){
 // ── QUEUE: CEO speaks on next natural turn ──
 function ceoQueue(){
   const text = document.getElementById('ceo-input').value.trim();
-  if(!text){ alert('Type your message first.'); return; }
+  if(!text){ toggleCeoMic(); return; }
   ceoQueued = true;
   ceoQueuedMsg = text;
   document.getElementById('ceo-queue-notice').style.display = 'block';
