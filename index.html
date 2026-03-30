@@ -283,7 +283,7 @@ textarea{resize:vertical;min-height:80px;}
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
     <span style="font-size:11px;color:rgba(255,255,255,.5);"><span class="status-dot"></span>All systems online</span>
-    <span id="server-status" style="font-size:10px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);">⚡ Server...</span>
+    <button id="server-status" onclick="showServerStatus()" style="font-size:10px;padding:4px 12px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);cursor:pointer;transition:all .2s;">⚡ Server...</button>
     <div id="email-badge" onclick="showView('email')" style="display:none;background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;"></div>
     <div class="logo-badge">404-719-1888</div>
     <button class="btn-secondary btn-sm" onclick="openApiModal()">⚙ API Key</button>
@@ -1185,8 +1185,8 @@ textarea{resize:vertical;min-height:80px;}
 <!-- TASK DETAIL MODAL -->
 <div class="modal-overlay" id="task-modal">
   <div class="modal-box">
-    <div class="modal-header"><h2 id="task-modal-title">Task Detail</h2><button class="modal-close" onclick="document.getElementById('task-modal').classList.remove('show')">✕</button></div>
-    <div class="modal-body" id="task-modal-body"></div>
+    <div class="modal-header"><h2 id="modal-title">Task Detail</h2><button class="modal-close" onclick="document.getElementById('task-modal').classList.remove('show')">✕</button></div>
+    <div class="modal-body" id="modal-body"></div>
   </div>
 </div>
 
@@ -1986,7 +1986,8 @@ const SAMPLE_TASKS=[
 ];
 
 function initTasks(){
-  tasks=[...SAMPLE_TASKS];
+  const saved = localStorage.getItem('elevate_tasks');
+  tasks = saved ? JSON.parse(saved) : [];
   renderTasks();
   updateTaskMetric();
 }
@@ -2026,6 +2027,7 @@ function filterTasks(filter,btn){
 
 function toggleTask(id){
   const t=tasks.find(x=>x.id===id);if(t){t.done=!t.done;}
+  localStorage.setItem('elevate_tasks', JSON.stringify(tasks));
   renderTasks();updateTaskMetric();
   addActivity(t?`✅ Task ${t.done?'completed':'reopened'}: ${t.title.substring(0,35)}...`:'');
 }
@@ -2036,6 +2038,7 @@ function addTask(){
   const dept=document.getElementById('new-task-dept').value;
   const priority=document.getElementById('new-task-priority').value;
   tasks.unshift({id:Date.now(),title,dept,priority,done:false,date:'Today'});
+  localStorage.setItem('elevate_tasks', JSON.stringify(tasks));
   inp.value='';renderTasks();updateTaskMetric();
   addActivity(`➕ Task added: ${title.substring(0,35)}`);
 }
@@ -2050,19 +2053,19 @@ async function aiTaskHelp(id){
   const task=tasks.find(t=>t.id===id);if(!task)return;
   const dept=DEPARTMENTS.find(d=>d.id===task.dept)||DEPARTMENTS[0];
   const modal=document.getElementById('task-modal');
-  document.getElementById('task-modal-title').textContent=`🤖 AI Help — ${dept.name}`;
-  document.getElementById('task-modal-body').innerHTML='<div style="text-align:center;padding:20px;"><div class="typing-dots"><span></span><span></span><span></span></div><div style="margin-top:10px;font-size:13px;color:rgba(255,255,255,.38);">Getting AI guidance...</div></div>';
+  document.getElementById('modal-title').textContent=`🤖 AI Help — ${dept.name}`;
+  document.getElementById('modal-body').innerHTML='<div style="text-align:center;padding:20px;"><div class="typing-dots"><span></span><span></span><span></span></div><div style="margin-top:10px;font-size:13px;color:rgba(255,255,255,.38);">Getting AI guidance...</div></div>';
   modal.classList.add('show');
   try{
     const res=await callClaude(dept.systemPrompt,[{role:'user',content:`Help me with this task: "${task.title}". Give me specific, actionable steps to complete this for Elevate Construction LLC.`}],800);
-    document.getElementById('task-modal-body').innerHTML=`
+    document.getElementById('modal-body').innerHTML=`
       <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.38);margin-bottom:10px;">Task: ${esc(task.title)}</div>
       <div style="font-size:13px;line-height:1.8;color:rgba(255,255,255,.85);white-space:pre-wrap;">${esc(res)}</div>
       <hr class="section-divider">
       <button class="btn-secondary" onclick="document.getElementById('task-modal').classList.remove('show')">Close</button>`;
     queryCount++;document.getElementById('metric-queries').textContent=queryCount;localStorage.setItem('elevate_query_count',queryCount);
   }catch(e){
-    document.getElementById('task-modal-body').innerHTML=`<div class="error-box">Error: ${e.message}</div>`;
+    document.getElementById('modal-body').innerHTML=`<div class="error-box">Error: ${e.message}</div>`;
   }
 }
 
@@ -2198,7 +2201,8 @@ const SAMPLE_LEADS=[
 ];
 
 function initCRM(){
-  leads=[...SAMPLE_LEADS];
+  const saved = localStorage.getItem('elevate_leads');
+  leads = saved ? JSON.parse(saved) : [];
   renderPipeline();
   updateCRMMetrics();
 }
@@ -2224,8 +2228,8 @@ function renderPipeline(){
 
 function openLeadModal(lead){
   const modal=document.getElementById('task-modal');
-  document.getElementById('task-modal-title').textContent='💼 '+lead.name;
-  document.getElementById('task-modal-body').innerHTML=`
+  document.getElementById('modal-title').textContent='💼 '+lead.name;
+  document.getElementById('modal-body').innerHTML=`
     <div style="font-size:13px;line-height:2;color:rgba(255,255,255,.85);">
       <strong>Project:</strong> ${esc(lead.project)}<br>
       <strong>Value:</strong> <span style="color:#93c5fd;font-weight:700;">${lead.value}</span><br>
@@ -2268,6 +2272,7 @@ function addLead(){
     stage:'new'
   };
   leads.push(lead);
+  localStorage.setItem('elevate_leads', JSON.stringify(leads));
   ['lead-name','lead-project','lead-value','lead-phone','lead-email','lead-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderPipeline();updateCRMMetrics();
   addActivity(`💼 New lead added: ${name}`);
@@ -2457,12 +2462,10 @@ window.addEventListener('DOMContentLoaded',()=>{
     addActivity('🎙️ ElevenLabs voice restored');
   }
 
-  // Query count
+  // Query count — only restore if genuinely saved this session
   const savedQ = localStorage.getItem('elevate_query_count');
-  if(savedQ){
-    queryCount = parseInt(savedQ)||0;
-    document.getElementById('metric-queries').textContent = queryCount;
-  }
+  queryCount = savedQ ? (parseInt(savedQ)||0) : 0;
+  document.getElementById('metric-queries').textContent = queryCount;
 
   // Chat histories (after views are built)
   setTimeout(()=>restoreChatHistories(), 100);
@@ -4054,14 +4057,13 @@ async function pingServer(){
     const data = await res.json();
     if(data.success){
       if(statusEl){
-        statusEl.textContent = '⚡ Server Online';
-        statusEl.style.background = 'rgba(16,185,129,.15)';
-        statusEl.style.borderColor = 'rgba(16,185,129,.3)';
+        statusEl.textContent = '🟢 Server Online';
+        statusEl.style.background = 'rgba(16,185,129,.18)';
+        statusEl.style.borderColor = 'rgba(16,185,129,.45)';
         statusEl.style.color = '#6ee7b7';
+        statusEl.style.boxShadow = '0 0 10px rgba(16,185,129,.2)';
       }
       console.log('[Server] Online — leads on server:', data.leads);
-
-      // Sync any server leads not in local CRM
       syncServerLeads();
     }
   } catch(e){
@@ -4114,7 +4116,94 @@ async function syncServerLeads(){
     console.warn('[Server] Lead sync failed:', e.message);
   }
 }
+
+function showServerStatus(){
+  const modal = document.getElementById('task-modal');
+  document.getElementById('modal-title').textContent = '⚡ Server Status';
+  document.getElementById('modal-body').innerHTML = `
+    <div style="font-size:13px;line-height:2;color:rgba(255,255,255,.8);">
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07);">
+        <span style="color:rgba(255,255,255,.5);">Server URL</span>
+        <span style="font-family:monospace;font-size:11px;color:#93c5fd;">elevate-hq-production.up.railway.app</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07);">
+        <span style="color:rgba(255,255,255,.5);">Status</span>
+        <span id="modal-server-status" style="color:#6ee7b7;font-weight:700;">Checking...</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07);">
+        <span style="color:rgba(255,255,255,.5);">Leads on Server</span>
+        <span id="modal-server-leads" style="color:white;font-weight:700;">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07);">
+        <span style="color:rgba(255,255,255,.5);">Endpoints</span>
+        <span style="color:rgba(255,255,255,.55);font-size:11px;">/api/lead · /webhook/zapier · /webhook/gmail</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;">
+        <span style="color:rgba(255,255,255,.5);">Last Checked</span>
+        <span id="modal-server-time" style="color:rgba(255,255,255,.55);font-size:11px;">—</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn-primary" style="flex:1;" onclick="pingServer();document.getElementById('task-modal').classList.remove('show');">🔄 Refresh Status</button>
+      <button class="btn-secondary" onclick="document.getElementById('task-modal').classList.remove('show')">Close</button>
+    </div>`;
+  modal.classList.add('show');
+
+  // Live check
+  fetch(SERVER_URL+'/test', {signal:AbortSignal.timeout(5000)})
+    .then(r=>r.json())
+    .then(d=>{
+      const s = document.getElementById('modal-server-status');
+      const l = document.getElementById('modal-server-leads');
+      const t = document.getElementById('modal-server-time');
+      if(s) s.textContent = '🟢 Online';
+      if(l) l.textContent = d.leads + ' leads stored';
+      if(t) t.textContent = new Date(d.time).toLocaleTimeString();
+    })
+    .catch(()=>{
+      const s = document.getElementById('modal-server-status');
+      if(s){ s.textContent = '🔴 Offline'; s.style.color = '#fca5a5'; }
+    });
+}
+
+function clearSampleDataIfPresent(){
+  // If localStorage has the old fake sample data, wipe it so metrics show zero
+  const savedTasks = localStorage.getItem('elevate_tasks');
+  if(savedTasks){
+    try{
+      const t = JSON.parse(savedTasks);
+      // Detect sample data by known fake task title
+      const isSample = t.some(x=>x.title && x.title.includes('UJAMAA Construction'));
+      if(isSample){
+        localStorage.removeItem('elevate_tasks');
+        tasks = [];
+        renderTasks(); updateTaskMetric();
+        console.log('[Init] Cleared sample tasks');
+      }
+    }catch(e){}
+  }
+  const savedLeads = localStorage.getItem('elevate_leads');
+  if(savedLeads){
+    try{
+      const l = JSON.parse(savedLeads);
+      const isSample = l.some(x=>x.name && x.name.includes('Trident Commercial'));
+      if(isSample){
+        localStorage.removeItem('elevate_leads');
+        leads = [];
+        renderPipeline(); updateCRMMetrics();
+        console.log('[Init] Cleared sample leads');
+      }
+    }catch(e){}
+  }
+  // Clear fake query count
+  const savedQ = localStorage.getItem('elevate_query_count');
+  if(savedQ && parseInt(savedQ) === 21){
+    localStorage.removeItem('elevate_query_count');
+    queryCount = 0;
+    document.getElementById('metric-queries').textContent = '0';
+    console.log('[Init] Cleared sample query count');
+  }
+}
 </script>
 </body>
 </html>
-
