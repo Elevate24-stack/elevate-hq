@@ -350,7 +350,17 @@ textarea{resize:vertical;min-height:80px;}
     <!-- ALL-HANDS VIEW (sidebar nav) -->
     <div id="view-allhands" class="dept-view">
       <div class="content-title">📢 All-Hands Broadcast</div>
-      <div class="content-subtitle">Address all 7 department heads at once — every agent responds from their expertise</div>
+      <div class="content-subtitle">Address all 7 department heads at once — schedule recurring board meetings or start one now</div>
+
+      <div class="tab-bar" id="allhands-tabs">
+        <div class="tab active" onclick="switchTab('allhands','broadcast')">📢 Broadcast</div>
+        <div class="tab" onclick="switchTab('allhands','boardroom')">🎙️ Board Meeting</div>
+        <div class="tab" onclick="switchTab('allhands','scheduler')">📅 Meeting Scheduler</div>
+        <div class="tab" onclick="switchTab('allhands','minutes')">📋 Meeting Minutes</div>
+      </div>
+
+      <!-- BROADCAST TAB -->
+      <div id="allhands-broadcast" class="tab-content active" style="padding-top:18px;">
       <div class="panel">
         <div class="panel-header"><h3>Broadcast Message</h3><p>All agents will respond in parallel from their domain</p></div>
         <div class="panel-body">
@@ -421,7 +431,222 @@ textarea{resize:vertical;min-height:80px;}
       </div>
 
       <div id="broadcast-responses2" class="broadcast-responses"></div>
-    </div>
+      </div><!-- end broadcast tab -->
+
+      <!-- BOARD MEETING TAB -->
+      <div id="allhands-boardroom" class="tab-content" style="padding-top:18px;">
+
+        <!-- NEXT SCHEDULED MEETING BANNER -->
+        <div id="next-meeting-banner" style="display:none;background:linear-gradient(135deg,rgba(37,99,235,.2),rgba(124,58,237,.15));border:1px solid rgba(37,99,235,.35);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:14px;">
+          <div style="font-size:28px;">⏰</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:13px;color:white;" id="next-meeting-label">Next Board Meeting</div>
+            <div style="font-size:12px;color:rgba(147,197,253,.8);" id="next-meeting-time">—</div>
+          </div>
+          <button onclick="startScheduledMeetingNow()" class="btn-gold" style="white-space:nowrap;padding:8px 16px;font-size:12px;">▶ Start Now</button>
+        </div>
+
+        <!-- MEETING TOPIC -->
+        <div class="panel" style="margin-bottom:14px;">
+          <div class="panel-header"><h3>🎙️ Board Meeting Topic</h3><p>Set the agenda — agents will discuss, debate, and build on each other</p></div>
+          <div class="panel-body">
+            <div class="quick-actions" style="margin-bottom:12px;">
+              <span class="quick-chip" onclick="setMeetingTopic('Weekly operations review — what did we accomplish and what are our priorities this week?')">Weekly Ops Review</span>
+              <span class="quick-chip" onclick="setMeetingTopic('Review our current pipeline and identify the top 3 deals we need to close this month')">Pipeline Review</span>
+              <span class="quick-chip" onclick="setMeetingTopic('Quarterly financial review — margins, cash flow, and profit targets for next quarter')">Quarterly Finance</span>
+              <span class="quick-chip" onclick="setMeetingTopic('Crew capacity and scheduling — do we have the right people for upcoming jobs?')">Crew Planning</span>
+              <span class="quick-chip" onclick="setMeetingTopic('Marketing and lead generation — how do we get more Houzz leads and referrals?')">Lead Generation</span>
+              <span class="quick-chip" onclick="setMeetingTopic('Safety, compliance and any legal or risk items we need to address')">Safety & Legal</span>
+            </div>
+            <textarea id="allhands-input2" placeholder="Type the meeting topic or agenda... (e.g. Weekly review: discuss open tasks, pipeline status, crew scheduling, and any issues)" rows="3"
+              style="border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;font-size:13px;
+                     font-family:'Inter',sans-serif;width:100%;resize:vertical;outline:none;
+                     background:rgba(255,255,255,.05);color:white;margin-bottom:12px;"></textarea>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button id="auto-meeting-btn" class="btn-gold" style="flex:2;min-width:200px;" onclick="toggleAutoMeeting()">🎙️ Start Autonomous Board Meeting</button>
+              <button class="btn-secondary" style="flex:1;" onclick="resetMeeting()">🔄 Reset</button>
+              <button class="btn-primary" style="flex:1;" onclick="broadcastToAll2()">📢 Quick Broadcast</button>
+            </div>
+            <div class="thinking-bar" id="allhands-thinking"><div class="spinner"></div><span class="thinking-text" id="allhands-thinking-text">Consulting all departments...</span></div>
+          </div>
+        </div>
+
+        <!-- CEO SPEAK PANEL -->
+        <div id="ceo-speak-panel" style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(13,27,46,.8));border:1.5px solid rgba(245,158,11,.3);border-radius:13px;padding:16px;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👑</div>
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:13px;color:white;">CEO — You</div>
+              <div style="font-size:11px;color:rgba(253,186,116,.8);">Speak into the meeting — interrupt or queue your turn</div>
+            </div>
+            <div id="ceo-mic-status" style="font-size:10px;font-weight:700;color:rgba(255,255,255,.3);padding:3px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.1);">STANDBY</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <textarea id="ceo-input" placeholder="Type your statement or question to the board..." rows="2"
+              style="flex:1;border:1.5px solid rgba(245,158,11,.25);border-radius:9px;padding:9px 13px;font-size:13px;
+                     font-family:'Inter',sans-serif;color:white;background:rgba(245,158,11,.06);outline:none;resize:none;"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ceoPushToMeeting();}"></textarea>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="ceoInterrupt()" id="ceo-interrupt-btn"
+              style="flex:1;background:linear-gradient(135deg,rgba(220,38,38,.7),rgba(153,27,27,.8));color:white;
+                     border:1px solid rgba(220,38,38,.5);border-radius:9px;padding:9px 14px;font-size:12px;
+                     font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;justify-content:center;">
+              ⚡ Interrupt Now
+            </button>
+            <button onclick="ceoQueue()" id="ceo-queue-btn"
+              style="flex:1;background:linear-gradient(135deg,rgba(37,99,235,.3),rgba(29,78,216,.2));color:rgba(147,197,253,.9);
+                     border:1px solid rgba(37,99,235,.4);border-radius:9px;padding:9px 14px;font-size:12px;
+                     font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;justify-content:center;">
+              ⏭ Queue My Turn
+            </button>
+            <button onclick="toggleCeoMic()" id="ceo-mic-btn"
+              style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.12);
+                     border-radius:9px;padding:9px 14px;font-size:18px;cursor:pointer;transition:all .2s;"
+              title="Use microphone">🎤</button>
+          </div>
+          <div id="ceo-queue-notice" style="display:none;margin-top:8px;padding:7px 12px;background:rgba(37,99,235,.15);
+               border-radius:7px;font-size:11px;color:rgba(147,197,253,.9);border:1px solid rgba(37,99,235,.25);">
+            ⏭ Your message is queued — you'll speak after the current agent finishes.
+          </div>
+        </div>
+
+        <div id="broadcast-responses2" class="broadcast-responses"></div>
+      </div><!-- end boardroom tab -->
+
+      <!-- MEETING SCHEDULER TAB -->
+      <div id="allhands-scheduler" class="tab-content" style="padding-top:18px;">
+
+        <!-- CURRENT SCHEDULE -->
+        <div class="panel">
+          <div class="panel-header"><h3>📅 Meeting Schedule</h3><p>Set recurring board meetings — app checks schedule every time you open it</p></div>
+          <div class="panel-body">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;">
+              <!-- DAILY -->
+              <div id="sched-card-daily" onclick="selectSchedule('daily')"
+                style="background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.08);border-radius:12px;
+                       padding:16px;text-align:center;cursor:pointer;transition:all .2s;">
+                <div style="font-size:28px;margin-bottom:8px;">📆</div>
+                <div style="font-weight:700;font-size:13px;color:white;margin-bottom:4px;">Daily</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.45);">Every morning</div>
+              </div>
+              <!-- WEEKLY -->
+              <div id="sched-card-weekly" onclick="selectSchedule('weekly')"
+                style="background:rgba(37,99,235,.2);border:2px solid rgba(37,99,235,.5);border-radius:12px;
+                       padding:16px;text-align:center;cursor:pointer;transition:all .2s;">
+                <div style="font-size:28px;margin-bottom:8px;">📅</div>
+                <div style="font-weight:700;font-size:13px;color:white;margin-bottom:4px;">Weekly</div>
+                <div style="font-size:11px;color:rgba(147,197,253,.7);">Recommended</div>
+              </div>
+              <!-- AS NEEDED -->
+              <div id="sched-card-asneeded" onclick="selectSchedule('asneeded')"
+                style="background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.08);border-radius:12px;
+                       padding:16px;text-align:center;cursor:pointer;transition:all .2s;">
+                <div style="font-size:28px;margin-bottom:8px;">🎯</div>
+                <div style="font-weight:700;font-size:13px;color:white;margin-bottom:4px;">As Needed</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.45);">Manual only</div>
+              </div>
+            </div>
+
+            <!-- SCHEDULE SETTINGS -->
+            <div id="sched-settings" style="background:rgba(255,255,255,.04);border-radius:10px;padding:14px;border:1px solid rgba(255,255,255,.08);margin-bottom:14px;">
+              <div class="form-grid">
+                <div class="form-group" id="sched-day-group">
+                  <label>Day of Week</label>
+                  <select id="sched-day">
+                    <option value="1">Monday</option><option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option><option value="4">Thursday</option>
+                    <option value="5">Friday</option><option value="6">Saturday</option>
+                    <option value="0">Sunday</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Time</label>
+                  <select id="sched-time">
+                    <option value="7:00">7:00 AM</option><option value="7:30">7:30 AM</option>
+                    <option value="8:00">8:00 AM</option><option value="8:30">8:30 AM</option>
+                    <option value="9:00" selected>9:00 AM</option><option value="9:30">9:30 AM</option>
+                    <option value="10:00">10:00 AM</option><option value="12:00">12:00 PM</option>
+                    <option value="15:00">3:00 PM</option><option value="17:00">5:00 PM</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Meeting Duration</label>
+                  <select id="sched-duration">
+                    <option value="1">1 round (7 agents)</option>
+                    <option value="2" selected>2 rounds (14 turns)</option>
+                    <option value="3">3 rounds (21 turns)</option>
+                    <option value="5">5 rounds — deep dive</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Auto-Start</label>
+                  <select id="sched-autostart">
+                    <option value="prompt">Prompt me first</option>
+                    <option value="auto">Start automatically</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:14px;">
+                <label>Default Meeting Topic</label>
+                <input type="text" id="sched-topic" value="Weekly operations review — pipeline status, open tasks, crew scheduling, and priorities for this week"
+                  placeholder="Default agenda for scheduled meetings...">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Notifications</label>
+                <select id="sched-notify">
+                  <option value="banner">Show banner in app</option>
+                  <option value="both">Banner + browser notification</option>
+                  <option value="none">Silent — just run</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+              <button class="btn-primary" style="flex:1;" onclick="saveSchedule()">💾 Save Schedule</button>
+              <button class="btn-secondary" onclick="startScheduledMeetingNow()">▶ Run Meeting Now</button>
+            </div>
+            <div id="schedule-save-result" style="margin-top:8px;"></div>
+          </div>
+        </div>
+
+        <!-- UPCOMING MEETINGS -->
+        <div class="panel">
+          <div class="panel-header"><h3>⏰ Upcoming Meetings</h3><p>Next 4 scheduled meetings</p></div>
+          <div class="panel-body" style="padding:0;">
+            <div id="upcoming-meetings-list"></div>
+          </div>
+        </div>
+
+        <!-- SCHEDULE HISTORY -->
+        <div class="panel">
+          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+            <div><h3>📊 Meeting History</h3><p>All past board meetings</p></div>
+            <span id="meeting-count-badge" style="font-size:11px;padding:3px 10px;background:rgba(37,99,235,.2);color:#93c5fd;border-radius:10px;border:1px solid rgba(37,99,235,.3);">0 meetings</span>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <div id="meeting-history-list" style="min-height:60px;"></div>
+          </div>
+        </div>
+      </div><!-- end scheduler tab -->
+
+      <!-- MEETING MINUTES TAB -->
+      <div id="allhands-minutes" class="tab-content" style="padding-top:18px;">
+        <div class="panel">
+          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+            <div><h3>📋 Meeting Minutes</h3><p>AI-generated summary of every board meeting — ready to download</p></div>
+            <button class="btn-secondary btn-sm" onclick="generateLatestMinutes()">📝 Generate Latest Minutes</button>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <div id="minutes-list" style="min-height:60px;"></div>
+          </div>
+        </div>
+        <div id="minutes-output"></div>
+      </div><!-- end minutes tab -->
+
+    </div><!-- end view-allhands -->
 
     <!-- PROPOSAL -->
     <div id="view-proposal" class="dept-view">
@@ -3071,6 +3296,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   initAccounting();
   initEmailReceipts();
   scheduleDailyCleanup();
+  initMeetingScheduler();
 });
 
 // =====================================================
@@ -6182,6 +6408,474 @@ function scheduleDailyCleanup(){
     localStorage.setItem('elevate_last_email_cleanup', String(now));
     console.log('[Email] Daily cleanup ran — '+emailItems.length+' emails remaining');
   }
+}
+
+// =====================================================
+// BOARD MEETING SCHEDULER
+// =====================================================
+let meetingSchedule  = JSON.parse(localStorage.getItem('elevate_meeting_schedule')||'null');
+let meetingHistory   = JSON.parse(localStorage.getItem('elevate_meeting_history')||'[]');
+let meetingMinutes   = JSON.parse(localStorage.getItem('elevate_meeting_minutes')||'[]');
+let scheduledMaxRounds = 2;
+
+// ── SCHEDULE SELECTION UI ─────────────────────────────────────
+function selectSchedule(type){
+  const cards = ['daily','weekly','asneeded'];
+  cards.forEach(c=>{
+    const el = document.getElementById('sched-card-'+c);
+    if(!el) return;
+    if(c===type){
+      el.style.background = 'rgba(37,99,235,.2)';
+      el.style.borderColor = 'rgba(37,99,235,.5)';
+    } else {
+      el.style.background = 'rgba(255,255,255,.05)';
+      el.style.borderColor = 'rgba(255,255,255,.08)';
+    }
+  });
+  // Show/hide day picker for weekly
+  const dayGroup = document.getElementById('sched-day-group');
+  if(dayGroup) dayGroup.style.display = type==='weekly' ? 'flex' : 'none';
+}
+
+// ── SAVE SCHEDULE ─────────────────────────────────────────────
+function saveSchedule(){
+  const type     = getSelectedScheduleType();
+  const day      = document.getElementById('sched-day')?.value||'1';
+  const time     = document.getElementById('sched-time')?.value||'9:00';
+  const duration = parseInt(document.getElementById('sched-duration')?.value)||2;
+  const autostart= document.getElementById('sched-autostart')?.value||'prompt';
+  const topic    = document.getElementById('sched-topic')?.value||'Weekly board meeting';
+  const notify   = document.getElementById('sched-notify')?.value||'banner';
+
+  meetingSchedule = { type, day, time, duration, autostart, topic, notify,
+                      created: new Date().toISOString() };
+  localStorage.setItem('elevate_meeting_schedule', JSON.stringify(meetingSchedule));
+  scheduledMaxRounds = duration;
+
+  const result = document.getElementById('schedule-save-result');
+  if(result){
+    result.innerHTML = `<div class="success-box" style="margin:0;">
+      ✅ Schedule saved! ${getScheduleDescription(meetingSchedule)}
+    </div>`;
+    setTimeout(()=>result.innerHTML='', 4000);
+  }
+
+  renderUpcomingMeetings();
+  updateNextMeetingBanner();
+  addActivity('📅 Board meeting scheduled: '+getScheduleDescription(meetingSchedule));
+}
+
+function getSelectedScheduleType(){
+  const cards = ['daily','weekly','asneeded'];
+  for(const c of cards){
+    const el = document.getElementById('sched-card-'+c);
+    if(el && el.style.borderColor.includes('37,99,235')) return c;
+  }
+  return 'weekly';
+}
+
+function getScheduleDescription(s){
+  if(!s) return 'No schedule set';
+  if(s.type==='daily') return 'Daily at '+formatTime(s.time);
+  if(s.type==='weekly'){
+    const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    return 'Every '+days[parseInt(s.day)]+' at '+formatTime(s.time);
+  }
+  return 'Manual — as needed';
+}
+
+function formatTime(t){
+  if(!t) return '';
+  const [h,m] = t.split(':').map(Number);
+  const ampm = h>=12?'PM':'AM';
+  const h12  = h%12||12;
+  return h12+(m?':'+String(m).padStart(2,'0'):'')+' '+ampm;
+}
+
+// ── UPCOMING MEETINGS ─────────────────────────────────────────
+function renderUpcomingMeetings(){
+  const list = document.getElementById('upcoming-meetings-list');
+  if(!list) return;
+
+  if(!meetingSchedule || meetingSchedule.type==='asneeded'){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:12px;">No recurring schedule set — select Daily or Weekly above.</div>';
+    return;
+  }
+
+  const upcoming = getNextMeetingDates(4);
+  list.innerHTML = upcoming.map((d,i)=>`
+    <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);">
+      <div style="width:44px;height:44px;border-radius:10px;background:${i===0?'rgba(37,99,235,.3)':'rgba(255,255,255,.05)'};
+                  display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;border:1px solid ${i===0?'rgba(37,99,235,.5)':'rgba(255,255,255,.08)'};">
+        <div style="font-size:9px;font-weight:700;color:${i===0?'#93c5fd':'rgba(255,255,255,.4)'};text-transform:uppercase;">${d.toLocaleDateString('en-US',{month:'short'})}</div>
+        <div style="font-size:16px;font-weight:800;color:${i===0?'white':'rgba(255,255,255,.6)'};">${d.getDate()}</div>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;color:${i===0?'white':'rgba(255,255,255,.65)'};">
+          ${i===0?'🔜 Next Meeting':''}${d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">${formatTime(meetingSchedule.time)} · ${meetingSchedule.duration} round${meetingSchedule.duration>1?'s':''} · ${DEPARTMENTS.length} agents</div>
+      </div>
+      ${i===0?`<button onclick="startScheduledMeetingNow()" class="btn-secondary btn-sm" style="white-space:nowrap;">▶ Start</button>`:''}
+    </div>`).join('');
+}
+
+function getNextMeetingDates(count){
+  if(!meetingSchedule) return [];
+  const dates = [];
+  const now   = new Date();
+  let check   = new Date(now);
+  check.setSeconds(0,0);
+
+  for(let i=0; i<200 && dates.length<count; i++){
+    check = new Date(check.getTime()+60000); // add 1 minute
+    if(meetingSchedule.type==='daily'){
+      const [h,m] = (meetingSchedule.time||'9:00').split(':').map(Number);
+      if(check.getHours()===h && check.getMinutes()===m){
+        dates.push(new Date(check));
+        check.setDate(check.getDate()+1);
+        i+=1440;
+      }
+    } else if(meetingSchedule.type==='weekly'){
+      const [h,m] = (meetingSchedule.time||'9:00').split(':').map(Number);
+      if(check.getDay()===parseInt(meetingSchedule.day) && check.getHours()===h && check.getMinutes()===m){
+        dates.push(new Date(check));
+        check.setDate(check.getDate()+7);
+        i+=10080;
+      }
+    }
+  }
+  return dates;
+}
+
+// ── CHECK SCHEDULE ON LOAD ────────────────────────────────────
+function checkMeetingSchedule(){
+  if(!meetingSchedule || meetingSchedule.type==='asneeded') return;
+
+  const now        = new Date();
+  const lastRun    = localStorage.getItem('elevate_last_meeting_run');
+  const lastRunDate= lastRun ? new Date(lastRun) : null;
+
+  // Check if a meeting is due
+  let isDue = false;
+  const [h,m] = (meetingSchedule.time||'9:00').split(':').map(Number);
+
+  if(meetingSchedule.type==='daily'){
+    // Due if current hour/min matches and hasn't run today
+    const todayKey = now.toDateString();
+    isDue = now.getHours()===h && now.getMinutes()===m &&
+            (!lastRunDate || lastRunDate.toDateString()!==todayKey);
+  } else if(meetingSchedule.type==='weekly'){
+    const targetDay = parseInt(meetingSchedule.day);
+    const thisWeekKey = getWeekKey(now);
+    isDue = now.getDay()===targetDay && now.getHours()===h && now.getMinutes()===m &&
+            (!lastRunDate || getWeekKey(lastRunDate)!==thisWeekKey);
+  }
+
+  if(isDue){
+    triggerScheduledMeeting();
+  }
+
+  // Also show "due soon" notification (within 15 min)
+  const nextDates = getNextMeetingDates(1);
+  if(nextDates.length){
+    const minsUntil = (nextDates[0]-now)/60000;
+    if(minsUntil > 0 && minsUntil <= 15){
+      showMeetingReminder(nextDates[0], Math.round(minsUntil));
+    }
+  }
+}
+
+function getWeekKey(d){
+  const jan1 = new Date(d.getFullYear(),0,1);
+  return d.getFullYear()+'W'+Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
+}
+
+function triggerScheduledMeeting(){
+  const s = meetingSchedule;
+  if(!s) return;
+
+  if(s.autostart==='auto'){
+    // Auto-start immediately
+    document.getElementById('allhands-input2').value = s.topic||'Weekly board meeting';
+    scheduledMaxRounds = s.duration||2;
+    showView('allhands');
+    switchTab('allhands','boardroom');
+    setTimeout(()=>toggleAutoMeeting(), 500);
+    localStorage.setItem('elevate_last_meeting_run', new Date().toISOString());
+    addActivity('📅 Scheduled board meeting auto-started');
+  } else {
+    // Show prompt
+    showMeetingPrompt(s);
+  }
+}
+
+function showMeetingPrompt(s){
+  const modal = document.getElementById('task-modal');
+  document.getElementById('modal-title').textContent = '📅 Board Meeting Reminder';
+  document.getElementById('modal-body').innerHTML = `
+    <div style="text-align:center;padding:10px 0 20px;">
+      <div style="font-size:48px;margin-bottom:12px;">🎙️</div>
+      <div style="font-weight:700;font-size:16px;color:white;margin-bottom:8px;">Your Scheduled Board Meeting is Ready</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.55);margin-bottom:20px;">${getScheduleDescription(s)}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);background:rgba(255,255,255,.05);border-radius:8px;padding:10px 14px;margin-bottom:20px;text-align:left;">
+        <strong style="color:rgba(255,255,255,.7);">Topic:</strong> ${esc(s.topic||'Weekly board meeting')}
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-gold" style="flex:2;" onclick="startPromptedMeeting()">🎙️ Start Board Meeting Now</button>
+        <button class="btn-secondary" style="flex:1;" onclick="document.getElementById('task-modal').classList.remove('show')">Skip</button>
+      </div>
+    </div>`;
+  modal.classList.add('show');
+}
+
+function startPromptedMeeting(){
+  document.getElementById('task-modal').classList.remove('show');
+  const s = meetingSchedule;
+  if(!s) return;
+  document.getElementById('allhands-input2').value = s.topic||'Weekly board meeting';
+  scheduledMaxRounds = s.duration||2;
+  localStorage.setItem('elevate_last_meeting_run', new Date().toISOString());
+  showView('allhands');
+  switchTab('allhands','boardroom');
+  setTimeout(()=>toggleAutoMeeting(), 300);
+}
+
+function startScheduledMeetingNow(){
+  const s = meetingSchedule;
+  const topic = s?.topic || document.getElementById('allhands-input2')?.value || 'Board meeting';
+  document.getElementById('allhands-input2').value = topic;
+  scheduledMaxRounds = s?.duration||2;
+  localStorage.setItem('elevate_last_meeting_run', new Date().toISOString());
+  switchTab('allhands','boardroom');
+  setTimeout(()=>toggleAutoMeeting(), 300);
+  addActivity('📅 Board meeting started manually');
+}
+
+function setMeetingTopic(topic){
+  const el = document.getElementById('allhands-input2');
+  if(el){ el.value=topic; el.focus(); }
+}
+
+// ── MEETING REMINDER BANNER ───────────────────────────────────
+function showMeetingReminder(date, minsUntil){
+  const banner = document.getElementById('next-meeting-banner');
+  const label  = document.getElementById('next-meeting-label');
+  const time   = document.getElementById('next-meeting-time');
+  if(!banner) return;
+  if(label) label.textContent = minsUntil<=5 ? '🔴 Board Meeting Starting Now!' : '⏰ Board Meeting in '+minsUntil+' minutes';
+  if(time)  time.textContent  = date.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' · '+getScheduleDescription(meetingSchedule);
+  banner.style.display = 'flex';
+}
+
+function updateNextMeetingBanner(){
+  const dates = getNextMeetingDates(1);
+  if(!dates.length){ return; }
+  const d = dates[0];
+  const label = document.getElementById('next-meeting-label');
+  const time  = document.getElementById('next-meeting-time');
+  const banner= document.getElementById('next-meeting-banner');
+  if(label) label.textContent = 'Next Scheduled Board Meeting';
+  if(time)  time.textContent  = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+' at '+formatTime(meetingSchedule?.time);
+  if(banner) banner.style.display='flex';
+}
+
+// ── MEETING HISTORY ───────────────────────────────────────────
+function recordMeetingToHistory(topic, transcript, rounds){
+  const record = {
+    id:        Date.now(),
+    date:      new Date().toISOString(),
+    topic:     topic||'Board Meeting',
+    rounds:    rounds||0,
+    turnCount: meetingRound*DEPARTMENTS.length+currentSpeakerIndex,
+    transcript,
+    type:      meetingSchedule?.type||'manual'
+  };
+  meetingHistory.unshift(record);
+  if(meetingHistory.length>50) meetingHistory=meetingHistory.slice(0,50); // keep last 50
+  localStorage.setItem('elevate_meeting_history', JSON.stringify(meetingHistory));
+  renderMeetingHistory();
+  addActivity('📋 Board meeting recorded: '+record.rounds+' rounds');
+}
+
+function renderMeetingHistory(){
+  const list  = document.getElementById('meeting-history-list');
+  const badge = document.getElementById('meeting-count-badge');
+  if(!list) return;
+  if(badge) badge.textContent = meetingHistory.length+' meetings';
+  if(!meetingHistory.length){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:12px;">No meetings recorded yet.</div>';
+    return;
+  }
+  list.innerHTML = meetingHistory.map(m=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);
+                transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background=''">
+      <div style="width:38px;height:38px;border-radius:9px;background:rgba(37,99,235,.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎙️</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.85);">${esc(m.topic.slice(0,60))}${m.topic.length>60?'...':''}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">
+          ${new Date(m.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})} ·
+          ${m.rounds} rounds · ${m.type} meeting
+        </div>
+      </div>
+      <button onclick="generateMinutesFor(${m.id})"
+        style="background:rgba(37,99,235,.15);color:#93c5fd;border:1px solid rgba(37,99,235,.25);
+               border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;white-space:nowrap;">📋 Minutes</button>
+    </div>`).join('');
+}
+
+// ── MEETING MINUTES ───────────────────────────────────────────
+async function generateLatestMinutes(){
+  if(!meetingHistory.length){ alert('No meetings recorded yet. Run a board meeting first.'); return; }
+  generateMinutesFor(meetingHistory[0].id);
+}
+
+async function generateMinutesFor(meetingId){
+  if(!apiKey){ openApiModal(); return; }
+  const meeting = meetingHistory.find(m=>m.id===meetingId);
+  if(!meeting){ alert('Meeting not found.'); return; }
+
+  const out = document.getElementById('minutes-output');
+  out.innerHTML = '<div class="thinking-bar show" style="margin:10px 0;"><div class="spinner"></div><span class="thinking-text">Generating meeting minutes...</span></div>';
+  switchTab('allhands','minutes');
+
+  const sys = `You are the corporate secretary for Elevate Construction LLC. 
+Generate formal, professional meeting minutes from this board meeting transcript.
+Plain text only. No markdown. Use ALL CAPS for section headers.
+Format: Date/Time, Attendees, Topic, Key Points Discussed (by department), Decisions Made, Action Items with owner and deadline, Next Meeting.`;
+
+  const res = await callClaude(sys, [{role:'user', content:`Generate complete formal meeting minutes for this board meeting:
+
+Date: ${new Date(meeting.date).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}
+Time: ${new Date(meeting.date).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+Topic: ${meeting.topic}
+Rounds Completed: ${meeting.rounds}
+Type: ${meeting.type==='weekly'?'Scheduled Weekly Meeting':meeting.type==='daily'?'Daily Standup':'Ad-Hoc Meeting'}
+
+TRANSCRIPT:
+${meeting.transcript||'[Transcript not available]'}
+
+Attendees: All 7 department heads — Marcus Rodriguez (Estimation), Sarah Chen (CFO), David Thompson (COO), Jennifer Harrison (Legal), Michael Foster (Sales), Lisa Park (Marketing), Alex Kumar (Tech/SEO), plus CEO`}], 3000);
+
+  const clean = stripMarkdown(res);
+
+  // Save minutes
+  const minuteRecord = {
+    id:        Date.now(),
+    meetingId,
+    date:      meeting.date,
+    topic:     meeting.topic,
+    content:   clean,
+    created:   new Date().toISOString()
+  };
+  meetingMinutes.unshift(minuteRecord);
+  if(meetingMinutes.length>30) meetingMinutes=meetingMinutes.slice(0,30);
+  localStorage.setItem('elevate_meeting_minutes', JSON.stringify(meetingMinutes));
+  renderMinutesList();
+
+  out.innerHTML = `
+    <div class="branded-doc" style="margin-top:16px;">
+      <div class="doc-header">
+        <div class="doc-logo-row">
+          <div>
+            <div class="doc-company-name">📋 BOARD MEETING MINUTES</div>
+            <div class="doc-tagline">Elevate Construction LLC · ${new Date(meeting.date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>
+          </div>
+          <div style="text-align:right;font-size:11px;opacity:.7;">
+            <div>${meeting.type.toUpperCase()} MEETING</div>
+            <div>${meeting.rounds} Rounds</div>
+          </div>
+        </div>
+        <div class="doc-meta" style="margin-top:10px;">
+          <div class="doc-meta-item"><strong>Topic</strong>${esc(meeting.topic.slice(0,50))}</div>
+          <div class="doc-meta-item"><strong>Attendees</strong>All 7 Dept. Heads + CEO</div>
+        </div>
+      </div>
+      <div class="doc-body">
+        <div style="font-size:13px;line-height:1.95;white-space:pre-wrap;color:rgba(255,255,255,.85);">${esc(clean)}</div>
+        <hr class="section-divider">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-primary" style="width:auto;" onclick="downloadTxt('${encodeURIComponent(clean)}','Meeting_Minutes_${new Date(meeting.date).toISOString().slice(0,10)}')">💾 Download Minutes</button>
+          <button class="btn-secondary" onclick="copyText('${encodeURIComponent(clean)}')">📋 Copy</button>
+        </div>
+      </div>
+      <div class="doc-footer"><span>Prepared by Elevate Construction LLC AI Secretary</span><span>${new Date().toLocaleDateString()}</span></div>
+    </div>`;
+
+  queryCount++; document.getElementById('metric-queries').textContent=queryCount;
+  localStorage.setItem('elevate_query_count',queryCount);
+  addActivity('📋 Meeting minutes generated for: '+meeting.topic.slice(0,40));
+}
+
+function renderMinutesList(){
+  const list = document.getElementById('minutes-list');
+  if(!list) return;
+  if(!meetingMinutes.length){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:12px;">No minutes yet — generate minutes from a past meeting above or in the History tab.</div>';
+    return;
+  }
+  list.innerHTML = meetingMinutes.map(m=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);">
+      <div style="font-size:22px;">📋</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.85);">${esc(m.topic.slice(0,55))}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">${new Date(m.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div>
+      </div>
+      <button onclick="downloadTxt('${encodeURIComponent(m.content)}','Minutes_${new Date(m.date).toISOString().slice(0,10)}')"
+        style="background:rgba(37,99,235,.15);color:#93c5fd;border:1px solid rgba(37,99,235,.25);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">💾</button>
+    </div>`).join('');
+}
+
+// ── PATCH runAutoMeetingLoop to record history ────────────────
+// Override the original end-of-meeting logic to save transcript
+const _origToggleAutoMeeting = toggleAutoMeeting;
+async function toggleAutoMeeting(){
+  // When meeting stops (pause/end), record it
+  if(isAutoMeetingActive){
+    // About to stop — save what we have
+    const topic = document.getElementById('allhands-input2')?.value||'Board Meeting';
+    if(meetingTranscript && meetingRound>0){
+      recordMeetingToHistory(topic, meetingTranscript, meetingRound);
+    }
+  }
+  await _origToggleAutoMeeting();
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+function initMeetingScheduler(){
+  meetingHistory  = JSON.parse(localStorage.getItem('elevate_meeting_history')||'[]');
+  meetingMinutes  = JSON.parse(localStorage.getItem('elevate_meeting_minutes')||'[]');
+  meetingSchedule = JSON.parse(localStorage.getItem('elevate_meeting_schedule')||'null');
+
+  // Restore UI state
+  if(meetingSchedule){
+    selectSchedule(meetingSchedule.type);
+    const dayEl   = document.getElementById('sched-day');
+    const timeEl  = document.getElementById('sched-time');
+    const durEl   = document.getElementById('sched-duration');
+    const autoEl  = document.getElementById('sched-autostart');
+    const topicEl = document.getElementById('sched-topic');
+    const notEl   = document.getElementById('sched-notify');
+    if(dayEl   && meetingSchedule.day)      dayEl.value   = meetingSchedule.day;
+    if(timeEl  && meetingSchedule.time)     timeEl.value  = meetingSchedule.time;
+    if(durEl   && meetingSchedule.duration) durEl.value   = String(meetingSchedule.duration);
+    if(autoEl  && meetingSchedule.autostart)autoEl.value  = meetingSchedule.autostart;
+    if(topicEl && meetingSchedule.topic)    topicEl.value = meetingSchedule.topic;
+    if(notEl   && meetingSchedule.notify)   notEl.value   = meetingSchedule.notify;
+    scheduledMaxRounds = meetingSchedule.duration||2;
+  } else {
+    selectSchedule('weekly'); // default
+  }
+
+  renderUpcomingMeetings();
+  renderMeetingHistory();
+  renderMinutesList();
+  updateNextMeetingBanner();
+
+  // Check if a meeting is due right now
+  setTimeout(checkMeetingSchedule, 2000);
+  // Re-check every minute
+  setInterval(checkMeetingSchedule, 60000);
 }
 </script>
 </body>
