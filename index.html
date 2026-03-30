@@ -51,6 +51,16 @@ body{font-family:'Inter',sans-serif;background:linear-gradient(160deg,#0d1b2e 0%
 .dept-status.thinking{background:var(--gold);box-shadow:0 0 7px var(--gold-glow);animation:pulse-dot 1s infinite;}
 .dept-status.online{background:var(--green);box-shadow:0 0 6px rgba(16,185,129,.5);}
 .dept-status.mail{background:var(--orange);}
+/* NOTIFICATION BADGES */
+.nav-badge{position:absolute;top:5px;right:5px;min-width:18px;height:18px;border-radius:9px;
+  background:linear-gradient(135deg,#ef4444,#dc2626);color:white;font-size:10px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;padding:0 5px;
+  box-shadow:0 2px 8px rgba(220,38,38,.5);animation:badge-pop .3s cubic-bezier(.34,1.56,.64,1);
+  line-height:1;pointer-events:none;z-index:10;}
+.nav-badge.gold{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 2px 8px rgba(245,158,11,.5);}
+.nav-badge.blue{background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:0 2px 8px rgba(37,99,235,.5);}
+.nav-badge.green{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 2px 8px rgba(16,185,129,.5);}
+@keyframes badge-pop{from{transform:scale(0)}to{transform:scale(1)}}
 
 /* CONTENT AREA */
 #content-area{flex:1;padding:22px 26px;overflow-y:auto;max-height:calc(100vh - 54px);}
@@ -1991,6 +2001,7 @@ function buildSidebar(){
     const btn=document.createElement('button');
     btn.className='dept-btn'+(item.id==='dashboard'?' selected':'');
     btn.id='btn-'+item.id;
+    btn.style.position='relative';
     btn.innerHTML=`<span class="dept-icon">${item.icon}</span><div><div class="dept-btn-name">${item.name}</div><div class="dept-btn-title">${item.title}</div></div><span class="dept-status online"></span>`;
     btn.addEventListener('click',()=>showView(item.id));
     list.appendChild(btn);
@@ -2056,6 +2067,8 @@ function showView(id){
   const btn=document.getElementById('btn-'+id);
   if(btn)btn.classList.add('selected');
   if(id==='dashboard')highlightDesk(null);
+  // Clear notification badge when user visits this section
+  clearBadge(id);
 }
 function selectDept(id){showView(id);highlightDesk(id);document.getElementById('input-'+id)?.focus();}
 function switchTab(group,tabId){
@@ -3025,6 +3038,8 @@ function initCRM(){
 function renderPipeline(){
   const el=document.getElementById('crm-pipeline');if(!el)return;
   el.innerHTML='';
+  // Show pending analyses at top
+  setTimeout(renderPendingAnalyses, 50);
   PIPELINE_STAGES.forEach(stage=>{
     const stageLeads=leads.filter(l=>l.stage===stage.id);
     const col=document.createElement('div');
@@ -3091,6 +3106,9 @@ function addLead(){
   ['lead-name','lead-project','lead-value','lead-phone','lead-email','lead-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderPipeline();updateCRMMetrics();
   addActivity(`💼 New lead added: ${name}`);
+  // Auto-analyze new lead in background
+  if(apiKey) setTimeout(()=>autoAnalyzeNewLead(lead), 600);
+  refreshAllBadges();
 }
 
 function generateLeadProposal(id){
@@ -3297,6 +3315,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   initEmailReceipts();
   scheduleDailyCleanup();
   initMeetingScheduler();
+  initNotifications();
 });
 
 // =====================================================
@@ -4272,6 +4291,11 @@ async function toggleAutoMeeting(){
     if(btn){ btn.innerHTML='▶️ Resume Board Meeting'; btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)'; }
     document.getElementById('allhands-thinking').classList.remove('show');
     addActivity('⏸ Board meeting paused');
+    // Save meeting to history when stopped
+    const topic = document.getElementById('allhands-input2')?.value||'Board Meeting';
+    if(meetingTranscript && meetingRound>0){
+      recordMeetingToHistory(topic, meetingTranscript, meetingRound);
+    }
     return;
   }
 
@@ -4930,6 +4954,9 @@ async function syncServerLeads(){
       localStorage.setItem('elevate_leads', JSON.stringify(leads));
       renderPipeline(); updateCRMMetrics();
       addActivity('🔄 Synced '+newCount+' new lead(s) from server');
+      // Auto-analyze synced leads
+      if(apiKey) leads.slice(-newCount).forEach(l=>setTimeout(()=>autoAnalyzeNewLead(l), 1000));
+      refreshAllBadges();
     }
   } catch(e){
     console.warn('[Server] Lead sync failed:', e.message);
@@ -5477,28 +5504,7 @@ function addExpense(){
   addActivity('💳 Expense logged: '+desc+' — '+fmtMoney(amount));
 }
 
-function renderExpenseList(){
-  const list = document.getElementById('expense-list');
-  if(!list) return;
-  if(!expenses.length){
-    list.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:13px;">No expenses logged yet.</div>';
-    return;
-  }
-  const total = expenses.reduce((a,e)=>a+e.amount,0);
-  list.innerHTML = `<div style="padding:10px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;">
-    <span style="font-size:11px;color:rgba(255,255,255,.4);">${expenses.length} expenses</span>
-    <span style="font-size:13px;font-weight:700;color:#fca5a5;">Total: ${fmtMoney(total)}</span>
-  </div>`+
-  expenses.slice().reverse().map(exp=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.05);">
-      <div style="flex:1;">
-        <div style="font-size:13px;color:rgba(255,255,255,.85);font-weight:500;">${esc(exp.desc)}</div>
-        <div style="font-size:11px;color:rgba(255,255,255,.4);">${exp.category} · ${exp.job} · ${exp.date}</div>
-      </div>
-      <div style="font-weight:700;color:#fca5a5;">${fmtMoney(exp.amount)}</div>
-      <button onclick="removeExpense(${exp.id})" style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.2);color:#fca5a5;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;">✕</button>
-    </div>`).join('');
-}
+// renderExpenseList (enhanced version below)
 
 function removeExpense(id){
   expenses = expenses.filter(e=>e.id!==id);
@@ -6826,20 +6832,7 @@ function renderMinutesList(){
     </div>`).join('');
 }
 
-// ── PATCH runAutoMeetingLoop to record history ────────────────
-// Override the original end-of-meeting logic to save transcript
-const _origToggleAutoMeeting = toggleAutoMeeting;
-async function toggleAutoMeeting(){
-  // When meeting stops (pause/end), record it
-  if(isAutoMeetingActive){
-    // About to stop — save what we have
-    const topic = document.getElementById('allhands-input2')?.value||'Board Meeting';
-    if(meetingTranscript && meetingRound>0){
-      recordMeetingToHistory(topic, meetingTranscript, meetingRound);
-    }
-  }
-  await _origToggleAutoMeeting();
-}
+// Meeting history recording is now inside toggleAutoMeeting directly
 
 // ── INIT ──────────────────────────────────────────────────────
 function initMeetingScheduler(){
@@ -6876,6 +6869,417 @@ function initMeetingScheduler(){
   setTimeout(checkMeetingSchedule, 2000);
   // Re-check every minute
   setInterval(checkMeetingSchedule, 60000);
+}
+
+// =====================================================
+// NOTIFICATION BADGE SYSTEM
+// Shows count badges on sidebar nav items
+// =====================================================
+
+// Badge state — what counts are "new/unread"
+const notifState = {
+  crm:        0,  // new leads
+  tasks:      0,  // new/unread tasks
+  email:      0,  // unread emails
+  hr:         0,  // new employees added
+  accounting: 0,  // new invoices / receipts
+  filedrop:   0,  // new files dropped
+  allhands:   0,  // scheduled meeting due
+};
+
+function setBadge(navId, count, color){
+  const btn = document.getElementById('btn-'+navId);
+  if(!btn) return;
+  // Remove existing badge
+  const existing = btn.querySelector('.nav-badge');
+  if(existing) existing.remove();
+  if(!count || count<=0) return;
+  const badge = document.createElement('span');
+  badge.className = 'nav-badge'+(color?' '+color:'');
+  badge.textContent = count>99?'99+':count;
+  btn.appendChild(badge);
+}
+
+function clearBadge(navId){
+  setBadge(navId, 0);
+  if(notifState[navId] !== undefined) notifState[navId]=0;
+}
+
+function refreshAllBadges(){
+  // CRM — new (uncontacted) leads
+  const newLeads = leads.filter(l=>l.stage==='new').length;
+  setBadge('crm', newLeads, newLeads>0?'red':'');
+
+  // Tasks — open high priority tasks
+  const highTasks = (tasks||[]).filter(t=>!t.done && t.priority==='high').length;
+  const allOpen   = (tasks||[]).filter(t=>!t.done).length;
+  setBadge('tasks', allOpen, highTasks>0?'red':'blue');
+
+  // Email — unread
+  const unread = (emailItems||[]).filter(e=>e.unread).length;
+  setBadge('email', unread, 'gold');
+
+  // HR — employees with no certifications (needs attention)
+  const noCerts = (employees||[]).filter(e=>!e.cert).length;
+  if(noCerts>0) setBadge('hr', noCerts, 'blue');
+  else clearBadge('hr');
+
+  // Accounting — outstanding invoices
+  const outstanding = (invoices||[]).filter(i=>i.status==='outstanding').length;
+  setBadge('accounting', outstanding, 'gold');
+
+  // Dashboard metric counts
+  const metricTasks = document.getElementById('metric-tasks');
+  const metricPipeline = document.getElementById('metric-pipeline');
+  if(metricTasks) metricTasks.textContent = allOpen;
+  const pipelineVal = leads.filter(l=>l.stage!=='won').reduce((a,l)=>{
+    const n=parseInt((l.value||'').replace(/[^0-9]/g,''));
+    return a+(isNaN(n)?0:n);
+  },0);
+  if(metricPipeline) metricPipeline.textContent='$'+Math.round(pipelineVal/1000)+'k';
+}
+
+// Badge clearing is now handled inside showView directly (see below)
+
+// =====================================================
+// AUTO LEAD ANALYSIS — agents work in background
+// No sending until CEO approves
+// =====================================================
+let pendingLeadAnalyses = JSON.parse(localStorage.getItem('elevate_pending_analyses')||'[]');
+function savePendingAnalyses(){ localStorage.setItem('elevate_pending_analyses', JSON.stringify(pendingLeadAnalyses)); }
+
+async function autoAnalyzeNewLead(lead){
+  if(!apiKey) return;
+  if(pendingLeadAnalyses.some(a=>a.leadId===lead.id)) return;
+
+  console.log('[AutoAnalysis] 5-agent pipeline starting for:', lead.name);
+  addActivity('🔄 AI team analyzing new lead: '+lead.name+'...');
+
+  const leadContext = `Lead: ${lead.name}
+Project: ${lead.project}
+Stated Budget/Value: ${lead.value}
+Source: ${lead.source}
+Phone: ${lead.phone||'Not provided'}
+Email: ${lead.email||'Not provided'}
+Notes: ${lead.notes||'None'}`;
+
+  // ── PHASE 1: Run Michael + Marcus + Jennifer in parallel ──
+  // These 3 don't depend on each other
+  const [salesRes, marcusRes, legalRes] = await Promise.allSettled([
+
+    // Michael (Sales) — lead qualification
+    callClaude(
+      DEPARTMENTS.find(d=>d.id==='sales').systemPrompt,
+      [{role:'user', content:`New lead just came in. Analyze and prepare follow-up. DO NOT send — CEO must approve.
+
+${leadContext}
+
+Provide:
+1) LEAD SCORE: Hot / Warm / Cold — with specific reasoning
+2) SUGGESTED MESSAGE: Write the exact opening email or text (ready to send pending CEO approval)
+3) FOLLOW-UP TIMELINE: Day 1, Day 3, Day 7 actions
+4) KEY QUESTIONS: What do we need to ask this client before quoting?`}],
+      900
+    ),
+
+    // Marcus (Estimation) — ballpark pricing
+    callClaude(
+      DEPARTMENTS.find(d=>d.id==='estimation').systemPrompt,
+      [{role:'user', content:`New lead — rough estimate for internal review only. DO NOT send to client.
+
+${leadContext}
+
+Provide:
+1) PRICE RANGE: Low / Mid / High estimate using Atlanta 2026 rates
+2) COST DRIVERS: What will most affect the final number?
+3) BUDGET CHECK: Is the client's stated budget (${lead.value}) realistic? If not, what's the gap?
+4) SCOPE FLAGS: Any info missing that could change the estimate significantly?`}],
+      800
+    ),
+
+    // Jennifer (Legal) — risk review
+    callClaude(
+      DEPARTMENTS.find(d=>d.id==='legal').systemPrompt,
+      [{role:'user', content:`New lead — legal and risk review. Internal only.
+
+${leadContext}
+
+Flag:
+1) CONTRACT RISKS: Any red flags in the scope or client notes?
+2) SOURCE RISK: Any concerns about this lead source (${lead.source})?
+3) MUST-HAVE CLAUSES: What contract provisions are essential for this type of job?
+4) PROCEED RECOMMENDATION: Green / Yellow / Red light with reasoning.`}],
+      600
+    )
+  ]);
+
+  const salesAnalysis   = salesRes.status==='fulfilled'   ? stripMarkdown(salesRes.value)   : 'Sales analysis unavailable';
+  const marcusAnalysis  = marcusRes.status==='fulfilled'  ? stripMarkdown(marcusRes.value)  : 'Estimate unavailable';
+  const legalAnalysis   = legalRes.status==='fulfilled'   ? stripMarkdown(legalRes.value)   : 'Legal review unavailable';
+
+  // ── PHASE 2: Sarah (CFO) reviews Marcus's estimate ──────────
+  // Sarah gets Marcus's full numbers and double-checks profitability
+  let sarahAnalysis = 'CFO review unavailable';
+  try{
+    const sarahRes = await callClaude(
+      DEPARTMENTS.find(d=>d.id==='finance').systemPrompt,
+      [{role:'user', content:`Marcus (Estimating) just prepared this estimate for a new lead. Review his numbers and verify this job is profitable for Elevate. Internal only — DO NOT send.
+
+LEAD:
+${leadContext}
+
+MARCUS'S ESTIMATE:
+${marcusAnalysis}
+
+As CFO, provide:
+1) MARGIN CHECK: Based on Marcus's price range, what is the expected gross margin %? Is it above our 20% GP minimum? If not, what price do we need to hit it?
+2) HIDDEN COST FLAGS: Did Marcus account for overhead allocation, equipment wear, admin time, permits, insurance riders? Flag anything missing.
+3) BUDGET REALITY: Client stated ${lead.value}. Is that enough to make this job worthwhile? If not — what's our walk-away number?
+4) PAYMENT TERMS: What deposit %, payment schedule, and retainage terms should we require?
+5) CFO VERDICT: Green (profitable as-is) / Yellow (needs price adjustment) / Red (not worth pursuing at stated budget) — with specific dollar guidance.`}],
+      900
+    );
+    sarahAnalysis = stripMarkdown(sarahRes);
+  }catch(e){
+    console.error('[AutoAnalysis] Sarah CFO review failed:', e.message);
+    sarahAnalysis = 'CFO review failed: '+e.message;
+  }
+
+  // ── PHASE 3: David (COO) — operational feasibility check ──
+  // Runs independently — checks crew, scheduling, execution risk
+  let davidAnalysis = 'COO ops review unavailable';
+  try{
+    const davidRes = await callClaude(
+      DEPARTMENTS.find(d=>d.id==='operations').systemPrompt,
+      [{role:'user', content:`New lead came in. Check if we can execute this job operationally. Internal review only — DO NOT send.
+
+LEAD:
+${leadContext}
+
+MARCUS'S ESTIMATE:
+${marcusAnalysis}
+
+As COO, provide:
+1) CREW CHECK: How many crew members and what trades needed? Do we have capacity right now?
+2) TIMELINE: Realistic project duration? Any scheduling conflicts with existing jobs?
+3) EXECUTION RISKS: Site access, phasing complexity, subcontractor dependencies, weather exposure?
+4) EQUIPMENT & LOGISTICS: Any special equipment needed? Mobilization considerations?
+5) COO VERDICT: Can execute now / Can execute with planning / Capacity issue — needs timeline discussion`}],
+      800
+    );
+    davidAnalysis = stripMarkdown(davidRes);
+  }catch(e){
+    console.error('[AutoAnalysis] David COO review failed:', e.message);
+    davidAnalysis = 'COO review failed: '+e.message;
+  }
+
+  // ── SAVE FULL 5-AGENT ANALYSIS ─────────────────────────────
+  const analysis = {
+    leadId:     lead.id,
+    leadName:   lead.name,
+    project:    lead.project,
+    value:      lead.value,
+    source:     lead.source,
+    created:    new Date().toISOString(),
+    status:     'pending_approval',
+    sales:      salesAnalysis,
+    estimation: marcusAnalysis,
+    finance:    sarahAnalysis,   // CFO reviewed Marcus — now shown prominently
+    operations: davidAnalysis,
+    legal:      legalAnalysis,
+  };
+
+  pendingLeadAnalyses.unshift(analysis);
+  if(pendingLeadAnalyses.length>50) pendingLeadAnalyses=pendingLeadAnalyses.slice(0,50);
+  savePendingAnalyses();
+
+  setBadge('crm', leads.filter(l=>l.stage==='new').length, 'red');
+  setBadge('dashboard', pendingLeadAnalyses.filter(a=>a.status==='pending_approval').length, 'gold');
+
+  addActivity('✅ 5-agent analysis complete for: '+lead.name+' — awaiting CEO approval');
+  queryCount+=5;
+  document.getElementById('metric-queries').textContent=queryCount;
+  localStorage.setItem('elevate_query_count',queryCount);
+  showLeadNotification(lead, analysis);
+}
+
+function showLeadNotification(lead, analysis){
+  // Flash the CRM button
+  const crmBtn = document.getElementById('btn-crm');
+  if(crmBtn){
+    crmBtn.style.transition='background .3s';
+    crmBtn.style.background='rgba(245,158,11,.25)';
+    setTimeout(()=>crmBtn.style.background='',2500);
+  }
+}
+
+// ── LEAD APPROVAL PANEL — shown in CRM ───────────────────────
+function renderPendingAnalyses(){
+  const pending = pendingLeadAnalyses.filter(a=>a.status==='pending_approval');
+  if(!pending.length) return;
+
+  // Show approval cards at top of CRM pipeline
+  const pipeline = document.getElementById('crm-pipeline');
+  const existing = document.getElementById('pending-analyses-wrap');
+  if(existing) existing.remove();
+
+  const wrap = document.createElement('div');
+  wrap.id = 'pending-analyses-wrap';
+  wrap.style.cssText='margin-bottom:18px;';
+  wrap.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:13px;font-weight:700;color:white;">🤖 AI Analysis Ready</span>
+      <span style="font-size:11px;padding:2px 9px;border-radius:10px;background:rgba(245,158,11,.2);color:#fcd34d;border:1px solid rgba(245,158,11,.3);">${pending.length} awaiting your approval</span>
+    </div>`+
+  pending.map(a=>`
+    <div style="background:rgba(255,255,255,.06);border:1.5px solid rgba(245,158,11,.3);border-radius:13px;overflow:hidden;margin-bottom:12px;">
+      <div style="background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(13,27,46,.8));padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-weight:700;font-size:13px;color:white;">🆕 ${esc(a.leadName)}</div>
+          <div style="font-size:11px;color:rgba(253,186,116,.8);">${esc(a.project)} · ${a.value} · from ${a.source}</div>
+        </div>
+        <div style="font-size:10px;color:rgba(245,158,11,.8);font-weight:700;">AWAITING APPROVAL</div>
+      </div>
+      <div style="padding:14px 16px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2);border-radius:8px;padding:10px;">
+            <div style="font-size:10px;font-weight:700;color:#c4b5fd;margin-bottom:5px;">🤝 MICHAEL — SALES</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.75);line-height:1.65;">${esc((a.sales||'').slice(0,220))}${(a.sales||'').length>220?'...':''}</div>
+          </div>
+          <div style="background:rgba(29,78,216,.1);border:1px solid rgba(29,78,216,.2);border-radius:8px;padding:10px;">
+            <div style="font-size:10px;font-weight:700;color:#93c5fd;margin-bottom:5px;">📐 MARCUS — ESTIMATE</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.75);line-height:1.65;">${esc((a.estimation||'').slice(0,220))}${(a.estimation||'').length>220?'...':''}</div>
+          </div>
+          <div style="background:rgba(236,72,153,.1);border:1px solid rgba(236,72,153,.2);border-radius:8px;padding:10px;">
+            <div style="font-size:10px;font-weight:700;color:#f9a8d4;margin-bottom:5px;">⚖️ JENNIFER — LEGAL</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.75);line-height:1.65;">${esc((a.legal||'').slice(0,220))}${(a.legal||'').length>220?'...':''}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+          <div style="background:rgba(16,185,129,.1);border:1.5px solid rgba(16,185,129,.45);border-radius:8px;padding:10px;">
+            <div style="font-size:10px;font-weight:700;color:#6ee7b7;margin-bottom:5px;">💰 SARAH — CFO ESTIMATE REVIEW & MARGINS</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.85);line-height:1.65;">${esc((a.finance||'CFO review pending...').slice(0,300))}${(a.finance||'').length>300?'...':''}</div>
+          </div>
+          <div style="background:rgba(245,158,11,.1);border:1.5px solid rgba(245,158,11,.3);border-radius:8px;padding:10px;">
+            <div style="font-size:10px;font-weight:700;color:#fcd34d;margin-bottom:5px;">🏗️ DAVID — COO OPERATIONAL CHECK</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.75);line-height:1.65;">${esc((a.operations||'COO review pending...').slice(0,300))}${(a.operations||'').length>300?'...':''}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button onclick="approveLead('${a.leadId}')"
+            style="flex:2;background:linear-gradient(135deg,rgba(16,185,129,.7),rgba(5,150,105,.8));color:white;
+                   border:1px solid rgba(16,185,129,.5);border-radius:9px;padding:9px 14px;font-size:12px;
+                   font-weight:700;cursor:pointer;">
+            ✅ Approve — Send Follow-Up
+          </button>
+          <button onclick="viewFullAnalysis('${a.leadId}')"
+            style="flex:1;background:rgba(37,99,235,.2);color:#93c5fd;border:1px solid rgba(37,99,235,.3);
+                   border-radius:9px;padding:9px 14px;font-size:12px;font-weight:600;cursor:pointer;">
+            👁 Full Analysis
+          </button>
+          <button onclick="dismissAnalysis('${a.leadId}')"
+            style="flex:1;background:rgba(255,255,255,.05);color:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.1);
+                   border-radius:9px;padding:9px 14px;font-size:12px;cursor:pointer;">
+            ✕ Dismiss
+          </button>
+        </div>
+      </div>
+    </div>`).join('');
+
+  if(pipeline && pipeline.parentNode){
+    pipeline.parentNode.insertBefore(wrap, pipeline);
+  }
+}
+
+function approveLead(leadId){
+  const analysis = pendingLeadAnalyses.find(a=>String(a.leadId)===String(leadId));
+  if(!analysis) return;
+
+  analysis.status = 'approved';
+  analysis.approved_at = new Date().toISOString();
+  savePendingAnalyses();
+
+  // Move lead to "contacted" stage
+  const lead = leads.find(l=>String(l.id)===String(leadId));
+  if(lead){ lead.stage='contacted'; localStorage.setItem('elevate_leads',JSON.stringify(leads)); }
+
+  renderPipeline(); renderPendingAnalyses(); updateCRMMetrics();
+
+  // Open compose with Michael's suggested message pre-filled
+  // Extract the suggested message from Michael's analysis
+  const msgMatch = analysis.sales.match(/suggested.*?message[:\s]+(.{20,300})/i) ||
+                   analysis.sales.match(/opening.*?message[:\s]+(.{20,300})/i);
+  const suggestedMsg = msgMatch ? msgMatch[1].trim() : analysis.sales.slice(0,200);
+
+  showView('email');
+  document.querySelectorAll('#email-tabs .tab').forEach((t,i)=>t.classList.toggle('active',i===1));
+  document.querySelectorAll('[id^="email-"]').forEach(el=>{
+    if(el.classList.contains('tab-content')) el.classList.toggle('active',el.id==='email-compose');
+  });
+  if(lead){
+    document.getElementById('compose-to').value = lead.email||lead.name;
+    document.getElementById('compose-subject').value = 'Re: Your '+lead.project+' Project — Elevate Construction LLC';
+    document.getElementById('compose-context').value = suggestedMsg.slice(0,150);
+  }
+
+  addActivity('✅ Lead approved & moved to Contacted: '+analysis.leadName);
+  refreshAllBadges();
+}
+
+function dismissAnalysis(leadId){
+  pendingLeadAnalyses = pendingLeadAnalyses.filter(a=>String(a.leadId)!==String(leadId));
+  savePendingAnalyses();
+  renderPendingAnalyses();
+  refreshAllBadges();
+  addActivity('✕ Analysis dismissed for lead: '+leadId);
+}
+
+function viewFullAnalysis(leadId){
+  const a = pendingLeadAnalyses.find(x=>String(x.leadId)===String(leadId));
+  if(!a) return;
+  const modal = document.getElementById('task-modal');
+  document.getElementById('modal-title').textContent='🤖 Full AI Analysis — '+a.leadName;
+  document.getElementById('modal-body').innerHTML=`
+    <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px;">${a.project} · ${a.value} · ${a.source} · ${new Date(a.created).toLocaleDateString()}</div>
+    <div style="margin-bottom:12px;">
+      <div style="font-weight:700;font-size:12px;color:#c4b5fd;margin-bottom:5px;">🤝 MICHAEL — SALES STRATEGY & FOLLOW-UP</div>
+      <div style="font-size:12px;line-height:1.8;white-space:pre-wrap;color:rgba(255,255,255,.8);background:rgba(124,58,237,.08);padding:10px;border-radius:8px;max-height:160px;overflow-y:auto;">${esc(a.sales||'—')}</div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <div style="font-weight:700;font-size:12px;color:#93c5fd;margin-bottom:5px;">📐 MARCUS — ESTIMATE & PRICING</div>
+      <div style="font-size:12px;line-height:1.8;white-space:pre-wrap;color:rgba(255,255,255,.8);background:rgba(29,78,216,.08);padding:10px;border-radius:8px;max-height:160px;overflow-y:auto;">${esc(a.estimation||'—')}</div>
+    </div>
+    <div style="margin-bottom:12px;border:2px solid rgba(16,185,129,.4);border-radius:8px;overflow:hidden;">
+      <div style="background:rgba(16,185,129,.15);padding:8px 10px;font-weight:700;font-size:12px;color:#6ee7b7;">💰 SARAH — CFO ESTIMATE REVIEW & PROFITABILITY</div>
+      <div style="font-size:12px;line-height:1.8;white-space:pre-wrap;color:rgba(255,255,255,.88);padding:10px;max-height:200px;overflow-y:auto;">${esc(a.finance||'CFO review pending')}</div>
+    </div>
+    <div style="margin-bottom:12px;border:1.5px solid rgba(245,158,11,.3);border-radius:8px;overflow:hidden;">
+      <div style="background:rgba(245,158,11,.1);padding:6px 10px;font-weight:700;font-size:12px;color:#fcd34d;">🏗️ DAVID — COO OPERATIONAL FEASIBILITY</div>
+      <div style="font-size:12px;line-height:1.8;white-space:pre-wrap;color:rgba(255,255,255,.85);padding:10px;max-height:180px;overflow-y:auto;">${esc(a.operations||'COO review pending')}</div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-weight:700;font-size:12px;color:#f9a8d4;margin-bottom:5px;">⚖️ JENNIFER — LEGAL & CONTRACT RISK</div>
+      <div style="font-size:12px;line-height:1.8;white-space:pre-wrap;color:rgba(255,255,255,.8);background:rgba(236,72,153,.08);padding:10px;border-radius:8px;max-height:160px;overflow-y:auto;">${esc(a.legal||'—')}</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-primary" style="flex:2;" onclick="approveLead('${leadId}');document.getElementById('task-modal').classList.remove('show')">✅ Approve & Send Follow-Up</button>
+      <button class="btn-secondary" onclick="document.getElementById('task-modal').classList.remove('show')">Close</button>
+    </div>`;
+  modal.classList.add('show');
+}
+
+// addLead auto-analysis is now called directly inside addLead (see original function)
+
+// syncServerLeads auto-analysis handled inside the function directly
+
+// renderPipeline now calls renderPendingAnalyses directly
+
+// ── INIT ─────────────────────────────────────────────────────
+function initNotifications(){
+  pendingLeadAnalyses = JSON.parse(localStorage.getItem('elevate_pending_analyses')||'[]');
+  refreshAllBadges();
+  // Refresh badges every 30 seconds
+  setInterval(refreshAllBadges, 30000);
 }
 </script>
 </body>
