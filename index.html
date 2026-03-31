@@ -492,7 +492,27 @@ label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;lett
 
     <!-- DASHBOARD -->
     <div id="view-dashboard" class="dept-view active">
-      <div class="content-title">Command Center 🏛️</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+        <div class="content-title" style="margin-bottom:0;">Command Center 🏛️</div>
+        <!-- Ashley On/Off Toggle -->
+        <div id="ashley-toggle-wrap" style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.75);
+          border:1px solid rgba(255,255,255,.97);border-radius:20px;padding:6px 14px;
+          box-shadow:0 2px 12px rgba(99,102,241,.08);">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#2563eb);
+            display:flex;align-items:center;justify-content:center;font-size:14px;color:white;font-weight:800;flex-shrink:0;">A</div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#0f172a;" id="ashley-toggle-label">Ashley — OFF</div>
+            <div style="font-size:10px;color:#94a3b8;" id="ashley-toggle-sub">Receptionist inactive</div>
+          </div>
+          <div onclick="toggleAshleyStatus()" id="ashley-toggle-btn"
+            style="width:44px;height:24px;border-radius:12px;background:#e2e8f0;cursor:pointer;
+                   position:relative;transition:background .25s;flex-shrink:0;">
+            <div id="ashley-toggle-knob" style="position:absolute;top:2px;left:2px;width:20px;height:20px;
+              border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,.2);
+              transition:transform .25s;"></div>
+          </div>
+        </div>
+      </div>
       <div class="content-subtitle">Elevate Construction LLC — AI-Powered Executive Headquarters</div>
       <div class="metrics-row">
         <div class="metric-card"><div class="metric-label">Agents Online</div><div class="metric-value">7</div><div class="metric-sub">↑ All departments ready</div></div>
@@ -1453,6 +1473,127 @@ label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;lett
 
     </div>
 
+    <!-- CONTACTS -->
+    <div id="view-contacts" class="dept-view">
+      <div class="content-title">👤 Contacts</div>
+      <div class="content-subtitle">Clients · Vendors · Subcontractors — searchable, importable, known by every AI agent</div>
+
+      <div class="tab-bar" id="contacts-tabs">
+        <div class="tab active" onclick="switchTab('contacts','contacts-list')">📋 All Contacts</div>
+        <div class="tab" onclick="switchTab('contacts','contacts-add')">➕ Add Contact</div>
+        <div class="tab" onclick="switchTab('contacts','contacts-import')">📥 Import CSV</div>
+      </div>
+
+      <!-- ALL CONTACTS TAB -->
+      <div id="contacts-contacts-list" class="tab-content active" style="padding-top:4px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <input type="text" id="contacts-search" placeholder="Search name, company, phone, email..."
+            oninput="filterContacts()" style="flex:1;min-width:180px;">
+          <select id="contacts-type-filter" onchange="filterContacts()" style="width:auto;padding:9px 32px 9px 12px;font-size:12px;">
+            <option value="">All Types</option>
+            <option value="client">Clients</option>
+            <option value="vendor">Vendors</option>
+            <option value="subcontractor">Subcontractors</option>
+            <option value="supplier">Suppliers</option>
+            <option value="inspector">Inspectors</option>
+            <option value="other">Other</option>
+          </select>
+          <button onclick="renderContactsList()" class="btn-secondary btn-sm">🔄 Refresh</button>
+        </div>
+        <!-- Stats row -->
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;" id="contacts-stats"></div>
+        <div id="contacts-list-items"></div>
+      </div>
+
+      <!-- ADD CONTACT TAB -->
+      <div id="contacts-contacts-add" class="tab-content" style="padding-top:4px;">
+        <div class="panel">
+          <div class="panel-header"><h3>➕ Add New Contact</h3><p>Clients, vendors, subs, suppliers, inspectors</p></div>
+          <div class="panel-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Contact Type</label>
+                <select id="add-contact-type" onchange="updateContactTypeFields()">
+                  <option value="client">🏠 Client</option>
+                  <option value="subcontractor">🔧 Subcontractor</option>
+                  <option value="vendor">🏪 Vendor</option>
+                  <option value="supplier">📦 Supplier</option>
+                  <option value="inspector">🔍 Inspector / Authority</option>
+                  <option value="other">👤 Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="add-contact-name" placeholder="First Last">
+              </div>
+              <div class="form-group">
+                <label>Company Name</label>
+                <input type="text" id="add-contact-company" placeholder="Company or DBA">
+              </div>
+              <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" id="add-contact-phone" placeholder="(404) 555-0000">
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="add-contact-email" placeholder="email@domain.com">
+              </div>
+              <div class="form-group">
+                <label>Address</label>
+                <input type="text" id="add-contact-address" placeholder="City, State or full address">
+              </div>
+              <div class="form-group" id="contact-field-trade" style="display:none;">
+                <label>Trade / Specialty</label>
+                <input type="text" id="add-contact-trade" placeholder="e.g. Plumbing, Electrical, HVAC">
+              </div>
+              <div class="form-group" id="contact-field-license" style="display:none;">
+                <label>License Number</label>
+                <input type="text" id="add-contact-license" placeholder="GA license #">
+              </div>
+              <div class="form-group" id="contact-field-insurance" style="display:none;">
+                <label>Insurance Exp.</label>
+                <input type="date" id="add-contact-insurance">
+              </div>
+              <div class="form-group" id="contact-field-rate" style="display:none;">
+                <label>Rate / Terms</label>
+                <input type="text" id="add-contact-rate" placeholder="e.g. $45/hr or Net 30">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label>Notes</label>
+              <textarea id="add-contact-notes" rows="2" placeholder="Any relevant notes..."></textarea>
+            </div>
+            <button class="btn-primary" onclick="saveContact()">💾 Save Contact</button>
+            <div id="contact-save-result" style="margin-top:8px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IMPORT CSV TAB -->
+      <div id="contacts-contacts-import" class="tab-content" style="padding-top:4px;">
+        <div class="panel">
+          <div class="panel-header"><h3>📥 Import from Spreadsheet</h3><p>Upload a CSV or paste data — auto-detects type</p></div>
+          <div class="panel-body">
+            <div class="notice-box" style="margin-bottom:14px;">
+              CSV columns (any order): <strong>name, company, phone, email, address, type, trade, notes</strong><br>
+              Type values: client, vendor, subcontractor, supplier, inspector, other
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label>Upload CSV File</label>
+              <input type="file" id="contacts-csv-upload" accept=".csv,.txt" onchange="importContactsCSV(this)">
+            </div>
+            <div style="text-align:center;color:#94a3b8;font-size:12px;margin:8px 0;">— or —</div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label>Paste CSV Data</label>
+              <textarea id="contacts-csv-paste" rows="6" placeholder="name,company,phone,email,type&#10;John Smith,Smith LLC,(404)555-0001,john@smith.com,client"></textarea>
+            </div>
+            <button class="btn-primary" onclick="importContactsPasted()">📥 Import Contacts</button>
+            <div id="contacts-import-result" style="margin-top:8px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- AUTONOMOUS WORKFLOW ENGINE -->
     <div id="view-workflow" class="dept-view">
       <div class="content-title">⚙️ Workflow Engine</div>
@@ -1800,8 +1941,12 @@ label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;lett
       <div class="content-title">👥 HR Module</div>
       <div class="content-subtitle">Staff roster, onboarding, HR documents, contractor agreements — all generated and stored automatically</div>
 
-      <div class="tab-bar" id="hr-tabs">
-        <div class="tab active" onclick="switchTab('hr','roster')">👥 Roster</div>
+      <div class="tabid="hr-tabs">
+        <div class="tab active" onclick="switchTab('hr','roster')">👥 Staff Roster</div>
+        <div class="tab" onclick="switchTab('hr','contractors')">🔧 Contractors & Subs</div>
+        <div class="tab" onclick="switchTab('hr','onboarding')">📋 Onboarding Docs</div>
+        <div class="tab" onclick="switchTab('hr','docs')">📄 HR Documents</div>
+        <div class="tab" onclick="switchTab('hr','webhook')">🔗 Website
         <div class="tab" onclick="switchTab('hr','docs')">📄 HR Documents</div>
         <div class="tab" onclick="switchTab('hr','webhook')">🔗 Website Leads</div>
         <div class="tab" onclick="switchTab('hr','email-connect')">📧 Email Setup</div>
@@ -1861,7 +2006,93 @@ label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;lett
       </div><!-- end hr-roster tab -->
 
       <!-- HR DOCUMENTS TAB -->
-      <div id="hr-docs" class="tab-content" style="padding-top:18px;">
+      <div 
+      <!-- CONTRACTORS & SUBS TAB -->
+      <div id="hr-contractors" class="tab-content" style="padding-top:4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <div style="font-size:12px;color:#64748b;" id="hr-contractors-count"></div>
+          <div style="display:flex;gap:8px;">
+            <select id="hr-contractor-filter" onchange="renderContractorsList()" style="width:auto;padding:7px 28px 7px 10px;font-size:11px;">
+              <option value="">All</option>
+              <option value="subcontractor">Subcontractors</option>
+              <option value="contractor">1099 Contractors</option>
+              <option value="supplier">Suppliers</option>
+            </select>
+            <button onclick="renderContractorsList()" class="btn-secondary btn-sm">🔄</button>
+          </div>
+        </div>
+        <div id="hr-contractors-list"></div>
+        <div style="margin-top:14px;">
+          <button onclick="showView('contacts');switchTab('contacts','contacts-add');document.getElementById('add-contact-type').value='subcontractor';updateContactTypeFields();"
+            class="btn-secondary" style="width:100%;">➕ Add New Contractor / Sub → Contacts</button>
+        </div>
+      </div>
+
+      <!-- ONBOARDING DOCS TAB -->
+      <div id="hr-onboarding" class="tab-content" style="padding-top:4px;">
+        <div class="panel">
+          <div class="panel-header"><h3>📋 Generate Onboarding Documents</h3><p>Auto-generates W-9 request, sub agreement, NDA, safety acknowledgment for new hires and subs</p></div>
+          <div class="panel-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Person / Company Name</label>
+                <input type="text" id="onboard-name" placeholder="Full name or company">
+              </div>
+              <div class="form-group">
+                <label>Onboarding Type</label>
+                <select id="onboard-type">
+                  <option value="employee">W-2 Employee</option>
+                  <option value="subcontractor">Subcontractor</option>
+                  <option value="1099">1099 Contractor</option>
+                  <option value="supplier">Supplier / Vendor</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Trade / Role</label>
+                <input type="text" id="onboard-trade" placeholder="e.g. Framing, Roofing, PM">
+              </div>
+              <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" id="onboard-start">
+              </div>
+              <div class="form-group">
+                <label>Project (optional)</label>
+                <input type="text" id="onboard-project" placeholder="Project name or address">
+              </div>
+              <div class="form-group">
+                <label>Rate / Terms</label>
+                <input type="text" id="onboard-rate" placeholder="e.g. $28/hr or $8,500 lump sum">
+              </div>
+            </div>
+            <div style="margin-bottom:14px;">
+              <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:block;">Documents to Generate</label>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;text-transform:none;letter-spacing:0;margin-bottom:0;"><input type="checkbox" id="doc-offer" checked> Offer Letter / Agreement</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;text-transform:none;letter-spacing:0;margin-bottom:0;"><input type="checkbox" id="doc-w9" checked> W-9 Request</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;text-transform:none;letter-spacing:0;margin-bottom:0;"><input type="checkbox" id="doc-nda"> NDA</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;text-transform:none;letter-spacing:0;margin-bottom:0;"><input type="checkbox" id="doc-safety" checked> Safety Acknowledgment</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;text-transform:none;letter-spacing:0;margin-bottom:0;"><input type="checkbox" id="doc-sub-agreement"> Subcontractor Agreement</label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;text-transform:none;letter-spacing:0;margin-bottom:0;"><input type="checkbox" id="doc-i9"> I-9 Checklist</label>
+              </div>
+            </div>
+            <button class="btn-primary" onclick="generateOnboardingDocs()" id="onboard-btn">📋 Generate Onboarding Package</button>
+            <div id="onboard-result" style="margin-top:10px;"></div>
+            <div id="onboard-docs-output" style="margin-top:14px;"></div>
+          </div>
+        </div>
+
+        <!-- Recent onboarding packages -->
+        <div class="panel">
+          <div class="panel-header"><h3>📁 Recent Packages</h3><p>Generated onboarding documents</p></div>
+          <div class="panel-body" style="padding:0;">
+            <div id="onboarding-history-list">
+              <div style="padding:20px;text-align:center;color:#94a3b8;font-size:12px;">No packages yet — generate one above</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+id="hr-docs" class="tab-content" style="padding-top:18px;">
 
         <div class="panel">
           <div class="panel-header"><h3>📄 Generate HR Document</h3><p>Select an employee and document type — AI generates it instantly, ready to download</p></div>
@@ -3765,7 +3996,420 @@ function viewJobOutput(jobId, stageId){
 
 // Init on load
 setTimeout(loadActiveJobs, 800);
-</script><script>
+
+// =====================================================
+// CONTACTS SYSTEM
+// =====================================================
+let contacts = JSON.parse(localStorage.getItem('elevate_contacts') || '[]');
+
+function saveContacts(){ localStorage.setItem('elevate_contacts', JSON.stringify(contacts)); }
+
+const CONTACT_TYPE_META = {
+  client:        { label:'Client',        icon:'🏠', color:'#2563eb' },
+  subcontractor: { label:'Subcontractor', icon:'🔧', color:'#7c3aed' },
+  vendor:        { label:'Vendor',        icon:'🏪', color:'#059669' },
+  supplier:      { label:'Supplier',      icon:'📦', color:'#d97706' },
+  inspector:     { label:'Inspector',     icon:'🔍', color:'#0891b2' },
+  other:         { label:'Other',         icon:'👤', color:'#64748b' },
+};
+
+function updateContactTypeFields(){
+  const type = document.getElementById('add-contact-type')?.value;
+  const showFor = {
+    subcontractor:['contact-field-trade','contact-field-license','contact-field-insurance','contact-field-rate'],
+    contractor:   ['contact-field-trade','contact-field-license','contact-field-rate'],
+    vendor:       ['contact-field-rate'],
+    supplier:     ['contact-field-rate'],
+  };
+  ['contact-field-trade','contact-field-license','contact-field-insurance','contact-field-rate'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display = (showFor[type]||[]).includes(id)?'flex':'none';
+  });
+}
+
+function saveContact(){
+  const type     = document.getElementById('add-contact-type')?.value||'other';
+  const name     = document.getElementById('add-contact-name')?.value?.trim();
+  const company  = document.getElementById('add-contact-company')?.value?.trim();
+  const phone    = document.getElementById('add-contact-phone')?.value?.trim();
+  const email    = document.getElementById('add-contact-email')?.value?.trim();
+  const address  = document.getElementById('add-contact-address')?.value?.trim();
+  const trade    = document.getElementById('add-contact-trade')?.value?.trim();
+  const license  = document.getElementById('add-contact-license')?.value?.trim();
+  const insurance= document.getElementById('add-contact-insurance')?.value;
+  const rate     = document.getElementById('add-contact-rate')?.value?.trim();
+  const notes    = document.getElementById('add-contact-notes')?.value?.trim();
+  const result   = document.getElementById('contact-save-result');
+
+  if(!name && !company){ if(result) result.innerHTML='<div class="error-box">Enter a name or company.</div>'; return; }
+
+  const contact = { id:Date.now(), type, name:name||company, company:company||'', phone, email, address, trade, license, insurance, rate, notes, created_at:new Date().toISOString() };
+  contacts.unshift(contact);
+  saveContacts();
+  if(result) result.innerHTML='<div class="success-box">✅ Contact saved: '+(name||company)+'</div>';
+  ['add-contact-name','add-contact-company','add-contact-phone','add-contact-email','add-contact-address','add-contact-trade','add-contact-license','add-contact-rate','add-contact-notes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  addActivity('👤 Contact added: '+(name||company)+' ('+type+')');
+  renderContactsList();
+}
+
+function filterContacts(){
+  const q    = (document.getElementById('contacts-search')?.value||'').toLowerCase();
+  const type = document.getElementById('contacts-type-filter')?.value||'';
+  renderContactsList(q, type);
+}
+
+function renderContactsList(q='', typeFilter=''){
+  const listEl  = document.getElementById('contacts-list-items');
+  const statsEl = document.getElementById('contacts-stats');
+  if(!listEl) return;
+
+  contacts = JSON.parse(localStorage.getItem('elevate_contacts')||'[]');
+
+  // Stats
+  if(statsEl){
+    const counts = {};
+    contacts.forEach(c=>{ counts[c.type]=(counts[c.type]||0)+1; });
+    statsEl.innerHTML = Object.entries(CONTACT_TYPE_META).map(([k,m])=>`
+      <div onclick="document.getElementById('contacts-type-filter').value='${k}';filterContacts()"
+        style="background:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.97);border-radius:12px;
+               padding:10px;text-align:center;cursor:pointer;transition:all .15s;"
+        onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        <div style="font-size:16px;">${m.icon}</div>
+        <div style="font-size:18px;font-weight:800;color:${m.color};">${counts[k]||0}</div>
+        <div style="font-size:10px;color:#94a3b8;font-weight:600;">${m.label}s</div>
+      </div>`).join('');
+  }
+
+  let filtered = contacts;
+  if(typeFilter) filtered = filtered.filter(c=>c.type===typeFilter);
+  if(q) filtered = filtered.filter(c=>[c.name,c.company,c.phone,c.email,c.address,c.trade].join(' ').toLowerCase().includes(q));
+
+  if(!filtered.length){
+    listEl.innerHTML='<div style="text-align:center;padding:40px 20px;color:#94a3b8;font-size:12px;">No contacts found. Add one or import from a spreadsheet.</div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(c=>{
+    const m = CONTACT_TYPE_META[c.type]||CONTACT_TYPE_META.other;
+    return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;
+      background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.95);border-radius:14px;
+      margin-bottom:8px;transition:all .18s;cursor:pointer;"
+      onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(99,102,241,.08)'"
+      onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div style="width:38px;height:38px;border-radius:10px;background:${m.color}18;
+        border:1px solid ${m.color}28;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${m.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px;">
+          <div style="font-size:13px;font-weight:700;color:#0f172a;">${esc(c.name)}</div>
+          ${c.company&&c.company!==c.name?`<div style="font-size:11px;color:#64748b;">${esc(c.company)}</div>`:''}
+          <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:${m.color}14;color:${m.color};border:1px solid ${m.color}20;">${m.label}</span>
+          ${c.trade?`<span style="font-size:10px;color:#64748b;background:rgba(37,99,235,.06);padding:2px 7px;border-radius:8px;">${esc(c.trade)}</span>`:''}
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#64748b;">
+          ${c.phone?`<span>📞 ${esc(c.phone)}</span>`:''}
+          ${c.email?`<span>✉️ ${esc(c.email)}</span>`:''}
+          ${c.address?`<span>📍 ${esc(c.address)}</span>`:''}
+        </div>
+        ${c.insurance?`<div style="font-size:10px;color:${new Date(c.insurance)<new Date()?'#ef4444':'#10b981'};">
+          Insurance exp: ${c.insurance} ${new Date(c.insurance)<new Date()?'⚠️ EXPIRED':''}</div>`:''}
+      </div>
+      <button onclick="deleteContact(${c.id})" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:14px;flex-shrink:0;padding:4px;">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteContact(id){
+  if(!confirm('Remove this contact?')) return;
+  contacts = contacts.filter(c=>c.id!==id);
+  saveContacts();
+  renderContactsList();
+}
+
+function importContactsCSV(input){
+  const file = input?.files?.[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{ parseAndImportCSV(e.target.result); };
+  reader.readAsText(file);
+}
+
+function importContactsPasted(){
+  const text = document.getElementById('contacts-csv-paste')?.value?.trim();
+  if(!text){ alert('Paste CSV data first.'); return; }
+  parseAndImportCSV(text);
+}
+
+function parseAndImportCSV(text){
+  const result = document.getElementById('contacts-import-result');
+  const lines  = text.trim().split('\n').filter(l=>l.trim());
+  if(lines.length < 2){ if(result) result.innerHTML='<div class="error-box">Need at least a header row and one data row.</div>'; return; }
+
+  const headers = lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/\s+/g,'_'));
+  let imported = 0;
+
+  lines.slice(1).forEach(line=>{
+    const vals = line.split(',').map(v=>v.trim().replace(/^"|"$/g,''));
+    const row  = {};
+    headers.forEach((h,i)=>{ row[h]=vals[i]||''; });
+
+    const type = (['client','vendor','subcontractor','supplier','inspector','other'].includes(row.type))
+      ? row.type : 'other';
+
+    if(!row.name && !row.company) return;
+
+    contacts.push({
+      id:         Date.now()+imported,
+      type,
+      name:       row.name||row.company||'Unknown',
+      company:    row.company||'',
+      phone:      row.phone||row.phone_number||'',
+      email:      row.email||row.email_address||'',
+      address:    row.address||row.city||'',
+      trade:      row.trade||row.specialty||'',
+      notes:      row.notes||row.description||'',
+      created_at: new Date().toISOString()
+    });
+    imported++;
+  });
+
+  saveContacts();
+  if(result) result.innerHTML=`<div class="success-box">✅ Imported ${imported} contact${imported!==1?'s':''}.</div>`;
+  addActivity('📥 Imported '+imported+' contacts from CSV');
+  renderContactsList();
+}
+
+function renderContractorsList(){
+  const list     = document.getElementById('hr-contractors-list');
+  const countEl  = document.getElementById('hr-contractors-count');
+  const filter   = document.getElementById('hr-contractor-filter')?.value||'';
+  if(!list) return;
+
+  contacts = JSON.parse(localStorage.getItem('elevate_contacts')||'[]');
+  let subs = contacts.filter(c=>['subcontractor','contractor','supplier'].includes(c.type));
+  if(filter) subs = subs.filter(c=>c.type===filter);
+
+  if(countEl) countEl.textContent = subs.length + ' contractor'+(subs.length!==1?'s':'');
+
+  if(!subs.length){
+    list.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:12px;">No contractors yet. Add them via the Contacts section.</div>';
+    return;
+  }
+
+  list.innerHTML = subs.map(c=>{
+    const m = CONTACT_TYPE_META[c.type]||CONTACT_TYPE_META.other;
+    const insExpired = c.insurance && new Date(c.insurance) < new Date();
+    return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(37,99,235,.06);">
+      <div style="width:36px;height:36px;border-radius:9px;background:${m.color}18;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${m.icon}</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:#0f172a;">${esc(c.name)}</div>
+        <div style="font-size:11px;color:#64748b;">${c.trade?esc(c.trade)+' · ':''}${c.phone?esc(c.phone):''}</div>
+        ${c.license?`<div style="font-size:10px;color:#4f46e5;">License: ${esc(c.license)}</div>`:''}
+        ${c.insurance?`<div style="font-size:10px;color:${insExpired?'#ef4444':'#10b981'};">Ins: ${c.insurance} ${insExpired?'⚠️ EXPIRED':''}</div>`:''}
+        ${c.rate?`<div style="font-size:10px;color:#64748b;">Rate: ${esc(c.rate)}</div>`:''}
+      </div>
+      <button onclick="generateOnboardingQuick('${c.name.replace(/'/g,"\\'")}','${c.type}')"
+        class="btn-secondary btn-sm" style="font-size:10px;flex-shrink:0;">📋 Onboard</button>
+    </div>`;
+  }).join('');
+}
+
+// =====================================================
+// ONBOARDING DOCS GENERATOR
+// =====================================================
+let onboardingHistory = JSON.parse(localStorage.getItem('elevate_onboarding_history')||'[]');
+
+function saveOnboardingHistory(){ localStorage.setItem('elevate_onboarding_history', JSON.stringify(onboardingHistory)); }
+
+async function generateOnboardingQuick(name, type){
+  switchTab('hr','onboarding');
+  const nameEl = document.getElementById('onboard-name');
+  const typeEl = document.getElementById('onboard-type');
+  if(nameEl) nameEl.value = name;
+  if(typeEl) typeEl.value = type==='subcontractor'?'subcontractor':type==='supplier'?'supplier':'1099';
+  setTimeout(generateOnboardingDocs, 300);
+}
+
+async function generateOnboardingDocs(){
+  if(!apiKey){ openApiModal(); return; }
+
+  const name    = document.getElementById('onboard-name')?.value?.trim();
+  const type    = document.getElementById('onboard-type')?.value||'subcontractor';
+  const trade   = document.getElementById('onboard-trade')?.value?.trim();
+  const start   = document.getElementById('onboard-start')?.value;
+  const project = document.getElementById('onboard-project')?.value?.trim();
+  const rate    = document.getElementById('onboard-rate')?.value?.trim();
+  const result  = document.getElementById('onboard-result');
+  const output  = document.getElementById('onboard-docs-output');
+  const btn     = document.getElementById('onboard-btn');
+
+  if(!name){ alert('Enter a name.'); return; }
+
+  const doOffer     = document.getElementById('doc-offer')?.checked;
+  const doW9        = document.getElementById('doc-w9')?.checked;
+  const doNDA       = document.getElementById('doc-nda')?.checked;
+  const doSafety    = document.getElementById('doc-safety')?.checked;
+  const doSubAgree  = document.getElementById('doc-sub-agreement')?.checked;
+  const doI9        = document.getElementById('doc-i9')?.checked;
+
+  const docsToGen = [];
+  if(doOffer)    docsToGen.push('offer_letter');
+  if(doW9)       docsToGen.push('w9_request');
+  if(doNDA)      docsToGen.push('nda');
+  if(doSafety)   docsToGen.push('safety_ack');
+  if(doSubAgree) docsToGen.push('sub_agreement');
+  if(doI9)       docsToGen.push('i9_checklist');
+
+  if(!docsToGen.length){ alert('Select at least one document.'); return; }
+
+  if(btn) btn.disabled=true;
+  if(result) result.innerHTML='<div class="notice-box">⚙️ Generating onboarding package for '+esc(name)+'...</div>';
+  if(output) output.innerHTML='';
+
+  const docPrompts = {
+    offer_letter: `Write a professional ${type==='employee'?'employment offer letter':'contractor engagement letter'} for:
+Name: ${name} | Trade/Role: ${trade||'General'} | Start: ${start||'TBD'} | Rate: ${rate||'TBD'}
+Project: ${project||'Elevate Construction projects'}
+Company: Elevate Construction LLC, 3343 Peachtree Rd NE Ste 145, Atlanta GA 30326 | Owner: Michael Nabors
+Include scope, rate, start date, at-will clause (if employee), payment terms. Professional Georgia business tone. Plain text.`,
+
+    w9_request: `Write a professional W-9 request letter to:
+${name} | ${type} | Trade: ${trade||'Construction'}
+From: Elevate Construction LLC, Michael Nabors, Owner
+Explain why the W-9 is needed (IRS 1099 reporting), deadline, and where to return it.
+Include the address: 3343 Peachtree Rd NE Ste 145, Atlanta GA 30326. Plain text.`,
+
+    nda: `Draft a Georgia-compliant Non-Disclosure Agreement between:
+Elevate Construction LLC (Michael Nabors, Owner) AND ${name} (${type})
+For: ${project||'construction projects and business operations'}
+Include: confidential information definition, obligations, term (2 years), exclusions, remedies, Georgia governing law, signature blocks. Professional legal language. Plain text.`,
+
+    safety_ack: `Create a construction site safety acknowledgment form for:
+${name} | ${type} | Trade: ${trade||'General construction'}
+Company: Elevate Construction LLC
+Cover: OSHA compliance, PPE requirements, fall protection, tool safety, hazard communication, drug-free workplace, reporting procedures, emergency contacts (404-719-1888). Signature block at end. Plain text.`,
+
+    sub_agreement: `Draft a subcontractor agreement between:
+Elevate Construction LLC (Michael Nabors, Owner) AND ${name}
+Trade: ${trade||'General'} | Rate: ${rate||'Per scope'} | Project: ${project||'TBD'}
+Include: scope of work, payment terms, insurance requirements (min $1M GL), license verification, lien waiver requirements, back-charge rights, compliance with prime contract, Georgia law. Plain text.`,
+
+    i9_checklist: `Create an I-9 employment eligibility verification checklist for:
+${name} | Start Date: ${start||'TBD'}
+Include: List A documents (passport, etc.), List B+C combo documents, verification steps, employer certification requirements, re-verification schedule, retention requirements. Plain text.`
+  };
+
+  const pkg = { id:Date.now(), name, type, trade, project, rate, start, docs:{}, created_at:new Date().toISOString() };
+
+  // Generate all selected docs in parallel
+  const results = await Promise.allSettled(
+    docsToGen.map(async docId=>{
+      const out = await callClaudeRaw('You are a professional HR and legal document writer for a Georgia construction company.', [{role:'user',content:docPrompts[docId]}], 1500);
+      return { docId, text:stripMarkdown(out) };
+    })
+  );
+
+  results.forEach(r=>{ if(r.status==='fulfilled') pkg.docs[r.value.docId]=r.value.text; });
+
+  onboardingHistory.unshift(pkg);
+  if(onboardingHistory.length>20) onboardingHistory=onboardingHistory.slice(0,20);
+  saveOnboardingHistory();
+
+  if(btn) btn.disabled=false;
+  if(result) result.innerHTML='<div class="success-box">✅ Generated '+Object.keys(pkg.docs).length+' documents for '+esc(name)+'</div>';
+
+  const docLabels = { offer_letter:'📄 Offer Letter', w9_request:'📋 W-9 Request', nda:'🔒 NDA', safety_ack:'⛑️ Safety Ack', sub_agreement:'📝 Sub Agreement', i9_checklist:'🪪 I-9 Checklist' };
+
+  if(output) output.innerHTML = Object.entries(pkg.docs).map(([docId,text])=>`
+    <div class="panel" style="margin-bottom:12px;">
+      <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+        <h3>${docLabels[docId]||docId}</h3>
+        <button onclick="copyText(encodeURIComponent(this.closest('.panel').querySelector('pre').textContent))" class="btn-secondary btn-sm">📋 Copy</button>
+      </div>
+      <div class="panel-body">
+        <pre style="white-space:pre-wrap;font-size:12px;line-height:1.7;color:#374151;font-family:inherit;max-height:300px;overflow-y:auto;">${esc(text)}</pre>
+      </div>
+    </div>`).join('');
+
+  renderOnboardingHistory();
+  addActivity('📋 Onboarding package generated for '+name+' ('+Object.keys(pkg.docs).length+' docs)');
+  queryCount += docsToGen.length;
+  document.getElementById('metric-queries').textContent=queryCount;
+  localStorage.setItem('elevate_query_count',queryCount);
+}
+
+function renderOnboardingHistory(){
+  const list = document.getElementById('onboarding-history-list');
+  if(!list) return;
+  onboardingHistory = JSON.parse(localStorage.getItem('elevate_onboarding_history')||'[]');
+  if(!onboardingHistory.length){ list.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:12px;">No packages yet.</div>'; return; }
+  list.innerHTML = onboardingHistory.map(pkg=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(37,99,235,.06);">
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:700;color:#0f172a;">${esc(pkg.name)}</div>
+        <div style="font-size:11px;color:#64748b;">${esc(pkg.type)} · ${Object.keys(pkg.docs).length} docs · ${pkg.project?esc(pkg.project):''}</div>
+      </div>
+      <div style="font-size:10px;color:#94a3b8;">${pkg.created_at?new Date(pkg.created_at).toLocaleDateString():''}</div>
+    </div>`).join('');
+}
+
+// =====================================================
+// ASHLEY ON/OFF TOGGLE
+// =====================================================
+let ashleyActive = localStorage.getItem('elevate_ashley_active')==='true';
+
+function updateAshleyToggleUI(){
+  const btn      = document.getElementById('ashley-toggle-btn');
+  const knob     = document.getElementById('ashley-toggle-knob');
+  const label    = document.getElementById('ashley-toggle-label');
+  const sub      = document.getElementById('ashley-toggle-sub');
+  const topBtn   = document.getElementById('ashley-topbar-btn');
+  const topDot   = document.getElementById('ashley-topbar-dot');
+  const topLabel = document.getElementById('ashley-topbar-label');
+
+  if(ashleyActive){
+    if(btn)   btn.style.background='linear-gradient(135deg,#4f46e5,#2563eb)';
+    if(knob)  knob.style.transform='translateX(20px)';
+    if(label) label.textContent='Ashley — ON';
+    if(sub)   sub.textContent='Receptionist active · answering calls';
+    if(topBtn){ topBtn.style.color='#4f46e5'; topBtn.style.borderColor='rgba(99,102,241,.3)'; topBtn.style.background='rgba(239,246,255,.8)'; }
+    if(topDot){ topDot.style.background='#10b981'; topDot.style.boxShadow='0 0 6px #10b981'; }
+    if(topLabel) topLabel.textContent='Ashley ON';
+  } else {
+    if(btn)   btn.style.background='#e2e8f0';
+    if(knob)  knob.style.transform='translateX(0)';
+    if(label) label.textContent='Ashley — OFF';
+    if(sub)   sub.textContent='Receptionist inactive';
+    if(topBtn){ topBtn.style.color='#94a3b8'; topBtn.style.borderColor='rgba(255,255,255,.95)'; topBtn.style.background='rgba(255,255,255,.6)'; }
+    if(topDot){ topDot.style.background='#e2e8f0'; topDot.style.boxShadow='none'; }
+    if(topLabel) topLabel.textContent='Ashley OFF';
+  }
+}
+
+function toggleAshleyStatus(){
+  ashleyActive = !ashleyActive;
+  localStorage.setItem('elevate_ashley_active', ashleyActive.toString());
+  updateAshleyToggleUI();
+  addActivity(ashleyActive ? '📱 Ashley activated — receptionist is live' : '📱 Ashley deactivated — calls go to voicemail');
+
+  // Post to server so Vapi webhook can check
+  fetch(SERVER_URL+'/api/ashley/status', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ active:ashleyActive, updated_at:new Date().toISOString() })
+  }).catch(()=>{});
+}
+
+// Init toggle on load
+setTimeout(updateAshleyToggleUI, 300);
+
+// Init contacts and onboarding on tab open
+const _origShowViewContacts = showView;
+function showView(id){
+  _origShowViewContacts(id);
+  if(id==='contacts') setTimeout(()=>{ renderContactsList(); }, 200);
+  if(id==='ashley')   setTimeout(loadAshleyMessages, 200);
+  if(id==='workflow') setTimeout(loadActiveJobs, 200);
+}
+</script><script></script><script>
 // =====================================================
 // SERVER CONFIG
 // =====================================================
