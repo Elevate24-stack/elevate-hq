@@ -92,6 +92,17 @@ app.post('/api/gmail-config', (req, res) => {
   res.json({ success:true, message:'Gmail config saved', email });
 });
 
+// ── Outlook / Microsoft Graph config ─────────────────────────
+let outlookConfig = {};
+app.post('/api/outlook-config', (req, res) => {
+  const { email, tenant_id, client_id, client_secret } = req.body;
+  outlookConfig = { email, tenant_id, client_id, client_secret, updated: new Date().toISOString() };
+  console.log('[Outlook] Config saved for:', email);
+  // TODO: Use Microsoft Graph API to register subscription
+  // POST https://graph.microsoft.com/v1.0/subscriptions with changeType, notificationUrl, resource
+  res.json({ success:true, message:'Outlook config saved', email });
+});
+
 // ── Zapier webhook (Houzz leads) ──────────────────────────────
 app.post('/webhook/zapier', (req, res) => {
   const d = req.body;
