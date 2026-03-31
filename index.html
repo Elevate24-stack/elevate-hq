@@ -407,9 +407,9 @@ label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;lett
         <input type="password" id="app-password-input"
           placeholder="Enter access code..."
           autocomplete="current-password"
-          style="width:100%;border:1.5px solid rgba(255,255,255,.15);border-radius:10px;padding:13px 44px 13px 16px;
-                 font-size:14px;font-family:'Inter',sans-serif;color:#0f172a;background:rgba(255,255,255,.9);
-                 outline:none;transition:all .2s;box-sizing:border-box;"
+          style="width:100%;border:1.5px solid rgba(99,102,241,.25);border-radius:10px;padding:13px 44px 13px 16px;
+                 font-size:14px;font-family:'Inter',sans-serif;color:#0f172a;background:rgba(255,255,255,.95);
+                 outline:none;transition:all .2s;box-sizing:border-box;box-shadow:0 1px 4px rgba(0,0,0,.06);"
           onkeydown="if(event.key==='Enter')checkAppPassword()"
           oninput="document.getElementById('app-login-error').style.display='none'">
         <button onclick="toggleAppPasswordVis()" type="button"
@@ -419,14 +419,14 @@ label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;lett
 
       <!-- Error message -->
       <div id="app-login-error"
-        style="display:none;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.25);
-               border-radius:8px;padding:9px 13px;font-size:12px;color:#fca5a5;margin-bottom:14px;text-align:center;">
+        style="display:none;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);
+               border-radius:8px;padding:9px 13px;font-size:12px;color:#dc2626;margin-bottom:14px;text-align:center;font-weight:600;">
         ❌ Incorrect access code — please try again
       </div>
 
       <!-- Login button -->
       <button onclick="checkAppPassword()" id="app-login-btn"
-        style="width:100%;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;
+        style="width:100%;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#ffffff;
                border:1px solid rgba(37,99,235,.6);border-radius:10px;padding:13px;
                font-size:14px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;
                transition:all .25s;box-shadow:0 4px 14px rgba(37,99,235,.3);"
@@ -10822,7 +10822,7 @@ function checkAppPassword(){
   const info  = document.getElementById('app-attempt-info');
   const btn   = document.getElementById('app-login-btn');
 
-  const entered = input ? input.value.trim() : '';
+  const entered = input ? input.value : '';
 
   if(entered === APP_PASSWORD){
     // Correct — animate and unlock
@@ -10836,7 +10836,6 @@ function checkAppPassword(){
     }
     // Save session so refresh doesn't re-ask (clears on tab close)
     sessionStorage.setItem('elevate_unlocked','1');
-    localStorage.setItem('elevate_unlocked','1');
     addActivity('🔐 CEO logged in successfully');
 
   } else {
@@ -10871,7 +10870,7 @@ function toggleAppPasswordVis(){
 
 // Check if already unlocked this session (survives refresh, not new tab)
 function checkAppSession(){
-  if(sessionStorage.getItem('elevate_unlocked')==='1' || localStorage.getItem('elevate_unlocked')==='1'){
+  if(sessionStorage.getItem('elevate_unlocked') === '1'){
     const screen = document.getElementById('app-login-screen');
     if(screen) screen.style.display = 'none';
   } else {
@@ -10882,6 +10881,8 @@ function checkAppSession(){
     }, 300);
   }
 }
+// Run immediately so the screen hides with zero flash on refresh
+checkAppSession();
 
 // =====================================================
 // GMAIL CONFIG SAVE
