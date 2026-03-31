@@ -7871,16 +7871,14 @@ function getStoredPin(){
 }
 
 function openApiModal(){
-  // If already unlocked this session, go straight to settings
-  if(pinUnlocked){
-    document.getElementById('api-modal').classList.add('show');
-    setTimeout(()=>document.getElementById('api-key-input')?.focus(), 100);
-    return;
-  }
-  // Show PIN screen first
+  // ALWAYS require PIN — no session bypass
   pinBuffer = '';
+  pinUnlocked = false;
   updatePinDots();
-  document.getElementById('pin-error').style.display = 'none';
+  const errEl = document.getElementById('pin-error');
+  if(errEl) errEl.style.display = 'none';
+  // Re-enable keys in case they were locked out
+  document.querySelectorAll('.pin-key').forEach(b=>b.disabled=false);
   document.getElementById('pin-modal').classList.add('show');
 }
 
@@ -7892,6 +7890,7 @@ function closePinModal(){
 
 function closeApiModal(){
   document.getElementById('api-modal').classList.remove('show');
+  pinUnlocked = false; // lock again on close — always ask next time
 }
 
 function pinPress(key){
@@ -7938,10 +7937,11 @@ function checkPin(){
     }
 
     setTimeout(()=>{
-      closePinModal();
+      // Close PIN modal and open API modal directly
+      document.getElementById('pin-modal').classList.remove('show');
       document.getElementById('api-modal').classList.add('show');
       setTimeout(()=>document.getElementById('api-key-input')?.focus(), 100);
-    }, 400);
+    }, 350);
 
   } else {
     // Wrong PIN
@@ -7997,8 +7997,8 @@ function changePinPrompt(){
 // Lock the session (force PIN on next API modal open)
 function lockSession(){
   pinUnlocked = false;
-  closeApiModal();
-  addActivity('🔒 Session locked');
+  document.getElementById('api-modal').classList.remove('show');
+  addActivity('🔒 API settings locked');
 }
 </script>
 </body>
