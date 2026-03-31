@@ -2,8 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Elevate Construction LLC — AI Headquarters v2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Elevate HQ">
+<meta name="theme-color" content="#0d1b2e">
+<meta name="description" content="AI Executive Headquarters — Elevate Construction LLC">
+<title>Elevate Construction LLC — AI Headquarters v3</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -291,6 +299,81 @@ textarea{resize:vertical;min-height:80px;}
 </style>
 </head>
 <body>
+
+<!-- ====================================================
+     APP LOGIN SCREEN — shown before anything
+     Password: Elevate2088
+==================================================== -->
+<div id="app-login-screen" style="
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(160deg,#0d1b2e 0%,#111f38 50%,#0f1e35 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Inter',sans-serif;">
+
+  <div style="width:100%;max-width:400px;padding:20px;">
+
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:36px;">
+      <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:white;letter-spacing:.02em;margin-bottom:6px;">
+        ELEVATE <span style="color:#F59E0B;text-shadow:0 0 18px rgba(245,158,11,.35);">CONSTRUCTION</span>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.12em;text-transform:uppercase;">AI Executive HQ v3</div>
+      <div style="width:60px;height:2px;background:linear-gradient(90deg,#2563eb,#f59e0b);border-radius:2px;margin:14px auto 0;"></div>
+    </div>
+
+    <!-- Login card -->
+    <div style="background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);
+                border-radius:18px;padding:32px 28px;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:36px;margin-bottom:10px;">🔐</div>
+        <div style="font-weight:700;font-size:16px;color:white;margin-bottom:4px;">Secure Access</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.45);">Enter your access code to continue</div>
+      </div>
+
+      <!-- Password field -->
+      <div style="position:relative;margin-bottom:16px;">
+        <input type="password" id="app-password-input"
+          placeholder="Enter access code..."
+          autocomplete="current-password"
+          style="width:100%;border:1.5px solid rgba(255,255,255,.15);border-radius:10px;padding:13px 44px 13px 16px;
+                 font-size:14px;font-family:'Inter',sans-serif;color:white;background:rgba(255,255,255,.08);
+                 outline:none;transition:all .2s;box-sizing:border-box;"
+          onkeydown="if(event.key==='Enter')checkAppPassword()"
+          oninput="document.getElementById('app-login-error').style.display='none'">
+        <button onclick="toggleAppPasswordVis()" type="button"
+          style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;
+                 color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;padding:4px;">👁</button>
+      </div>
+
+      <!-- Error message -->
+      <div id="app-login-error"
+        style="display:none;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.25);
+               border-radius:8px;padding:9px 13px;font-size:12px;color:#fca5a5;margin-bottom:14px;text-align:center;">
+        ❌ Incorrect access code — please try again
+      </div>
+
+      <!-- Login button -->
+      <button onclick="checkAppPassword()" id="app-login-btn"
+        style="width:100%;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;
+               border:1px solid rgba(37,99,235,.6);border-radius:10px;padding:13px;
+               font-size:14px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;
+               transition:all .25s;box-shadow:0 4px 14px rgba(37,99,235,.3);"
+        onmouseover="this.style.transform='translateY(-2px)'"
+        onmouseout="this.style.transform='translateY(0)'">
+        🏗️ Enter Elevate HQ
+      </button>
+
+      <!-- Attempt counter -->
+      <div id="app-attempt-info" style="text-align:center;margin-top:12px;font-size:10px;color:rgba(255,255,255,.25);"></div>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align:center;margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);">
+      © 2026 Elevate Construction LLC · GaElevate.com · 404-719-1888
+    </div>
+  </div>
+</div>
 
 <!-- LOGO BAR -->
 <div id="logo-bar">
@@ -870,10 +953,43 @@ textarea{resize:vertical;min-height:80px;}
       </div>
       <div id="email-gmail-connect" class="tab-content" style="padding-top:16px;">
         <div class="panel">
-          <div class="panel-header"><h3>Gmail Integration</h3><p>Pull recent emails via your connected Gmail account</p></div>
+          <div class="panel-header"><h3>📧 Gmail → Elevate HQ</h3><p>Connect Gmail so emails auto-route into your inbox and leads pipeline</p></div>
           <div class="panel-body">
-            <div class="notice-box">Your Gmail account is connected via Claude's MCP integration. Use the button below to fetch recent emails and surface construction leads, client messages, and important tasks.</div>
-            <button class="btn-primary" onclick="fetchGmailEmails()">📧 Fetch Recent Emails from Gmail</button>
+
+            <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:14px;margin-bottom:16px;">
+              <div style="font-weight:700;font-size:13px;color:white;margin-bottom:10px;">📋 Gmail Setup — Step by Step</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.65);line-height:2.2;">
+                <div><strong style="color:#93c5fd;">Step 1</strong> — Go to <a href="https://console.cloud.google.com" target="_blank" style="color:#93c5fd;">console.cloud.google.com</a> and create a new project called <strong>ElevateHQ</strong></div>
+                <div><strong style="color:#93c5fd;">Step 2</strong> — Enable <strong>Gmail API</strong> and <strong>Cloud Pub/Sub API</strong></div>
+                <div><strong style="color:#93c5fd;">Step 3</strong> — Create OAuth 2.0 credentials → Web Application → Download JSON</div>
+                <div><strong style="color:#93c5fd;">Step 4</strong> — Create a Pub/Sub Topic named <strong>elevate-gmail</strong></div>
+                <div><strong style="color:#93c5fd;">Step 5</strong> — Add subscription → Push → Endpoint URL:</div>
+                <div style="font-family:monospace;font-size:11px;background:rgba(0,0,0,.3);padding:8px 12px;border-radius:6px;color:#6ee7b7;margin:4px 0;">https://elevate-hq-production.up.railway.app/webhook/gmail</div>
+                <div><strong style="color:#93c5fd;">Step 6</strong> — Enter your Gmail address and OAuth credentials below</div>
+              </div>
+            </div>
+
+            <div class="form-grid" style="margin-bottom:14px;">
+              <div class="form-group">
+                <label>Gmail Address</label>
+                <input type="email" id="gmail-address" placeholder="you@gmail.com or you@yourdomain.com">
+              </div>
+              <div class="form-group">
+                <label>Gmail OAuth Token</label>
+                <input type="password" id="gmail-token" placeholder="Paste OAuth token from Google Console">
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-bottom:14px;">
+              <button class="btn-primary" style="flex:1;" onclick="saveGmailConfig()">💾 Save Gmail Config</button>
+              <button class="btn-secondary" onclick="testGmailEndpoint()">🧪 Test Connection</button>
+            </div>
+            <div id="gmail-test-result2" style="margin-top:8px;"></div>
+
+            <div class="notice-box" style="margin-top:14px;">
+              <strong>💡 What happens when connected:</strong> Every email that arrives in Gmail pings your Railway server. Emails from leads, clients, vendors, and subs automatically appear in your Email Center. Receipt emails route to Accounting.
+            </div>
+
             <div class="thinking-bar" id="gmail-thinking"><div class="spinner"></div><span class="thinking-text">Checking your Gmail...</span></div>
             <div id="gmail-results" style="margin-top:14px;"></div>
           </div>
@@ -3397,6 +3513,19 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   addActivity('🏗️ Elevate Construction AI HQ loaded');
   addActivity('👥 7 executive agents online');
+
+  // Check app login session
+  checkAppSession();
+
+  // Restore Gmail config
+  restoreGmailConfig();
+
+  // Register service worker for PWA / offline support
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('/elevate-hq/sw.js')
+      .then(()=>console.log('[PWA] Service worker registered'))
+      .catch(e=>console.log('[PWA] SW registration failed:', e));
+  }
 
   // Only show API modal if no saved key
   setTimeout(()=>{ if(!apiKey) openApiModal(); }, 800);
@@ -7999,6 +8128,119 @@ function lockSession(){
   pinUnlocked = false;
   document.getElementById('api-modal').classList.remove('show');
   addActivity('🔒 API settings locked');
+}
+
+// =====================================================
+// APP LOGIN SYSTEM
+// Full app password: Elevate2088
+// =====================================================
+const APP_PASSWORD = 'Elevate2088';
+let loginAttempts = 0;
+const MAX_LOGIN_ATTEMPTS = 5;
+
+function checkAppPassword(){
+  const input = document.getElementById('app-password-input');
+  const error = document.getElementById('app-login-error');
+  const info  = document.getElementById('app-attempt-info');
+  const btn   = document.getElementById('app-login-btn');
+
+  const entered = input ? input.value : '';
+
+  if(entered === APP_PASSWORD){
+    // Correct — animate and unlock
+    loginAttempts = 0;
+    const screen = document.getElementById('app-login-screen');
+    if(screen){
+      screen.style.opacity = '1';
+      screen.style.transition = 'opacity .5s ease';
+      setTimeout(()=>{ screen.style.opacity='0'; }, 100);
+      setTimeout(()=>{ screen.style.display='none'; }, 600);
+    }
+    // Save session so refresh doesn't re-ask (clears on tab close)
+    sessionStorage.setItem('elevate_unlocked','1');
+    addActivity('🔐 CEO logged in successfully');
+
+  } else {
+    // Wrong password
+    loginAttempts++;
+    if(error){
+      error.style.display = 'block';
+      if(loginAttempts >= MAX_LOGIN_ATTEMPTS){
+        error.textContent = '🔒 Too many failed attempts. Please refresh the page.';
+        if(btn) btn.disabled = true;
+        if(input) input.disabled = true;
+      } else {
+        error.textContent = `❌ Incorrect code — ${MAX_LOGIN_ATTEMPTS - loginAttempts} attempt${MAX_LOGIN_ATTEMPTS-loginAttempts===1?'':'s'} remaining`;
+      }
+    }
+    // Shake the input
+    if(input){
+      input.style.borderColor = 'rgba(220,38,38,.6)';
+      input.style.animation = 'shake .4s ease';
+      setTimeout(()=>{ input.style.borderColor=''; input.style.animation=''; }, 500);
+      input.value = '';
+      input.focus();
+    }
+  }
+}
+
+function toggleAppPasswordVis(){
+  const inp = document.getElementById('app-password-input');
+  if(!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// Check if already unlocked this session (survives refresh, not new tab)
+function checkAppSession(){
+  if(sessionStorage.getItem('elevate_unlocked') === '1'){
+    const screen = document.getElementById('app-login-screen');
+    if(screen) screen.style.display = 'none';
+  } else {
+    // Focus the password field
+    setTimeout(()=>{
+      const inp = document.getElementById('app-password-input');
+      if(inp) inp.focus();
+    }, 300);
+  }
+}
+
+// =====================================================
+// GMAIL CONFIG SAVE
+// =====================================================
+function saveGmailConfig(){
+  const address = document.getElementById('gmail-address')?.value?.trim();
+  const token   = document.getElementById('gmail-token')?.value?.trim();
+  if(!address){ alert('Enter your Gmail address.'); return; }
+  localStorage.setItem('elevate_gmail_address', address);
+  if(token) localStorage.setItem('elevate_gmail_token', token);
+
+  // Send config to Railway server
+  fetch(SERVER_URL+'/api/gmail-config', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ email: address, token: token||'' })
+  }).then(r=>r.json())
+    .then(d=>{
+      const res = document.getElementById('gmail-test-result2');
+      if(res){
+        res.innerHTML='<div class="success-box">✅ Gmail config saved! Your Railway server will now receive Gmail push notifications.</div>';
+      }
+      addActivity('📧 Gmail connected: '+address);
+    })
+    .catch(()=>{
+      const res = document.getElementById('gmail-test-result2');
+      if(res) res.innerHTML='<div class="success-box">✅ Config saved locally. Connect Railway server to activate webhooks.</div>';
+    });
+}
+
+// Restore saved Gmail config on load
+function restoreGmailConfig(){
+  const addr = localStorage.getItem('elevate_gmail_address');
+  const tok  = localStorage.getItem('elevate_gmail_token');
+  const addrEl = document.getElementById('gmail-address');
+  const tokEl  = document.getElementById('gmail-token');
+  if(addrEl && addr) addrEl.value = addr;
+  if(tokEl  && tok)  tokEl.value  = tok;
 }
 </script>
 </body>
