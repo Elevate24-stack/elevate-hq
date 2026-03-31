@@ -424,8 +424,7 @@ app.post('/api/blocked-callers', (req, res) => {
   if(existing){
     // Add new number to existing record
     if(!existing.phones.includes(phone)) existing.phones.push(phone);
-    if(notes) existing.notes = (existing.notes||'') + '
-' + notes;
+    if(notes) existing.notes = (existing.notes||'') + '\n' + notes;
     saveDB(db);
     return res.json({ success:true, message:'Number added to existing record', id:existing.id });
   }
