@@ -905,7 +905,8 @@ textarea{resize:vertical;min-height:80px;}
       <div class="tab-bar" id="email-tabs">
         <div class="tab active" onclick="switchTab('email','inbox')">📥 Inbox</div>
         <div class="tab" onclick="switchTab('email','compose')">✍️ Compose</div>
-        <div class="tab" onclick="switchTab('email','gmail-connect')">🔗 Gmail</div>
+        <div class="tab" onclick="switchTab('email','gmail-connect')">📧 Gmail</div>
+        <div class="tab" onclick="switchTab('email','outlook-connect')">📨 Outlook</div>
       </div>
       <div id="email-inbox" class="tab-content active" style="padding-top:16px;">
         <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
@@ -995,6 +996,84 @@ textarea{resize:vertical;min-height:80px;}
           </div>
         </div>
       </div>
+
+      <!-- OUTLOOK TAB -->
+      <div id="email-outlook-connect" class="tab-content" style="padding-top:16px;">
+        <div class="panel">
+          <div class="panel-header"><h3>📨 Outlook → Elevate HQ</h3><p>Connect your Microsoft 365 / Outlook account so emails auto-route into your inbox and leads pipeline</p></div>
+          <div class="panel-body">
+
+            <!-- Status indicator -->
+            <div id="outlook-status-bar" style="display:flex;align-items:center;gap:12px;padding:12px 14px;
+                 background:rgba(255,255,255,.04);border-radius:10px;border:1px solid rgba(255,255,255,.08);margin-bottom:16px;">
+              <div id="outlook-status-dot" style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0;"></div>
+              <div>
+                <div id="outlook-status-text" style="font-size:13px;font-weight:600;color:rgba(255,255,255,.7);">Not Connected</div>
+                <div id="outlook-status-sub" style="font-size:11px;color:rgba(255,255,255,.35);">Follow the steps below to connect your Outlook account</div>
+              </div>
+              <button onclick="testOutlookConnection()" class="btn-secondary btn-sm" style="margin-left:auto;white-space:nowrap;">🧪 Test</button>
+            </div>
+
+            <!-- Setup steps -->
+            <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:14px;margin-bottom:16px;">
+              <div style="font-weight:700;font-size:13px;color:white;margin-bottom:10px;">📋 Outlook Setup — Step by Step</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.65);line-height:2.2;">
+                <div><strong style="color:#93c5fd;">Step 1</strong> — Go to <a href="https://portal.azure.com" target="_blank" style="color:#93c5fd;">portal.azure.com</a> → App Registrations → New Registration</div>
+                <div><strong style="color:#93c5fd;">Step 2</strong> — Name it <strong>ElevateHQ</strong> → Accounts in any org → Register</div>
+                <div><strong style="color:#93c5fd;">Step 3</strong> — Go to API Permissions → Add → Microsoft Graph → <strong>Mail.Read</strong> → Grant Admin Consent</div>
+                <div><strong style="color:#93c5fd;">Step 4</strong> — Certificates & Secrets → New Client Secret → copy the Value</div>
+                <div><strong style="color:#93c5fd;">Step 5</strong> — Copy your <strong>Application (client) ID</strong> and <strong>Tenant ID</strong> from the Overview page</div>
+                <div><strong style="color:#93c5fd;">Step 6</strong> — Paste all three values below and save</div>
+                <div><strong style="color:#93c5fd;">Step 7</strong> — Your Railway server will register the Graph subscription automatically</div>
+              </div>
+            </div>
+
+            <!-- Credentials form -->
+            <div class="form-grid" style="margin-bottom:12px;">
+              <div class="form-group">
+                <label>Outlook / Microsoft Email</label>
+                <input type="email" id="outlook-email" placeholder="you@yourcompany.com or you@outlook.com">
+              </div>
+              <div class="form-group">
+                <label>Tenant ID</label>
+                <input type="text" id="outlook-tenant" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" style="font-family:monospace;">
+              </div>
+              <div class="form-group">
+                <label>Application (Client) ID</label>
+                <input type="text" id="outlook-client-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" style="font-family:monospace;">
+              </div>
+              <div class="form-group">
+                <label>Client Secret</label>
+                <input type="password" id="outlook-secret" placeholder="Paste client secret value here">
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-bottom:14px;">
+              <button class="btn-primary" style="flex:1;" onclick="saveOutlookConfig()">💾 Save & Connect Outlook</button>
+              <button class="btn-secondary" onclick="testOutlookConnection()">🧪 Test Connection</button>
+            </div>
+            <div id="outlook-save-result" style="margin-top:8px;"></div>
+
+            <!-- Webhook URL reference -->
+            <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:12px 14px;border:1px solid rgba(255,255,255,.07);margin-top:14px;">
+              <div style="font-size:11px;color:rgba(255,255,255,.45);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Your Outlook Webhook URL</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <div style="font-family:monospace;font-size:11px;color:#6ee7b7;flex:1;word-break:break-all;">
+                  https://elevate-hq-production.up.railway.app/webhook/outlook
+                </div>
+                <button onclick="navigator.clipboard.writeText('https://elevate-hq-production.up.railway.app/webhook/outlook').then(()=>addActivity('📋 Outlook webhook URL copied'))"
+                  class="btn-secondary btn-sm" style="white-space:nowrap;">📋 Copy</button>
+              </div>
+            </div>
+
+            <div class="notice-box" style="margin-top:14px;">
+              <strong>💡 What happens when connected:</strong> Microsoft Graph sends a notification to your Railway server the instant an email arrives in your Outlook inbox. Lead emails, client messages, and vendor invoices automatically appear in your Email Center and Accounting.
+            </div>
+
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- FILE DROP -->
@@ -3519,6 +3598,8 @@ window.addEventListener('DOMContentLoaded',()=>{
 
   // Restore Gmail config
   restoreGmailConfig();
+  // Restore Outlook config
+  restoreOutlookConfig();
 
   // Register service worker for PWA / offline support
   if('serviceWorker' in navigator){
@@ -8241,6 +8322,92 @@ function restoreGmailConfig(){
   const tokEl  = document.getElementById('gmail-token');
   if(addrEl && addr) addrEl.value = addr;
   if(tokEl  && tok)  tokEl.value  = tok;
+}
+
+// =====================================================
+// OUTLOOK / MICROSOFT 365 CONNECTION
+// =====================================================
+function saveOutlookConfig(){
+  const email    = document.getElementById('outlook-email')?.value?.trim();
+  const tenant   = document.getElementById('outlook-tenant')?.value?.trim();
+  const clientId = document.getElementById('outlook-client-id')?.value?.trim();
+  const secret   = document.getElementById('outlook-secret')?.value?.trim();
+  const result   = document.getElementById('outlook-save-result');
+
+  if(!email || !tenant || !clientId){
+    if(result) result.innerHTML='<div class="error-box">Please fill in email, Tenant ID, and Client ID.</div>';
+    return;
+  }
+
+  // Save locally
+  localStorage.setItem('elevate_outlook_email',    email);
+  localStorage.setItem('elevate_outlook_tenant',   tenant);
+  localStorage.setItem('elevate_outlook_client_id',clientId);
+  if(secret) localStorage.setItem('elevate_outlook_secret', secret);
+
+  // Send to Railway server
+  fetch(SERVER_URL+'/api/outlook-config', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ email, tenant_id:tenant, client_id:clientId, client_secret:secret })
+  }).then(r=>r.json())
+    .then(d=>{
+      if(result) result.innerHTML='<div class="success-box">✅ Outlook config saved! Railway server will now register the Microsoft Graph subscription to watch your inbox.</div>';
+      updateOutlookStatus(true, email);
+      addActivity('📨 Outlook connected: '+email);
+    })
+    .catch(()=>{
+      if(result) result.innerHTML='<div class="success-box" style="border-color:rgba(245,158,11,.3);color:#fcd34d;">✅ Config saved locally. Push server.js to Railway to activate the webhook.</div>';
+      updateOutlookStatus(true, email);
+    });
+}
+
+function updateOutlookStatus(connected, email){
+  const dot  = document.getElementById('outlook-status-dot');
+  const text = document.getElementById('outlook-status-text');
+  const sub  = document.getElementById('outlook-status-sub');
+  if(connected){
+    if(dot)  { dot.style.background='#10b981'; dot.style.boxShadow='0 0 8px rgba(16,185,129,.5)'; }
+    if(text) text.textContent = 'Connected — '+( email||'Outlook account');
+    if(sub)  sub.textContent  = 'Emails will appear in your inbox automatically';
+  } else {
+    if(dot)  { dot.style.background='rgba(255,255,255,.2)'; dot.style.boxShadow='none'; }
+    if(text) text.textContent = 'Not Connected';
+    if(sub)  sub.textContent  = 'Follow the steps below to connect your Outlook account';
+  }
+}
+
+async function testOutlookConnection(){
+  const result = document.getElementById('outlook-save-result');
+  if(result) result.innerHTML='<div style="font-size:12px;color:#93c5fd;">🔄 Testing Outlook endpoint on Railway...</div>';
+  try{
+    const res = await fetch(SERVER_URL+'/webhook/outlook', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({value:[{changeType:'created',resource:'test',resourceData:{id:'test-123'}}]})
+    });
+    if(res.ok){
+      if(result) result.innerHTML='<div class="success-box">✅ Outlook endpoint is live on Railway! Ready to receive Microsoft Graph notifications.</div>';
+      updateOutlookStatus(true, localStorage.getItem('elevate_outlook_email')||'');
+    } else {
+      if(result) result.innerHTML='<div class="error-box">❌ Server returned: '+res.status+'</div>';
+    }
+  }catch(e){
+    if(result) result.innerHTML='<div class="error-box">❌ Could not reach server: '+e.message+'</div>';
+  }
+}
+
+function restoreOutlookConfig(){
+  const email    = localStorage.getItem('elevate_outlook_email');
+  const tenant   = localStorage.getItem('elevate_outlook_tenant');
+  const clientId = localStorage.getItem('elevate_outlook_client_id');
+  const emailEl    = document.getElementById('outlook-email');
+  const tenantEl   = document.getElementById('outlook-tenant');
+  const clientIdEl = document.getElementById('outlook-client-id');
+  if(emailEl    && email)    emailEl.value    = email;
+  if(tenantEl   && tenant)   tenantEl.value   = tenant;
+  if(clientIdEl && clientId) clientIdEl.value = clientId;
+  if(email) updateOutlookStatus(true, email);
 }
 </script>
 </body>
