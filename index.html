@@ -1253,6 +1253,18 @@ label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;lett
         <div class="tab" onclick="switchTab('email','outlook-connect')">📨 Outlook</div>
       </div>
       <div id="email-inbox" class="tab-content active" style="padding-top:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <div>
+            <span id="email-count-label" style="font-size:12px;color:#64748b;"></span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="fetchEmailsFromServer()" id="email-refresh-btn"
+              class="btn-secondary btn-sm" style="display:flex;align-items:center;gap:5px;">
+              🔄 Refresh
+            </button>
+            <button onclick="cleanOldEmailsManual()" class="btn-secondary btn-sm">🗑️ Clean Old</button>
+          </div>
+        </div>
         <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
           <div style="flex:1;font-size:12px;color:#64748b;">
             <span id="email-count-display">0 emails</span> ·
@@ -1317,17 +1329,38 @@ label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;lett
             <div class="form-grid" style="margin-bottom:14px;">
               <div class="form-group">
                 <label>Gmail Address</label>
-                <input type="email" id="gmail-address" placeholder="you@gmail.com or you@yourdomain.com">
+                <input type="email" id="gmail-address" placeholder="info@gaelevate.com">
               </div>
               <div class="form-group">
-                <label>Gmail OAuth Token</label>
-                <input type="password" id="gmail-token" placeholder="Paste OAuth token from Google Console">
+                <label>Google Project ID</label>
+                <input type="text" id="gmail-project-id" placeholder="my-first-project (from Google Cloud)">
+              </div>
+              <div class="form-group">
+                <label>OAuth Client ID</label>
+                <input type="text" id="gmail-client-id" placeholder="xxxx.apps.googleusercontent.com">
+              </div>
+              <div class="form-group">
+                <label>OAuth Client Secret</label>
+                <input type="password" id="gmail-client-secret" placeholder="GOCSPX-...">
+              </div>
+            </div>
+
+            <!-- OAuth flow -->
+            <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+              <div style="font-weight:700;font-size:12px;color:#059669;margin-bottom:8px;">🔐 Step 6 — Authorize Gmail Access</div>
+              <div style="font-size:12px;color:#374151;margin-bottom:10px;line-height:1.7;">After entering your credentials above, click Authorize to open Google's permission screen. Sign in with <strong>info@gaelevate.com</strong> and allow access. You'll be redirected back — copy the authorization code and paste it below.</div>
+              <div style="display:flex;gap:8px;margin-bottom:8px;">
+                <button onclick="startGmailOAuth()" class="btn-primary" style="flex:1;">🔐 Authorize Gmail Access</button>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Authorization Code (paste after redirect)</label>
+                <input type="text" id="gmail-auth-code" placeholder="4/0AY0e-g...">
               </div>
             </div>
 
             <div style="display:flex;gap:10px;margin-bottom:14px;">
-              <button class="btn-primary" style="flex:1;" onclick="saveGmailConfig()">💾 Save Gmail Config</button>
-              <button class="btn-secondary" onclick="testGmailEndpoint()">🧪 Test Connection</button>
+              <button class="btn-primary" style="flex:1;" onclick="saveGmailConfig()">💾 Save & Connect Gmail</button>
+              <button class="btn-secondary" onclick="testGmailEndpoint()">🧪 Test Webhook</button>
             </div>
             <div id="gmail-test-result2" style="margin-top:8px;"></div>
 
@@ -2842,6 +2875,8 @@ function showView(id){
   if(id==='dashboard')highlightDesk(null);
   // Clear notification badge when user visits this section
   clearBadge(id);
+  // Fetch fresh emails when opening email center
+  if(id==='email') setTimeout(fetchEmailsFromServer, 200);
 }
 function selectDept(id){showView(id);highlightDesk(id);document.getElementById('input-'+id)?.focus();}
 function switchTab(group,tabId){
@@ -3603,20 +3638,61 @@ async function aiTaskHelp(id){
 // EMAIL CENTER
 // =====================================================
 function initEmailInbox(){
-  // Load from localStorage only — no fake sample data
   const saved = localStorage.getItem('elevate_emails');
-  emailItems = saved ? JSON.parse(saved) : [];
-
-  // Auto-cleanup: remove emails older than 30 days from the app
-  // (does NOT delete from Gmail/Outlook — only from local app cache)
-  emailItems = cleanOldEmails(emailItems);
+  emailItems  = saved ? JSON.parse(saved) : [];
+  emailItems  = cleanOldEmails(emailItems);
   localStorage.setItem('elevate_emails', JSON.stringify(emailItems));
-
-  // Clear any old fake sample data
   clearFakeEmails();
-
   renderEmailList();
   updateEmailBadge();
+
+  // Auto-fetch from server on init
+  fetchEmailsFromServer();
+
+  // Poll every 60 seconds for new emails
+  setInterval(fetchEmailsFromServer, 60000);
+}
+
+// ── Pull emails from Railway server (Outlook + Gmail) ──────
+async function fetchEmailsFromServer(){
+  try{
+    const res  = await fetch(SERVER_URL+'/api/emails');
+    const data = await res.json();
+
+    if(data.success && data.emails && data.emails.length){
+      let newCount = 0;
+      data.emails.forEach(serverEmail=>{
+        // Check if already in local cache
+        const exists = emailItems.find(e=>e.id===serverEmail.id);
+        if(!exists){
+          emailItems.unshift({
+            id:          serverEmail.id,
+            subject:     serverEmail.subject||'(no subject)',
+            from:        serverEmail.from_name
+                           ? serverEmail.from_name+' <'+serverEmail.from+'>'
+                           : serverEmail.from,
+            preview:     serverEmail.preview||'',
+            received_at: serverEmail.received_at,
+            unread:      serverEmail.unread!==false,
+            source:      serverEmail.source||'outlook',
+            body:        serverEmail.body||''
+          });
+          newCount++;
+        }
+      });
+
+      if(newCount > 0){
+        saveEmails();
+        renderEmailList();
+        updateEmailBadge();
+        refreshAllBadges();
+        addActivity('📧 '+newCount+' new email'+(newCount>1?'s':'')+' synced from server');
+        console.log('[Email] '+newCount+' new emails from server');
+      }
+    }
+  }catch(e){
+    console.log('[Email] Server sync skipped:', e.message);
+  }
 }
 
 function cleanOldEmails(items){
@@ -3670,8 +3746,22 @@ function saveEmails(){
   localStorage.setItem('elevate_emails', JSON.stringify(emailItems));
 }
 
+function cleanOldEmailsManual(){
+  const before = emailItems.length;
+  emailItems = cleanOldEmails(emailItems);
+  saveEmails();
+  renderEmailList();
+  updateEmailBadge();
+  const removed = before - emailItems.length;
+  addActivity(removed > 0 ? '🗑️ Removed '+removed+' old emails' : '✅ No old emails to clean');
+}
+
 function renderEmailList(){
-  const list=document.getElementById('email-list');if(!list)return;
+  const list   = document.getElementById('email-list'); if(!list) return;
+  const label  = document.getElementById('email-count-label');
+  const unread = emailItems.filter(e=>e.unread).length;
+  if(label) label.textContent = emailItems.length+' email'+(emailItems.length!==1?'s':'')+
+    (unread?' · '+unread+' unread':'');
   list.innerHTML='';
 
   if(!emailItems.length){
@@ -8876,40 +8966,89 @@ function checkAppSession(){
 // =====================================================
 // GMAIL CONFIG SAVE
 // =====================================================
-function saveGmailConfig(){
-  const address = document.getElementById('gmail-address')?.value?.trim();
-  const token   = document.getElementById('gmail-token')?.value?.trim();
-  if(!address){ alert('Enter your Gmail address.'); return; }
-  localStorage.setItem('elevate_gmail_address', address);
-  if(token) localStorage.setItem('elevate_gmail_token', token);
+function startGmailOAuth(){
+  const clientId   = document.getElementById('gmail-client-id')?.value?.trim();
+  const projectId  = document.getElementById('gmail-project-id')?.value?.trim();
+  if(!clientId){ alert('Enter your OAuth Client ID first.'); return; }
 
-  // Send config to Railway server
-  fetch(SERVER_URL+'/api/gmail-config', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ email: address, token: token||'' })
-  }).then(r=>r.json())
-    .then(d=>{
-      const res = document.getElementById('gmail-test-result2');
-      if(res){
-        res.innerHTML='<div class="success-box">✅ Gmail config saved! Your Railway server will now receive Gmail push notifications.</div>';
+  localStorage.setItem('elevate_gmail_client_id', clientId);
+  if(projectId) localStorage.setItem('elevate_gmail_project_id', projectId);
+
+  // Open Google OAuth consent screen
+  const redirectUri = encodeURIComponent('https://elevate24-stack.github.io/elevate-hq');
+  const scope = encodeURIComponent('https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.modify');
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+  window.open(authUrl, '_blank');
+
+  const res = document.getElementById('gmail-test-result2');
+  if(res) res.innerHTML='<div class="notice-box">🔐 Google sign-in opened in a new tab. Sign in with info@gaelevate.com, allow access, then copy the "code=" value from the redirect URL and paste it in the Authorization Code field above.</div>';
+}
+
+async function saveGmailConfig(){
+  const address    = document.getElementById('gmail-address')?.value?.trim();
+  const clientId   = document.getElementById('gmail-client-id')?.value?.trim();
+  const secret     = document.getElementById('gmail-client-secret')?.value?.trim();
+  const authCode   = document.getElementById('gmail-auth-code')?.value?.trim();
+  const projectId  = document.getElementById('gmail-project-id')?.value?.trim();
+  const resultEl   = document.getElementById('gmail-test-result2');
+
+  if(!address){ alert('Enter your Gmail address.'); return; }
+
+  // Save locally
+  localStorage.setItem('elevate_gmail_address', address);
+  if(clientId)  localStorage.setItem('elevate_gmail_client_id', clientId);
+  if(projectId) localStorage.setItem('elevate_gmail_project_id', projectId);
+
+  if(resultEl) resultEl.innerHTML='<div class="notice-box">🔄 Connecting to Gmail...</div>';
+
+  try{
+    let accessToken = null;
+
+    // If we have an auth code, exchange it for a token via our server
+    if(authCode && clientId && secret){
+      const exchangeRes = await fetch(SERVER_URL+'/api/gmail-exchange-code', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ code:authCode, client_id:clientId, client_secret:secret,
+          redirect_uri:'https://elevate24-stack.github.io/elevate-hq', project_id:projectId||'' })
+      });
+      const exchangeData = await exchangeRes.json();
+      if(exchangeData.access_token){
+        accessToken = exchangeData.access_token;
+        localStorage.setItem('elevate_gmail_token', accessToken);
+        if(exchangeData.refresh_token) localStorage.setItem('elevate_gmail_refresh', exchangeData.refresh_token);
       }
-      addActivity('📧 Gmail connected: '+address);
-    })
-    .catch(()=>{
-      const res = document.getElementById('gmail-test-result2');
-      if(res) res.innerHTML='<div class="success-box">✅ Config saved locally. Connect Railway server to activate webhooks.</div>';
+    }
+
+    // Send config to server
+    const configRes = await fetch(SERVER_URL+'/api/gmail-config', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email:address, token:accessToken||localStorage.getItem('elevate_gmail_token')||'',
+        client_id:clientId||'', client_secret:secret||'', project_id:projectId||'' })
     });
+    const configData = await configRes.json();
+
+    if(resultEl) resultEl.innerHTML = configData.success
+      ? `<div class="success-box">✅ ${configData.message||'Gmail connected!'}</div>`
+      : `<div class="error-box">❌ ${configData.message}</div>`;
+
+    addActivity('📧 Gmail connected: '+address);
+  }catch(e){
+    if(resultEl) resultEl.innerHTML=`<div class="error-box">❌ ${e.message}</div>`;
+  }
 }
 
 // Restore saved Gmail config on load
 function restoreGmailConfig(){
-  const addr = localStorage.getItem('elevate_gmail_address');
-  const tok  = localStorage.getItem('elevate_gmail_token');
-  const addrEl = document.getElementById('gmail-address');
-  const tokEl  = document.getElementById('gmail-token');
-  if(addrEl && addr) addrEl.value = addr;
-  if(tokEl  && tok)  tokEl.value  = tok;
+  const fields = {
+    'gmail-address':       'elevate_gmail_address',
+    'gmail-client-id':     'elevate_gmail_client_id',
+    'gmail-project-id':    'elevate_gmail_project_id',
+  };
+  Object.entries(fields).forEach(([elId, key])=>{
+    const val = localStorage.getItem(key);
+    const el  = document.getElementById(elId);
+    if(el && val) el.value = val;
+  });
 }
 
 // =====================================================
