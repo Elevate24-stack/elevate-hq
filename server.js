@@ -409,12 +409,135 @@ app.post('/webhook/vapi', (req, res) => {
   res.json({results:[{toolCallId:req.body?.toolCallList?.[0]?.id||'response',result:response}]});
 });
 
+// ── Blocked callers list ─────────────────────────────────────
+if(!db.blockedCallers) db.blockedCallers = [];
+
+app.get('/api/blocked-callers', (req, res) => {
+  res.json({ success:true, count:db.blockedCallers.length, blocked:db.blockedCallers });
+});
+
+app.post('/api/blocked-callers', (req, res) => {
+  const { phone, name, company, reason, reference, amount, notes } = req.body;
+  if(!phone) return res.json({ success:false, message:'Phone required' });
+
+  const existing = db.blockedCallers.find(b => b.phones.includes(phone));
+  if(existing){
+    // Add new number to existing record
+    if(!existing.phones.includes(phone)) existing.phones.push(phone);
+    if(notes) existing.notes = (existing.notes||'') + '
+' + notes;
+    saveDB(db);
+    return res.json({ success:true, message:'Number added to existing record', id:existing.id });
+  }
+
+  const record = {
+    id:        Date.now(),
+    phones:    [phone],
+    name:      name||'Unknown',
+    company:   company||'',
+    reason:    reason||'bill_collector',
+    reference: reference||'',
+    amount:    amount||'',
+    notes:     notes||'',
+    added_at:  new Date().toISOString()
+  };
+  db.blockedCallers.push(record);
+  saveDB(db);
+  console.log(`[Blocked] Added: ${record.company||record.name} | ${phone}`);
+  res.json({ success:true, id:record.id });
+});
+
+// Check if a number is blocked (called by lookup_caller)
+app.get('/api/is-blocked', (req, res) => {
+  const phone = req.query.phone||'';
+  const record = db.blockedCallers.find(b => b.phones.some(p => p===phone || p.replace(/[^0-9]/g,'')===phone.replace(/[^0-9]/g,'')));
+  res.json({ blocked: !!record, record: record||null });
+});
+
+// ── Ashley Staff Messaging ───────────────────────────────────
+// Ashley sends messages to staff after calls
+// Staff (AI agents) reply back with context
+// CEO sees everything in the Staff Chat view
+if(!db.ashleyMessages) db.ashleyMessages = [];
+
+// Ashley posts a message to a staff member
+app.post('/api/ashley/message', (req, res) => {
+  const { to, subject, body, call_id, caller_name, caller_phone,
+          project_type, budget, priority, from } = req.body;
+
+  const msg = {
+    id:           Date.now(),
+    from:         from || 'Ashley',
+    to:           to || 'Michael',
+    subject:      subject || 'New Lead',
+    body:         body || '',
+    call_id:      call_id || '',
+    caller_name:  caller_name || '',
+    caller_phone: caller_phone || '',
+    project_type: project_type || '',
+    budget:       budget || '',
+    priority:     priority || 'normal',
+    read:         false,
+    replies:      [],
+    sent_at:      new Date().toISOString()
+  };
+
+  db.ashleyMessages.unshift(msg);
+  if(db.ashleyMessages.length > 200) db.ashleyMessages = db.ashleyMessages.slice(0,200);
+  saveDB(db);
+  console.log(`[Ashley→${to}] ${subject}`);
+  res.json({ success:true, id:msg.id });
+});
+
+// Staff replies to Ashley's message
+app.post('/api/ashley/reply', (req, res) => {
+  const { message_id, from, body } = req.body;
+  const msg = db.ashleyMessages.find(m => m.id === Number(message_id));
+  if(!msg) return res.json({ success:false, message:'Message not found' });
+
+  msg.replies.push({
+    from:     from || 'Staff',
+    body:     body || '',
+    sent_at:  new Date().toISOString()
+  });
+  msg.read = false; // flag as updated
+  saveDB(db);
+  console.log(`[${from}→Ashley] Reply on: ${msg.subject}`);
+  res.json({ success:true });
+});
+
+// Get all messages (for app)
+app.get('/api/ashley/messages', (req, res) => {
+  const { to, unread } = req.query;
+  let msgs = db.ashleyMessages || [];
+  if(to) msgs = msgs.filter(m => m.to === to || m.from === to);
+  if(unread === 'true') msgs = msgs.filter(m => !m.read);
+  res.json({ success:true, count:msgs.length, messages:msgs.slice(0,50) });
+});
+
+// Mark message read
+app.post('/api/ashley/read', (req, res) => {
+  const { message_id } = req.body;
+  const msg = db.ashleyMessages.find(m => m.id === Number(message_id));
+  if(msg) { msg.read = true; saveDB(db); }
+  res.json({ success:true });
+});
+
 // ── Email receipts ────────────────────────────────────────────
 app.get('/api/email-receipts', (req, res) => {
   const KEYWORDS=['receipt','invoice','payment','order confirmation','amount charged','home depot','lowes','amazon','grainger'];
   const receipts=db.emails.filter(e=>{ const t=((e.subject||'')+(e.preview||'')).toLowerCase(); return KEYWORDS.some(k=>t.includes(k)); });
   res.json({success:true,count:receipts.length,receipts});
 });
+
+// ── Ashley status toggle ─────────────────────────────────────
+let ashleyStatus = { active:true, updated_at:new Date().toISOString() };
+app.post('/api/ashley/status', (req,res)=>{
+  ashleyStatus = { active:!!req.body.active, updated_at:new Date().toISOString() };
+  console.log('[Ashley] Status set to:', ashleyStatus.active?'ACTIVE':'INACTIVE');
+  res.json({ success:true, ...ashleyStatus });
+});
+app.get('/api/ashley/status', (req,res)=>res.json(ashleyStatus));
 
 // ── Start ─────────────────────────────────────────────────────
 app.listen(PORT, () => {
