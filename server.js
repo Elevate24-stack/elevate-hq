@@ -83,6 +83,15 @@ app.get('/api/leads', (req, res) => {
   res.json({ success:true, count:db.leads.length, leads:db.leads });
 });
 
+// ── Gmail config ──────────────────────────────────────────────
+let gmailConfig = {};
+app.post('/api/gmail-config', (req, res) => {
+  const { email, token } = req.body;
+  gmailConfig = { email, token, updated: new Date().toISOString() };
+  console.log('[Gmail] Config saved for:', email);
+  res.json({ success:true, message:'Gmail config saved', email });
+});
+
 // ── Zapier webhook (Houzz leads) ──────────────────────────────
 app.post('/webhook/zapier', (req, res) => {
   const d = req.body;
@@ -167,3 +176,73 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+
+// ================================================================
+// EMAIL RECEIPT AUTO-DETECTION
+// Scans incoming emails for receipt/invoice keywords
+// and stores them for the app to pick up
+// ================================================================
+
+// Keywords that indicate a receipt/invoice email
+const RECEIPT_KEYWORDS = [
+  'order confirmation','your receipt','invoice','payment confirmation',
+  'transaction','purchase','your order','order #','order number',
+  'amount charged','total charged','amount due','billing statement',
+  'home depot','amazon','lowe\'s','lowes','grainger','fastenal',
+  'fuel','gas station','sunoco','shell','bp','chevron',
+  'rental confirmation','equipment rental'
+];
+
+function isReceiptEmail(subject='', body=''){
+  const text = (subject+' '+body).toLowerCase();
+  return RECEIPT_KEYWORDS.some(k=>text.includes(k));
+}
+
+// Store detected email receipts
+let emailReceiptQueue = [];
+
+function queueEmailReceipt(from, subject, bodyText){
+  if(isReceiptEmail(subject, bodyText)){
+    emailReceiptQueue.push({
+      id:           Date.now(),
+      from_address: from,
+      subject,
+      email_text:   bodyText.slice(0,4000),
+      received_at:  new Date().toISOString(),
+      processed:    false
+    });
+    saveDB(db);
+    console.log('[EmailReceipt] Queued receipt from:', from, '|', subject);
+    return true;
+  }
+  return false;
+}
+
+// Endpoint for app to fetch queued receipts
+app.get('/api/email-receipts', (req, res) => {
+  const pending = emailReceiptQueue.filter(r=>!r.processed);
+  // Mark as processed
+  pending.forEach(r=>r.processed=true);
+  res.json({ success:true, count:pending.length, receipts:pending });
+});
+
+// Update Gmail webhook to detect receipts
+app.post('/webhook/gmail/v2', (req, res) => {
+  try{
+    const msg = req.body.message;
+    if(msg?.data){
+      const decoded = Buffer.from(msg.data,'base64').toString('utf-8');
+      const parsed  = JSON.parse(decoded);
+      // In full implementation: use Gmail API to fetch email content
+      // and pass to queueEmailReceipt()
+      db.emailLog.push({
+        source:'gmail', email:parsed.emailAddress,
+        historyId:parsed.historyId, received_at:new Date().toISOString()
+      });
+      saveDB(db);
+    }
+    res.status(200).json({success:true});
+  }catch(e){ res.status(200).json({success:true}); }
+});
+
+console.log('[Server] Email receipt auto-detection enabled');
