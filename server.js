@@ -172,12 +172,130 @@ app.get('/api/lead', (req, res) => {
 });
 app.get('/api/leads', (req, res) => res.json({ success:true, count:db.leads.length, leads:db.leads }));
 
-// ── Gmail config ──────────────────────────────────────────────
-app.post('/api/gmail-config', (req, res) => {
-  const { email, token } = req.body;
-  gmailConfig = { email, token, updated:new Date().toISOString() };
+// ── Gmail config + watch registration ────────────────────────
+app.post('/api/gmail-config', async (req, res) => {
+  const { email, token, client_id, client_secret, refresh_token } = req.body;
+  gmailConfig = { email, token, client_id, client_secret, refresh_token, updated:new Date().toISOString() };
   console.log('[Gmail] Config saved for:', email);
-  res.json({ success:true, message:'Gmail config saved', email });
+
+  // If we have a token, register Gmail push watch
+  if(token || refresh_token){
+    try{
+      await registerGmailWatch(token);
+      res.json({ success:true, message:'Gmail connected! Push notifications registered.', email });
+    }catch(e){
+      console.error('[Gmail] Watch registration failed:', e.message);
+      res.json({ success:true, message:'Config saved. Watch registration: '+e.message, email });
+    }
+  } else {
+    res.json({ success:true, message:'Gmail config saved', email });
+  }
+});
+
+// ── Register Gmail push watch ─────────────────────────────────
+async function registerGmailWatch(accessToken){
+  return new Promise((resolve, reject)=>{
+    const body = JSON.stringify({
+      labelIds: ['INBOX'],
+      topicName: 'projects/' + (process.env.GOOGLE_PROJECT_ID||'my-first-project') + '/topics/elevate-gmail'
+    });
+    const opts = {
+      hostname: 'gmail.googleapis.com',
+      path:     '/gmail/v1/users/me/watch',
+      method:   'POST',
+      headers:{
+        'Authorization': 'Bearer '+accessToken,
+        'Content-Type':  'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    };
+    const req = https.request(opts, res=>{
+      let data=''; res.on('data',c=>data+=c);
+      res.on('end',()=>{
+        try{
+          const d=JSON.parse(data);
+          if(d.historyId){
+            console.log('[Gmail] Watch registered, historyId:', d.historyId, 'expires:', new Date(Number(d.expiration)).toISOString());
+            resolve(d);
+          } else {
+            reject(new Error(d.error?.message||'Watch failed: '+JSON.stringify(d)));
+          }
+        }catch(e){ reject(e); }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+// ── Fetch Gmail messages ──────────────────────────────────────
+async function fetchGmailMessages(accessToken, max=20){
+  // Step 1: list message IDs
+  const listData = await new Promise((resolve, reject)=>{
+    const opts = {
+      hostname: 'gmail.googleapis.com',
+      path:     `/gmail/v1/users/me/messages?maxResults=${max}&labelIds=INBOX`,
+      method:   'GET',
+      headers:  {'Authorization':'Bearer '+accessToken}
+    };
+    const req = https.request(opts, res=>{
+      let data=''; res.on('data',c=>data+=c);
+      res.on('end',()=>{ try{ resolve(JSON.parse(data)); }catch(e){ reject(e); } });
+    });
+    req.on('error',reject); req.end();
+  });
+
+  if(!listData.messages || !listData.messages.length) return [];
+
+  // Step 2: fetch first 10 full messages (avoid rate limits)
+  const messages = await Promise.allSettled(
+    listData.messages.slice(0,10).map(m=>new Promise((resolve, reject)=>{
+      const opts = {
+        hostname:'gmail.googleapis.com',
+        path:`/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`,
+        method:'GET',
+        headers:{'Authorization':'Bearer '+accessToken}
+      };
+      const req = https.request(opts, res=>{
+        let data=''; res.on('data',c=>data+=c);
+        res.on('end',()=>{ try{ resolve(JSON.parse(data)); }catch(e){ reject(e); } });
+      });
+      req.on('error',reject); req.end();
+    }))
+  );
+
+  return messages
+    .filter(r=>r.status==='fulfilled')
+    .map(r=>r.value)
+    .map(m=>{
+      const headers = m.payload?.headers||[];
+      const get = name => headers.find(h=>h.name===name)?.value||'';
+      return {
+        id:          m.id,
+        subject:     get('Subject')||'(no subject)',
+        from:        get('From'),
+        from_name:   get('From').split('<')[0].trim(),
+        preview:     m.snippet||'',
+        received_at: new Date(parseInt(m.internalDate)).toISOString(),
+        unread:      m.labelIds?.includes('UNREAD'),
+        source:      'gmail'
+      };
+    });
+}
+
+// ── Get Gmail emails (called by app) ─────────────────────────
+app.get('/api/gmail-emails', async (req, res) => {
+  try{
+    if(!gmailConfig.token) return res.json({ success:true, emails:[], message:'Gmail not configured' });
+    const emails = await fetchGmailMessages(gmailConfig.token, 20);
+    const existingIds = new Set(db.emails.map(e=>e.id));
+    const newEmails   = emails.filter(e=>!existingIds.has(e.id));
+    if(newEmails.length){ db.emails=[...newEmails,...db.emails].slice(0,200); saveDB(db); }
+    res.json({ success:true, count:emails.length, emails, new_count:newEmails.length });
+  }catch(e){
+    res.json({ success:false, error:e.message, emails:db.emails.filter(e=>e.source==='gmail') });
+  }
 });
 
 // ── Outlook config ────────────────────────────────────────────
@@ -228,13 +346,29 @@ app.post('/webhook/zapier', (req, res) => {
   res.json({ success:true, lead_id:lead.id });
 });
 
-// ── Gmail webhook ─────────────────────────────────────────────
+// ── Gmail webhook (Pub/Sub push) ─────────────────────────────
 app.post('/webhook/gmail', (req, res) => {
+  // Always respond 200 immediately so Google doesn't retry
+  res.status(200).json({success:true});
   try{
     const msg=req.body.message;
-    if(msg?.data){ const decoded=Buffer.from(msg.data,'base64').toString('utf-8'); const parsed=JSON.parse(decoded); db.emailLog.push({source:'gmail',email:parsed.emailAddress,received_at:new Date().toISOString()}); saveDB(db); }
-    res.status(200).json({success:true});
-  }catch(e){ res.status(200).json({success:true}); }
+    if(msg?.data){
+      const decoded=Buffer.from(msg.data,'base64').toString('utf-8');
+      const parsed=JSON.parse(decoded);
+      const historyId=parsed.historyId;
+      console.log('[Gmail] Push notification — email:', parsed.emailAddress, 'historyId:', historyId);
+      db.emailLog.push({source:'gmail',email:parsed.emailAddress,historyId,received_at:new Date().toISOString()});
+      saveDB(db);
+      // If we have an access token, fetch new messages in background
+      if(gmailConfig.token){
+        fetchGmailMessages(gmailConfig.token, 10).then(emails=>{
+          const existingIds=new Set(db.emails.map(e=>e.id));
+          const fresh=emails.filter(e=>!existingIds.has(e.id));
+          if(fresh.length){ db.emails=[...fresh,...db.emails].slice(0,200); saveDB(db); console.log(`[Gmail] ${fresh.length} new emails stored`); }
+        }).catch(e=>console.error('[Gmail] Background fetch failed:',e.message));
+      }
+    }
+  }catch(e){ console.error('[Gmail] Webhook error:', e.message); }
 });
 
 // ── Outlook webhook ───────────────────────────────────────────
