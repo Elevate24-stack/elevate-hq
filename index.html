@@ -1348,7 +1348,7 @@ label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;lett
             <!-- OAuth flow -->
             <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
               <div style="font-weight:700;font-size:12px;color:#059669;margin-bottom:8px;">🔐 Step 6 — Authorize Gmail Access</div>
-              <div style="font-size:12px;color:#374151;margin-bottom:10px;line-height:1.7;">After entering your credentials above, click Authorize to open Google's permission screen. Sign in with <strong>info@gaelevate.com</strong> and allow access. You'll be redirected back — copy the authorization code and paste it below.</div>
+              <div style="font-size:12px;color:#374151;margin-bottom:10px;line-height:1.7;">After entering your credentials above, click Authorize to open Google's permission screen. Sign in with <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c9a0a7afa689aea8aca5acbfa8bdace7aaa6a4">[email&#160;protected]</a></strong> and allow access. You'll be redirected back — copy the authorization code and paste it below.</div>
               <div style="display:flex;gap:8px;margin-bottom:8px;">
                 <button onclick="startGmailOAuth()" class="btn-primary" style="flex:1;">🔐 Authorize Gmail Access</button>
               </div>
@@ -1453,6 +1453,240 @@ label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;lett
 
     </div>
 
+    <!-- AUTONOMOUS WORKFLOW ENGINE -->
+    <div id="view-workflow" class="dept-view">
+      <div class="content-title">⚙️ Workflow Engine</div>
+      <div class="content-subtitle">Autonomous construction pipeline — agents work in unison from lead to closeout</div>
+
+      <div class="tab-bar" id="workflow-tabs">
+        <div class="tab active" onclick="switchTab('workflow','active-jobs')">🏗️ Active Jobs</div>
+        <div class="tab" onclick="switchTab('workflow','new-job')">➕ Start Job</div>
+        <div class="tab" onclick="switchTab('workflow','history')">📋 History</div>
+      </div>
+
+      <!-- ACTIVE JOBS TAB -->
+      <div id="workflow-active-jobs" class="tab-content active" style="padding-top:4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div id="workflow-job-count" style="font-size:12px;color:#64748b;"></div>
+          <button onclick="loadActiveJobs()" class="btn-secondary btn-sm">🔄 Refresh</button>
+        </div>
+        <div id="active-jobs-list"></div>
+      </div>
+
+      <!-- START NEW JOB TAB -->
+      <div id="workflow-new-job" class="tab-content" style="padding-top:4px;">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>🚀 Start Autonomous Workflow</h3>
+            <p>Fill in what you know — the agents handle the rest automatically</p>
+          </div>
+          <div class="panel-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Client Name</label>
+                <input type="text" id="wf-client-name" placeholder="Full name or company">
+              </div>
+              <div class="form-group">
+                <label>Phone</label>
+                <input type="text" id="wf-phone" placeholder="(404) 555-0000">
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="wf-email" placeholder="client@email.com">
+              </div>
+              <div class="form-group">
+                <label>Project Address</label>
+                <input type="text" id="wf-address" placeholder="123 Main St, Atlanta GA">
+              </div>
+              <div class="form-group">
+                <label>Project Type</label>
+                <select id="wf-project-type">
+                  <option>Residential New Build</option>
+                  <option>Commercial New Build</option>
+                  <option>Renovation / Restoration</option>
+                  <option>Roofing</option>
+                  <option>Framing</option>
+                  <option>Concrete / Flatwork</option>
+                  <option>Welding / Steel</option>
+                  <option>Mitigation / Restoration</option>
+                  <option>Civil / Infrastructure</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Budget Range</label>
+                <select id="wf-budget">
+                  <option>Under $100K</option>
+                  <option>$100K–$300K</option>
+                  <option>$300K–$750K</option>
+                  <option>$750K–$2M</option>
+                  <option>$2M+</option>
+                  <option>Not Disclosed</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Timeline</label>
+                <select id="wf-timeline">
+                  <option>ASAP</option>
+                  <option>1–3 Months</option>
+                  <option>3–6 Months</option>
+                  <option>6–12 Months</option>
+                  <option>Just Exploring</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Square Footage</label>
+                <input type="text" id="wf-sqft" placeholder="Approx sq ft">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label>Project Description</label>
+              <textarea id="wf-description" rows="3" placeholder="Describe the project in detail — scope, special requirements, site conditions, materials..."></textarea>
+            </div>
+            <button class="btn-primary" id="wf-start-btn" onclick="startWorkflow()">
+              ⚙️ Start Autonomous Workflow
+            </button>
+            <div id="wf-start-result" style="margin-top:10px;"></div>
+          </div>
+        </div>
+
+        <!-- What happens panel -->
+        <div class="panel">
+          <div class="panel-header"><h3>🤖 What happens automatically</h3></div>
+          <div class="panel-body" style="padding:0;">
+            ${[
+              ['1','📞','Lead Intake','Ashley logs caller, scores lead, notifies team'],
+              ['2','📐','Pre-Bid Workup','Marcus builds line-item estimate at 30% GP minimum'],
+              ['3','💰','Financial Review','Sarah validates margins, flags risks, sets payment terms'],
+              ['4','📋','Proposal Draft','Branded proposal + estimate PDF ready for your review'],
+              ['5','✅','You Approve','Review and send to client — takes 2 minutes'],
+              ['6','📄','Client Signs','Upload signed estimate — contract + invoice auto-generated'],
+              ['7','⚖️','Contract Review','Jennifer finalizes GA-compliant contract, Sarah sets draw schedule'],
+              ['8','✅','You Sign','Sign and send contract — project becomes active'],
+              ['9','🏗️','Project Setup','David schedules crew, tasks created, permits flagged, milestones set'],
+              ['10','🏁','Closeout','Final invoice, lien waiver, certificate, review request — all auto-generated'],
+            ].map(([n,icon,title,desc])=>`
+              <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(37,99,235,.05);">
+                <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#2563eb);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;">${n}</div>
+                <div style="font-size:16px;flex-shrink:0;">${icon}</div>
+                <div style="flex:1;">
+                  <div style="font-size:12px;font-weight:700;color:#0f172a;">${title}</div>
+                  <div style="font-size:11px;color:#64748b;">${desc}</div>
+                </div>
+                ${['5','8'].includes(n)?'<span style="font-size:10px;font-weight:700;color:#f59e0b;background:rgba(245,158,11,.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(245,158,11,.2);">Your input</span>':'<span style="font-size:10px;font-weight:700;color:#10b981;background:rgba(16,185,129,.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(16,185,129,.2);">Auto</span>'}
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY TAB -->
+      <div id="workflow-history" class="tab-content" style="padding-top:4px;">
+        <div class="panel">
+          <div class="panel-header"><h3>📋 Completed Jobs</h3><p>Full pipeline history</p></div>
+          <div class="panel-body" style="padding:0;">
+            <div id="workflow-history-list"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ASHLEY STAFF COMMUNICATIONS -->
+    <div id="view-ashley" class="dept-view">
+      <div class="content-title">📱 Ashley — Receptionist</div>
+      <div class="content-subtitle">Ashley's messages to the team after every call · Staff replies · Full communication thread</div>
+
+      <div class="tab-bar" id="ashley-tabs">
+        <div class="tab active" onclick="switchTab('ashley','inbox')">📬 Inbox</div>
+        <div class="tab" onclick="switchTab('ashley','compose')">✍️ Message Ashley</div>
+        <div class="tab" onclick="switchTab('ashley','activity')">📋 All Activity</div>
+      </div>
+
+      <!-- INBOX TAB -->
+      <div id="ashley-inbox" class="tab-content active" style="padding-top:4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <div id="ashley-inbox-count" style="font-size:12px;color:#64748b;"></div>
+          <div style="display:flex;gap:8px;">
+            <select id="ashley-filter-to" onchange="loadAshleyMessages()" style="width:auto;padding:5px 10px;font-size:11px;">
+              <option value="">All Staff</option>
+              <option value="Michael">Michael — Sales</option>
+              <option value="Marcus">Marcus — Estimating</option>
+              <option value="Sarah">Sarah — CFO</option>
+              <option value="David">David — COO</option>
+              <option value="Jennifer">Jennifer — Legal</option>
+            </select>
+            <button onclick="loadAshleyMessages()" class="btn-secondary btn-sm">🔄 Refresh</button>
+          </div>
+        </div>
+        <div id="ashley-messages-list"></div>
+      </div>
+
+      <!-- MESSAGE ASHLEY TAB -->
+      <div id="ashley-compose" class="tab-content" style="padding-top:4px;">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>✍️ Send Ashley a Message</h3>
+            <p>Message Ashley directly — she'll respond in character as your receptionist</p>
+          </div>
+          <div class="panel-body">
+            <div class="form-grid" style="margin-bottom:12px;">
+              <div class="form-group">
+                <label>From (your role)</label>
+                <select id="ashley-msg-from">
+                  <option value="CEO">👑 CEO — You</option>
+                  <option value="Michael">🤝 Michael — Sales</option>
+                  <option value="Marcus">📐 Marcus — Estimating</option>
+                  <option value="Sarah">💰 Sarah — CFO</option>
+                  <option value="David">🏗️ David — COO</option>
+                  <option value="Jennifer">⚖️ Jennifer — Legal</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Subject</label>
+                <input type="text" id="ashley-msg-subject" placeholder="e.g. Follow up on the Johnson lead">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label>Message</label>
+              <textarea id="ashley-msg-body" rows="4"
+                placeholder="e.g. Ashley, did anyone call about the Buckhead commercial project today? What was their budget?"></textarea>
+            </div>
+            <button class="btn-primary" onclick="sendMessageToAshley()">📤 Send to Ashley</button>
+            <div id="ashley-send-result" style="margin-top:8px;"></div>
+            <div id="ashley-reply-output" style="margin-top:12px;"></div>
+          </div>
+        </div>
+
+        <!-- Quick message chips -->
+        <div class="panel">
+          <div class="panel-header"><h3>⚡ Quick Messages</h3><p>Common things you'd ask Ashley</p></div>
+          <div class="panel-body">
+            <div class="quick-actions">
+              <span class="quick-chip" onclick="setAshleyMsg('CEO','Any hot leads today?','Give me a summary of all calls today. Who were the hottest leads and what do I need to follow up on?')">Hot leads today?</span>
+              <span class="quick-chip" onclick="setAshleyMsg('CEO','Emergency calls?','Did we get any emergency or urgent calls today? Give me the details.')">Emergency calls</span>
+              <span class="quick-chip" onclick="setAshleyMsg('Michael','Lead handoff','Ashley, give Michael a summary of all new leads from today that need a sales follow-up.')">Hand off to Michael</span>
+              <span class="quick-chip" onclick="setAshleyMsg('CEO','Bill collector update','Any bill collectors call today? Give me the names and agencies.')">Collector update</span>
+              <span class="quick-chip" onclick="setAshleyMsg('Marcus','Estimate request','Ashley, were there any calls requesting estimates today? Give Marcus the details.')">Estimate requests</span>
+              <span class="quick-chip" onclick="setAshleyMsg('Sarah','Budget leads','Ashley, did any callers mention budgets over $300K today? Give Sarah the details.')">Big budget leads</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALL ACTIVITY TAB -->
+      <div id="ashley-activity" class="tab-content" style="padding-top:4px;">
+        <div class="panel">
+          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+            <div><h3>📋 Full Communication Log</h3><p>Every message between Ashley and the team</p></div>
+            <button onclick="loadAshleyActivity()" class="btn-secondary btn-sm">🔄 Refresh</button>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <div id="ashley-activity-list"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end ashley view -->
+
     <!-- FILE DROP -->
     <div id="view-filedrop" class="dept-view">
       <div class="content-title">📂 File Drop — Smart Inbox</div>
@@ -1479,7 +1713,15 @@ label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;lett
     <!-- CRM -->
     <div id="view-crm" class="dept-view">
       <div class="content-title">💼 Lead & CRM Pipeline</div>
-      <div class="content-subtitle">Track leads, manage your pipeline, and monitor opportunities — modeled on Houzz Pro lead flow</div>
+      <div class="content-subtitle">Track leads, manage your pipeline, and monitor opportunities</div>
+
+      <div class="tab-bar" id="crm-tabs">
+        <div class="tab active" onclick="switchTab('crm','pipeline-tab')">📊 Pipeline</div>
+        <div class="tab" onclick="switchTab('crm','calls-tab');loadCallLog()">📞 Call Log</div>
+        <div class="tab" onclick="switchTab('crm','blocked-tab');loadBlockedCallers()">🚫 Blocked Callers</div>
+      </div>
+
+      <div id="crm-pipeline-tab" class="tab-content active">
       <div class="crm-stats">
         <div class="metric-card"><div class="metric-label">New Leads</div><div class="metric-value" id="crm-new">0</div><div class="metric-sub">This month</div></div>
         <div class="metric-card"><div class="metric-label">In Proposals</div><div class="metric-value" id="crm-prop">0</div><div class="metric-sub">Awaiting decision</div></div>
@@ -1503,7 +1745,54 @@ label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;lett
         </div>
       </div>
       <div class="crm-pipeline" id="crm-pipeline"></div>
-    </div>
+      </div><!-- end pipeline tab -->
+
+      <!-- CALL LOG TAB -->
+      <div id="crm-calls-tab" class="tab-content" style="padding-top:4px;">
+        <div class="panel">
+          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+            <div><h3>📞 Ashley's Call Log</h3><p>Every inbound call with intake notes and lead score</p></div>
+            <button onclick="loadCallLog()" class="btn-secondary btn-sm">🔄 Refresh</button>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <div id="call-log-list" style="min-height:80px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BLOCKED CALLERS TAB -->
+      <div id="crm-blocked-tab" class="tab-content" style="padding-top:4px;">
+        <div class="panel">
+          <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;">
+            <div><h3>🚫 Blocked Callers</h3><p>Bill collectors and blocked numbers — Ashley ends these calls automatically</p></div>
+            <button onclick="loadBlockedCallers()" class="btn-secondary btn-sm">🔄 Refresh</button>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <div id="blocked-callers-list" style="min-height:80px;"></div>
+          </div>
+        </div>
+
+        <!-- Manual add blocked caller -->
+        <div class="panel">
+          <div class="panel-header"><h3>➕ Add to Block List</h3><p>Manually block a number or collection agency</p></div>
+          <div class="panel-body">
+            <div class="form-grid">
+              <div class="form-group"><label>Phone Number</label><input type="text" id="block-phone" placeholder="(404) 555-0000"></div>
+              <div class="form-group"><label>Company / Agency</label><input type="text" id="block-company" placeholder="Collection agency name"></div>
+              <div class="form-group"><label>Contact Name</label><input type="text" id="block-name" placeholder="Representative name"></div>
+              <div class="form-group"><label>Reference / Account #</label><input type="text" id="block-reference" placeholder="Account or reference number"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label>Notes</label>
+              <input type="text" id="block-notes" placeholder="Amount claimed, original creditor, etc.">
+            </div>
+            <button class="btn-primary" onclick="addBlockedCaller()">🚫 Add to Block List</button>
+            <div id="block-result" style="margin-top:8px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end crm view -->
 
 
     <!-- HR MODULE -->
@@ -2490,7 +2779,993 @@ Payment: Visa ending in 4821"></textarea>
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">
+// =====================================================
+// CALL LOG + BLOCKED CALLERS
+// =====================================================
+async function loadCallLog(){
+  const list = document.getElementById('call-log-list');
+  if(!list) return;
+  list.innerHTML = '<div style="padding:16px;text-align:center;color:#94a3b8;font-size:12px;">Loading calls...</div>';
+  try{
+    const res  = await fetch(SERVER_URL+'/api/calls');
+    const data = await res.json();
+    if(!data.calls || !data.calls.length){
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:12px;">No calls recorded yet. Ashley will log every call here.</div>';
+      return;
+    }
+    const scoreColor = {hot:'#10b981',warm:'#f59e0b',cold:'#94a3b8',disqualified:'#ef4444',bill_collector:'#ef4444',emergency:'#dc2626'};
+    list.innerHTML = data.calls.slice(0,50).map(c=>{
+      const intake = c.intake||{};
+      const score  = c.lead_score||intake.lead_score||'';
+      const action = c.action_taken||intake.action_taken||'';
+      const name   = intake.full_name||c.name||'Unknown Caller';
+      const project= intake.project_type||intake.project||'';
+      const budget = intake.budget||'';
+      return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(37,99,235,.06);transition:background .15s;"
+        onmouseover="this.style.background='rgba(37,99,235,.03)'" onmouseout="this.style.background=''">
+        <div style="width:36px;height:36px;border-radius:9px;background:rgba(37,99,235,.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📞</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;flex-wrap:wrap;">
+            <div style="font-size:13px;font-weight:700;color:#0f172a;">${esc(name)}</div>
+            ${score?`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${scoreColor[score]||'#94a3b8'}20;color:${scoreColor[score]||'#94a3b8'};border:1px solid ${scoreColor[score]||'#94a3b8'}30;">${score.toUpperCase()}</span>`:''}
+            ${c.call_type==='bill_collector'?'<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:#ef444420;color:#ef4444;border:1px solid #ef444430;">BLOCKED</span>':''}
+          </div>
+          <div style="font-size:11px;color:#64748b;">
+            ${esc(c.phone||'')} ${project?'· '+esc(project):''} ${budget?'· '+esc(budget):''}
+          </div>
+          ${action?`<div style="font-size:11px;color:#4f46e5;margin-top:2px;">→ ${esc(action)}</div>`:''}
+          ${c.notes?`<div style="font-size:11px;color:#94a3b8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(c.notes.slice(0,80))}</div>`:''}
+        </div>
+        <div style="font-size:10px;color:#94a3b8;white-space:nowrap;flex-shrink:0;">${c.received_at?new Date(c.received_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    list.innerHTML = `<div style="padding:16px;color:#ef4444;font-size:12px;">❌ Could not load calls: ${esc(e.message)}</div>`;
+  }
+}
+
+async function loadBlockedCallers(){
+  const list = document.getElementById('blocked-callers-list');
+  if(!list) return;
+  list.innerHTML = '<div style="padding:16px;text-align:center;color:#94a3b8;font-size:12px;">Loading...</div>';
+  try{
+    const res  = await fetch(SERVER_URL+'/api/blocked-callers');
+    const data = await res.json();
+    if(!data.blocked || !data.blocked.length){
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;font-size:12px;">No blocked callers yet. Ashley will add them automatically when a bill collector calls.</div>';
+      return;
+    }
+    list.innerHTML = data.blocked.map(b=>`
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(37,99,235,.06);">
+        <div style="width:36px;height:36px;border-radius:9px;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🚫</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;color:#0f172a;">${esc(b.company||b.name||'Unknown')}</div>
+          <div style="font-size:11px;color:#64748b;">${b.phones.map(p=>esc(p)).join(' · ')}</div>
+          ${b.reference?`<div style="font-size:11px;color:#94a3b8;">Ref: ${esc(b.reference)}</div>`:''}
+          ${b.amount?`<div style="font-size:11px;color:#ef4444;">Claimed: ${esc(b.amount)}</div>`:''}
+          ${b.notes?`<div style="font-size:11px;color:#94a3b8;margin-top:2px;">${esc(b.notes.slice(0,80))}</div>`:''}
+        </div>
+        <div style="font-size:10px;color:#94a3b8;white-space:nowrap;">${b.added_at?new Date(b.added_at).toLocaleDateString():''}</div>
+      </div>`).join('');
+  }catch(e){
+    list.innerHTML = `<div style="padding:16px;color:#ef4444;font-size:12px;">❌ ${esc(e.message)}</div>`;
+  }
+}
+
+async function addBlockedCaller(){
+  const phone   = document.getElementById('block-phone')?.value?.trim();
+  const company = document.getElementById('block-company')?.value?.trim();
+  const name    = document.getElementById('block-name')?.value?.trim();
+  const ref     = document.getElementById('block-reference')?.value?.trim();
+  const notes   = document.getElementById('block-notes')?.value?.trim();
+  const result  = document.getElementById('block-result');
+
+  if(!phone){ if(result) result.innerHTML='<div class="error-box">Enter a phone number.</div>'; return; }
+
+  try{
+    const res  = await fetch(SERVER_URL+'/api/blocked-callers',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ phone, company, name, reference:ref, notes, reason:'manual' })
+    });
+    const data = await res.json();
+    if(data.success){
+      if(result) result.innerHTML='<div class="success-box">✅ Number blocked. Ashley will end future calls from this number automatically.</div>';
+      ['block-phone','block-company','block-name','block-reference','block-notes'].forEach(id=>{
+        const el=document.getElementById(id); if(el) el.value='';
+      });
+      addActivity('🚫 Blocked caller added: '+(company||name||phone));
+      setTimeout(loadBlockedCallers, 500);
+    }
+  }catch(e){
+    if(result) result.innerHTML=`<div class="error-box">❌ ${esc(e.message)}</div>`;
+  }
+}
+
+// =====================================================
+// ASHLEY STAFF COMMUNICATIONS
+// Ashley messages the team after calls
+// Team replies back — CEO sees everything
+// =====================================================
+
+// Staff agent system prompts for replying as Ashley's colleagues
+const ASHLEY_STAFF_PROMPTS = {
+  Michael:  'You are Michael Foster, Sales Director at Elevate Construction. Ashley the receptionist just sent you a message about a lead or caller. Reply in character as Michael — review the info, give your sales take, and outline your follow-up plan. Be direct and action-oriented. Plain text only, no markdown.',
+  Marcus:   'You are Marcus Rodriguez, Estimating Specialist at Elevate Construction. Ashley the receptionist sent you a message about a potential project. Reply in character as Marcus — give your estimating perspective, flag scope questions, and note what info you need for a quote. Plain text only.',
+  Sarah:    'You are Sarah Chen, CFO at Elevate Construction. Ashley the receptionist sent you a message. Reply in character as Sarah — review any financial details, flag margin concerns, and give your financial recommendation. Plain text only.',
+  David:    'You are David Thompson, COO at Elevate Construction. Ashley the receptionist sent you a message. Reply in character as David — review operational requirements, crew needs, and scheduling considerations. Plain text only.',
+  Jennifer: 'You are Jennifer Harrison, Legal Advisor at Elevate Construction. Ashley the receptionist sent you a message. Reply in character as Jennifer — flag any legal considerations, contract requirements, or risk items. Plain text only.',
+  Ashley:   'You are Ashley, the professional receptionist for Elevate Construction LLC. A team member has sent you a message or question. Reply in character as Ashley — reference call logs and lead data if relevant, give a clear helpful response, and suggest next steps. Warm, professional tone. Plain text only.'
+};
+
+const ASHLEY_SYSTEM = `You are Ashley, the professional AI receptionist for Elevate Construction LLC in Atlanta, Georgia. 
+You handle all inbound calls, qualify leads, block collectors, and keep the team informed.
+Your job in this chat is to answer questions from the CEO and staff about calls, leads, and activity.
+Reference specific call details, caller names, and intake data when answering.
+Be helpful, organized, and proactive. Suggest follow-ups when relevant.
+Plain text only — no markdown, no bullet stars, no hashtags.`;
+
+// ── Load Ashley messages ──────────────────────────────────────
+async function loadAshleyMessages(){
+  const list    = document.getElementById('ashley-messages-list');
+  const countEl = document.getElementById('ashley-inbox-count');
+  const toFilter= document.getElementById('ashley-filter-to')?.value || '';
+  if(!list) return;
+
+  list.innerHTML = '<div style="padding:16px;text-align:center;color:#94a3b8;font-size:12px;">Loading messages...</div>';
+
+  try{
+    const url = SERVER_URL+'/api/ashley/messages'+(toFilter?'?to='+toFilter:'');
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if(countEl) countEl.textContent = (data.count||0)+' messages';
+
+    if(!data.messages?.length){
+      list.innerHTML = `<div style="text-align:center;padding:40px 20px;">
+        <div style="font-size:48px;margin-bottom:12px;">📱</div>
+        <div style="font-weight:700;font-size:14px;color:#0f172a;margin-bottom:6px;">No messages yet</div>
+        <div style="font-size:12px;color:#64748b;">Ashley will post here after every call — lead details, follow-up notes, and flags for the team.</div>
+      </div>`;
+      return;
+    }
+
+    list.innerHTML = data.messages.map(msg => renderAshleyMessage(msg)).join('');
+  }catch(e){
+    list.innerHTML = `<div style="padding:16px;color:#ef4444;font-size:12px;">❌ ${esc(e.message)} — Is server online?</div>`;
+  }
+}
+
+function renderAshleyMessage(msg){
+  const priorityColor = msg.priority==='emergency'?'#ef4444':msg.priority==='flag'?'#f59e0b':'#4f46e5';
+  const priorityLabel = msg.priority==='emergency'?'🚨 EMERGENCY':msg.priority==='flag'?'⚠️ FLAGGED':'';
+  const toEmoji = {Michael:'🤝',Marcus:'📐',Sarah:'💰',David:'🏗️',Jennifer:'⚖️',CEO:'👑',All:'📢'}[msg.to]||'📋';
+
+  return `<div id="ashley-msg-${msg.id}" style="background:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.95);
+    border-radius:14px;margin-bottom:12px;overflow:hidden;box-shadow:0 2px 12px rgba(99,102,241,.06);
+    ${!msg.read?'border-left:4px solid #4f46e5;':''}">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(37,99,235,.06);
+      background:linear-gradient(135deg,rgba(255,255,255,.6),rgba(255,255,255,.3));">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#2563eb);
+        display:flex;align-items:center;justify-content:center;font-size:16px;color:white;font-weight:800;flex-shrink:0;">A</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:#0f172a;">Ashley → ${toEmoji} ${esc(msg.to)}</div>
+        <div style="font-size:11px;color:#64748b;">${esc(msg.subject)}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${priorityLabel?`<span style="font-size:10px;font-weight:700;color:${priorityColor};">${priorityLabel}</span>`:''}
+        <div style="font-size:10px;color:#94a3b8;">${msg.sent_at?new Date(msg.sent_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''}</div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:12px 14px;">
+      ${msg.caller_name?`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+        <span style="font-size:11px;background:rgba(99,102,241,.08);color:#4338ca;padding:3px 9px;border-radius:10px;border:1px solid rgba(99,102,241,.14);">👤 ${esc(msg.caller_name)}</span>
+        ${msg.caller_phone?`<span style="font-size:11px;background:rgba(99,102,241,.08);color:#4338ca;padding:3px 9px;border-radius:10px;border:1px solid rgba(99,102,241,.14);">📞 ${esc(msg.caller_phone)}</span>`:''}
+        ${msg.project_type?`<span style="font-size:11px;background:rgba(16,185,129,.08);color:#059669;padding:3px 9px;border-radius:10px;border:1px solid rgba(16,185,129,.14);">🏗️ ${esc(msg.project_type)}</span>`:''}
+        ${msg.budget?`<span style="font-size:11px;background:rgba(245,158,11,.08);color:#b45309;padding:3px 9px;border-radius:10px;border:1px solid rgba(245,158,11,.14);">💰 ${esc(msg.budget)}</span>`:''}
+      </div>`:''}
+      <div style="font-size:13px;color:#374151;line-height:1.75;white-space:pre-wrap;">${esc(msg.body)}</div>
+    </div>
+
+    <!-- Replies -->
+    ${msg.replies?.length?`<div style="border-top:1px solid rgba(37,99,235,.06);padding:10px 14px;background:rgba(239,246,255,.4);">
+      ${msg.replies.map(r=>`
+        <div style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start;">
+          <div style="width:28px;height:28px;border-radius:50%;background:rgba(99,102,241,.15);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#4f46e5;flex-shrink:0;">${r.from.charAt(0)}</div>
+          <div style="flex:1;background:rgba(255,255,255,.8);border-radius:10px;padding:8px 12px;border:1px solid rgba(255,255,255,.95);">
+            <div style="font-size:11px;font-weight:700;color:#4f46e5;margin-bottom:3px;">${esc(r.from)}</div>
+            <div style="font-size:12px;color:#374151;line-height:1.6;">${esc(r.body)}</div>
+          </div>
+        </div>`).join('')}
+    </div>`:''}
+
+    <!-- Action bar -->
+    <div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid rgba(37,99,235,.05);flex-wrap:wrap;">
+      <button onclick="replyToAshleyMessage(${msg.id},'${esc(msg.to)}')"
+        class="btn-secondary btn-sm" style="font-size:11px;">💬 Reply</button>
+      <button onclick="askAgentAboutCall(${msg.id},'${esc(msg.to)}')"
+        class="btn-secondary btn-sm" style="font-size:11px;">🤖 Get ${esc(msg.to)}'s Response</button>
+      ${msg.caller_phone?`<button onclick="addLeadFromAshley('${esc(msg.caller_name||'')}','${esc(msg.caller_phone||'')}','${esc(msg.project_type||'')}','${esc(msg.budget||'')}','${esc(msg.call_id||'')}');"
+        class="btn-secondary btn-sm" style="font-size:11px;">➕ Add to Pipeline</button>`:''}
+    </div>
+  </div>`;
+}
+
+// ── Ask the relevant staff agent to respond ───────────────────
+async function askAgentAboutCall(msgId, staffName){
+  if(!apiKey){ openApiModal(); return; }
+
+  const msgEl = document.getElementById('ashley-msg-'+msgId);
+  if(!msgEl) return;
+
+  // Find the message data
+  let msgData = null;
+  try{
+    const res  = await fetch(SERVER_URL+'/api/ashley/messages');
+    const data = await res.json();
+    msgData = data.messages?.find(m=>m.id===msgId);
+  }catch(e){}
+
+  if(!msgData) return;
+
+  const systemPrompt = ASHLEY_STAFF_PROMPTS[staffName] || ASHLEY_STAFF_PROMPTS.Michael;
+  const context = `Message from Ashley:
+Subject: ${msgData.subject}
+${msgData.caller_name ? 'Caller: '+msgData.caller_name : ''}
+${msgData.caller_phone ? 'Phone: '+msgData.caller_phone : ''}
+${msgData.project_type ? 'Project: '+msgData.project_type : ''}
+${msgData.budget ? 'Budget: '+msgData.budget : ''}
+
+Ashley's message:
+${msgData.body}`;
+
+  // Show thinking state
+  const actionBar = msgEl.querySelector('[style*="Action bar"]') || msgEl.lastElementChild;
+  const thinkDiv = document.createElement('div');
+  thinkDiv.style.cssText = 'padding:8px 14px;font-size:12px;color:#4f46e5;display:flex;align-items:center;gap:8px;';
+  thinkDiv.innerHTML = '<div class="spinner"></div> '+staffName+' is reviewing...';
+  msgEl.appendChild(thinkDiv);
+
+  try{
+    const reply = await callClaudeRaw(systemPrompt, [{role:'user', content:context}], 600);
+    const clean = stripMarkdown(reply);
+
+    // Save reply to server
+    await fetch(SERVER_URL+'/api/ashley/reply', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ message_id:msgId, from:staffName, body:clean })
+    });
+
+    thinkDiv.remove();
+    addActivity('💬 '+staffName+' replied to Ashley re: '+msgData.subject.slice(0,30));
+
+    // Reload messages to show reply
+    loadAshleyMessages();
+    queryCount++;
+    document.getElementById('metric-queries').textContent = queryCount;
+    localStorage.setItem('elevate_query_count', queryCount);
+
+  }catch(e){
+    thinkDiv.innerHTML = '❌ '+e.message;
+    setTimeout(()=>thinkDiv.remove(), 3000);
+  }
+}
+
+// ── Reply to Ashley (from CEO or staff) ──────────────────────
+async function replyToAshleyMessage(msgId, originalTo){
+  const reply = prompt('Reply to Ashley:');
+  if(!reply) return;
+  const from = document.getElementById('ashley-msg-from')?.value || 'CEO';
+
+  try{
+    await fetch(SERVER_URL+'/api/ashley/reply', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ message_id:msgId, from, body:reply })
+    });
+    loadAshleyMessages();
+    addActivity('💬 '+from+' replied to Ashley');
+  }catch(e){ alert('Error: '+e.message); }
+}
+
+// ── Send message to Ashley ────────────────────────────────────
+async function sendMessageToAshley(){
+  if(!apiKey){ openApiModal(); return; }
+  const from    = document.getElementById('ashley-msg-from')?.value || 'CEO';
+  const subject = document.getElementById('ashley-msg-subject')?.value?.trim();
+  const body    = document.getElementById('ashley-msg-body')?.value?.trim();
+  const result  = document.getElementById('ashley-send-result');
+  const output  = document.getElementById('ashley-reply-output');
+
+  if(!body){ if(result) result.innerHTML='<div class="error-box">Type a message first.</div>'; return; }
+
+  if(result) result.innerHTML='<div class="notice-box">🔄 Ashley is reading your message...</div>';
+  if(output) output.innerHTML='';
+
+  try{
+    // Get Ashley's AI response
+    const context = `${from} sent you this message:\nSubject: ${subject||'Message'}\n\n${body}\n\nReply as Ashley with relevant info from recent calls if applicable.`;
+    const ashleyReply = await callClaudeRaw(ASHLEY_SYSTEM, [{role:'user', content:context}], 800);
+    const clean = stripMarkdown(ashleyReply);
+
+    // Save to server as a message thread
+    await fetch(SERVER_URL+'/api/ashley/message', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ from, to:'Ashley', subject:subject||'Staff Message', body, priority:'normal' })
+    });
+
+    // Show Ashley's reply
+    if(output) output.innerHTML = `
+      <div style="background:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.95);border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(99,102,241,.08);">
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(135deg,rgba(255,255,255,.6),rgba(255,255,255,.3));border-bottom:1px solid rgba(37,99,235,.06);">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#2563eb);display:flex;align-items:center;justify-content:center;font-size:16px;color:white;font-weight:800;">A</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#0f172a;">Ashley</div>
+            <div style="font-size:11px;color:#64748b;">Receptionist · just now</div>
+          </div>
+          ${elKey?`<button onclick="speakText(decodeURIComponent('${encodeURIComponent(clean)}'),'pFZP5JQG7iQjIQuC4Bku',null)" style="margin-left:auto;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);color:#4f46e5;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:600;">🔊 Hear</button>`:''}
+        </div>
+        <div style="padding:14px;font-size:13px;color:#374151;line-height:1.8;white-space:pre-wrap;">${esc(clean)}</div>
+      </div>`;
+
+    if(result) result.innerHTML='';
+    document.getElementById('ashley-msg-body').value='';
+    addActivity('📱 '+from+' messaged Ashley: '+( subject||body.slice(0,30)));
+    queryCount++;
+    document.getElementById('metric-queries').textContent=queryCount;
+    localStorage.setItem('elevate_query_count',queryCount);
+
+  }catch(e){
+    if(result) result.innerHTML=`<div class="error-box">❌ ${esc(e.message)}</div>`;
+  }
+}
+
+function setAshleyMsg(from, subject, body){
+  const fromEl    = document.getElementById('ashley-msg-from');
+  const subjectEl = document.getElementById('ashley-msg-subject');
+  const bodyEl    = document.getElementById('ashley-msg-body');
+  if(fromEl && from) fromEl.value = from;
+  if(subjectEl) subjectEl.value = subject;
+  if(bodyEl){ bodyEl.value = body; bodyEl.focus(); }
+  switchTab('ashley','compose');
+}
+
+function addLeadFromAshley(name, phone, project, budget, callId){
+  showView('crm');
+  const nameEl    = document.getElementById('lead-name');
+  const projectEl = document.getElementById('lead-project');
+  const valueEl   = document.getElementById('lead-value');
+  const phoneEl   = document.getElementById('lead-phone');
+  const notesEl   = document.getElementById('lead-notes');
+  if(nameEl)    nameEl.value    = name;
+  if(phoneEl)   phoneEl.value   = phone;
+  if(projectEl) projectEl.value = project;
+  if(valueEl)   valueEl.value   = budget;
+  if(notesEl)   notesEl.value   = 'From Ashley call log. Call ID: '+callId;
+  addActivity('➕ Lead pre-filled from Ashley call: '+name);
+}
+
+async function loadAshleyActivity(){
+  const list = document.getElementById('ashley-activity-list');
+  if(!list) return;
+  list.innerHTML='<div style="padding:16px;text-align:center;color:#94a3b8;font-size:12px;">Loading...</div>';
+  try{
+    const res  = await fetch(SERVER_URL+'/api/ashley/messages');
+    const data = await res.json();
+    if(!data.messages?.length){
+      list.innerHTML='<div style="text-align:center;padding:30px;color:#94a3b8;font-size:12px;">No activity yet.</div>';
+      return;
+    }
+    list.innerHTML = data.messages.map(msg=>`
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(37,99,235,.06);">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#2563eb);display:flex;align-items:center;justify-content:center;font-size:13px;color:white;font-weight:800;flex-shrink:0;">A</div>
+        <div style="flex:1;">
+          <div style="font-size:12px;font-weight:700;color:#0f172a;">${esc(msg.subject)} → ${esc(msg.to)}</div>
+          <div style="font-size:11px;color:#64748b;">${msg.caller_name?esc(msg.caller_name)+' · ':''} ${msg.replies?.length||0} repl${(msg.replies?.length||0)===1?'y':'ies'}</div>
+        </div>
+        <div style="font-size:10px;color:#94a3b8;">${msg.sent_at?new Date(msg.sent_at).toLocaleDateString():''}</div>
+      </div>`).join('');
+  }catch(e){
+    list.innerHTML=`<div style="padding:16px;color:#ef4444;font-size:12px;">❌ ${esc(e.message)}</div>`;
+  }
+}
+
+// Auto-load when tab opens
+const _origShowViewAshley = showView;
+function showView(id){
+  _origShowViewAshley(id);
+  if(id==='ashley') setTimeout(loadAshleyMessages, 200);
+}
+</script><script>
+// =====================================================
+// AUTONOMOUS CONSTRUCTION WORKFLOW ENGINE
+// =====================================================
+
+const WORKFLOW_STAGES = [
+  { id:'intake',     label:'Lead Intake',           icon:'📞', agent:'Ashley',   auto:true  },
+  { id:'qualify',    label:'Qualification',          icon:'🎯', agent:'Michael',  auto:true  },
+  { id:'prebid',     label:'Pre-Bid Workup',         icon:'📐', agent:'Marcus',   auto:true  },
+  { id:'finance',    label:'Financial Review',       icon:'💰', agent:'Sarah',    auto:true  },
+  { id:'proposal',   label:'Proposal Generated',     icon:'📋', agent:'Marcus',   auto:true  },
+  { id:'ceo_review', label:'Your Review',            icon:'👑', agent:'CEO',      auto:false },
+  { id:'signed',     label:'Signed Estimate Upload', icon:'✍️', agent:'CEO',      auto:false },
+  { id:'contract',   label:'Contract + Invoice',     icon:'📄', agent:'Jennifer', auto:true  },
+  { id:'ceo_sign',   label:'You Sign Contract',      icon:'✅', agent:'CEO',      auto:false },
+  { id:'active',     label:'Active Project Setup',   icon:'🏗️', agent:'David',    auto:true  },
+  { id:'closeout',   label:'Closeout',               icon:'🏁', agent:'All',      auto:true  },
+];
+
+let activeJobs = JSON.parse(localStorage.getItem('elevate_workflow_jobs') || '[]');
+
+function saveJobs(){
+  localStorage.setItem('elevate_workflow_jobs', JSON.stringify(activeJobs));
+}
+
+// ── Start a new autonomous workflow ──────────────────────────
+async function startWorkflow(){
+  if(!apiKey){ openApiModal(); return; }
+
+  const name     = document.getElementById('wf-client-name')?.value?.trim();
+  const phone    = document.getElementById('wf-phone')?.value?.trim();
+  const email    = document.getElementById('wf-email')?.value?.trim();
+  const address  = document.getElementById('wf-address')?.value?.trim();
+  const project  = document.getElementById('wf-project-type')?.value;
+  const budget   = document.getElementById('wf-budget')?.value;
+  const timeline = document.getElementById('wf-timeline')?.value;
+  const sqft     = document.getElementById('wf-sqft')?.value?.trim();
+  const desc     = document.getElementById('wf-description')?.value?.trim();
+  const result   = document.getElementById('wf-start-result');
+  const btn      = document.getElementById('wf-start-btn');
+
+  if(!name){ alert('Enter client name.'); return; }
+
+  const job = {
+    id:         Date.now(),
+    client:     name,
+    phone, email, address,
+    project_type: project,
+    budget, timeline, sqft,
+    description: desc,
+    stage:       'intake',
+    stage_index: 0,
+    status:      'running',
+    created_at:  new Date().toISOString(),
+    updated_at:  new Date().toISOString(),
+    outputs:     {},   // agent outputs keyed by stage id
+    log:         [],   // activity log
+    files:       {},   // uploaded files keyed by type
+  };
+
+  activeJobs.unshift(job);
+  saveJobs();
+
+  if(btn) btn.disabled = true;
+  if(result) result.innerHTML = '<div class="notice-box">⚙️ Workflow started — agents are working...</div>';
+
+  addActivity('⚙️ Workflow started: '+name+' | '+project);
+
+  // Run the autonomous pipeline
+  await runWorkflowPipeline(job);
+
+  if(btn) btn.disabled = false;
+
+  // Switch to active jobs
+  switchTab('workflow','active-jobs');
+  loadActiveJobs();
+}
+
+// ── Run the full autonomous pipeline ─────────────────────────
+async function runWorkflowPipeline(job){
+  // Auto stages that run without CEO input
+  await runStage(job, 'qualify');
+  await runStage(job, 'prebid');
+  await runStage(job, 'finance');
+  await runStage(job, 'proposal');
+
+  // Pause for CEO review
+  job.stage       = 'ceo_review';
+  job.stage_index = 5;
+  job.status      = 'awaiting_approval';
+  job.updated_at  = new Date().toISOString();
+  saveJobs();
+  loadActiveJobs();
+
+  // Send Ashley message to CEO
+  await notifyAshleyMessage(job, 'CEO',
+    'Proposal Ready for Review — '+job.client,
+    `The autonomous workflow for ${job.client} (${job.project_type}) has completed the pre-bid and proposal stages. The proposal and estimate are ready for your review and approval. Client budget: ${job.budget}. Please review and approve to send to the client.`
+  );
+}
+
+// ── Run a single agent stage ──────────────────────────────────
+async function runStage(job, stageId){
+  const stage = WORKFLOW_STAGES.find(s=>s.id===stageId);
+  if(!stage) return;
+
+  job.stage       = stageId;
+  job.stage_index = WORKFLOW_STAGES.findIndex(s=>s.id===stageId);
+  job.updated_at  = new Date().toISOString();
+  saveJobs();
+
+  const dept = DEPARTMENTS.find(d=>d.name.toLowerCase().includes(stage.agent.toLowerCase()));
+  const systemPrompt = dept?.systemPrompt || `You are a construction professional at Elevate Construction LLC handling the ${stage.label} stage.`;
+
+  const stagePrompts = {
+    qualify: `You are Michael Foster, Sales Director at Elevate Construction.
+Review this new lead and provide:
+1. Lead score (Hot/Warm/Cold) with clear reasoning
+2. Key selling points to emphasize
+3. Potential objections and how to handle them
+4. Recommended next steps
+Client: ${job.client} | Project: ${job.project_type} | Budget: ${job.budget} | Timeline: ${job.timeline}
+Description: ${job.description || 'No description provided'}
+Be specific and actionable. Plain text only.`,
+
+    prebid: `You are Marcus Rodriguez, Estimating Specialist at Elevate Construction.
+Build a detailed pre-bid workup for this project. MINIMUM 30% gross profit on all line items.
+Client: ${job.client} | Project: ${job.project_type} | Budget: ${job.budget}
+Address: ${job.address} | Sq Ft: ${job.sqft || 'Unknown'} | Timeline: ${job.timeline}
+Description: ${job.description || 'Not provided'}
+
+Provide:
+1. Detailed line-item estimate (labor, materials, equipment, subcontractors)
+2. Total cost breakdown
+3. Suggested project price to client (minimum 30% GP)
+4. Key scope assumptions
+5. Items needing clarification before final bid
+Be specific with numbers. Plain text only.`,
+
+    finance: `You are Sarah Chen, CFO at Elevate Construction.
+Review this project estimate and provide financial analysis. ENFORCE 30% minimum gross profit.
+Client: ${job.client} | Project: ${job.project_type} | Budget: ${job.budget}
+Marcus's Estimate: ${job.outputs?.prebid?.slice(0,800) || 'See project details'}
+
+Provide:
+1. GP margin verification (flag anything under 30%)
+2. Recommended payment schedule (deposit, draws, final)
+3. Cash flow considerations
+4. Financial risks and mitigation
+5. Invoice/contract payment terms recommendation
+Plain text only.`,
+
+    proposal: `You are Marcus Rodriguez at Elevate Construction writing a client-facing proposal.
+Create a professional, compelling project proposal for this client.
+Client: ${job.client} | Address: ${job.address} | Project: ${job.project_type}
+Budget Range: ${job.budget} | Timeline: ${job.timeline}
+Description: ${job.description || 'General construction project'}
+Pre-bid estimate: ${job.outputs?.prebid?.slice(0,600) || 'See project scope'}
+Financial terms: ${job.outputs?.finance?.slice(0,400) || 'Standard terms'}
+
+Write a complete proposal including:
+1. Project overview and understanding of scope
+2. Our approach and methodology
+3. Why choose Elevate Construction
+4. Detailed scope of work
+5. Estimated investment (price range, keep in budget window)
+6. Payment schedule
+7. Timeline and key milestones
+8. Next steps
+Professional, client-facing tone. Plain text only.`,
+  };
+
+  try{
+    const prompt = stagePrompts[stageId] || `Complete the ${stage.label} stage for: ${job.client}, ${job.project_type}, ${job.budget}`;
+    const output = await callClaudeRaw(systemPrompt, [{role:'user', content:prompt}], 1500);
+    const clean  = stripMarkdown(output);
+
+    job.outputs[stageId] = clean;
+    job.log.push({ stage:stageId, agent:stage.agent, done_at:new Date().toISOString(), summary:clean.slice(0,100)+'...' });
+    saveJobs();
+
+    addActivity(`${stage.icon} ${stage.label} complete — ${job.client}`);
+    loadActiveJobs();
+    queryCount++;
+    document.getElementById('metric-queries').textContent = queryCount;
+    localStorage.setItem('elevate_query_count', queryCount);
+
+  }catch(e){
+    job.log.push({ stage:stageId, error:e.message, done_at:new Date().toISOString() });
+    job.status = 'error';
+    saveJobs();
+    console.error('[Workflow]', stageId, e);
+  }
+}
+
+// ── CEO approves proposal → send to client stage ─────────────
+async function approveProposal(jobId){
+  const job = activeJobs.find(j=>j.id===jobId);
+  if(!job) return;
+
+  job.stage       = 'signed';
+  job.stage_index = 6;
+  job.status      = 'awaiting_signature';
+  job.updated_at  = new Date().toISOString();
+  job.log.push({ stage:'ceo_review', agent:'CEO', done_at:new Date().toISOString(), summary:'Proposal approved by CEO' });
+  saveJobs();
+  loadActiveJobs();
+
+  addActivity('✅ Proposal approved: '+job.client+' — awaiting signed estimate');
+
+  await notifyAshleyMessage(job, 'Michael',
+    'Proposal Approved — Follow Up with '+job.client,
+    `The proposal for ${job.client} (${job.project_type}) has been approved and sent. Please follow up within 24 hours to answer questions and push for signature. Budget: ${job.budget}.`
+  );
+}
+
+// ── Handle signed estimate upload ────────────────────────────
+function handleSignedEstimateUpload(jobId, input){
+  const file = input?.files?.[0];
+  if(!file) return;
+
+  const job = activeJobs.find(j=>j.id===jobId);
+  if(!job) return;
+
+  const reader = new FileReader();
+  reader.onload = async e => {
+    job.files['signed_estimate'] = {
+      name:      file.name,
+      size:      file.size,
+      data:      e.target.result.split(',')[1],
+      uploaded:  new Date().toISOString()
+    };
+    job.stage       = 'contract';
+    job.stage_index = 7;
+    job.status      = 'running';
+    job.updated_at  = new Date().toISOString();
+    job.log.push({ stage:'signed', agent:'CEO', done_at:new Date().toISOString(), summary:'Signed estimate uploaded: '+file.name });
+    saveJobs();
+    loadActiveJobs();
+
+    addActivity('✍️ Signed estimate uploaded: '+job.client+' | '+file.name);
+
+    // Auto-generate contract + invoice
+    await runContractStage(job);
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Generate contract + invoice ───────────────────────────────
+async function runContractStage(job){
+  addActivity('📄 Generating contract + invoice for '+job.client+'...');
+
+  const contractPrompt = `You are Jennifer Harrison, Legal Advisor at Elevate Construction LLC.
+The client has signed the estimate. Generate a complete Georgia-compliant construction contract.
+Client: ${job.client} | Address: ${job.address} | Project: ${job.project_type}
+Scope summary: ${job.outputs?.proposal?.slice(0,600) || 'General construction project'}
+Financial terms: ${job.outputs?.finance?.slice(0,300) || 'Standard terms'}
+
+Generate a professional contract including:
+1. Parties and project identification
+2. Scope of work
+3. Contract price and payment schedule
+4. Timeline and milestones
+5. Change order procedures
+6. Materials and standards
+7. Permits and inspections
+8. Warranties
+9. Dispute resolution (Georgia law)
+10. Signatures block
+Professional legal tone. Plain text only.`;
+
+  const invoicePrompt = `You are Sarah Chen, CFO at Elevate Construction.
+Generate a professional invoice for this construction project.
+Client: ${job.client} | Email: ${job.email} | Address: ${job.address}
+Project: ${job.project_type} | Budget: ${job.budget}
+Line items from estimate: ${job.outputs?.prebid?.slice(0,500) || 'Per signed estimate'}
+Financial terms: ${job.outputs?.finance?.slice(0,300) || 'Standard: 30% deposit, draws, final'}
+
+Generate:
+1. Invoice header with Elevate Construction details
+2. Client billing information
+3. Line items with amounts
+4. Deposit due amount (typically 30%)
+5. Draw schedule
+6. Total contract value
+7. Payment instructions
+8. Due dates
+Professional format. Plain text only.`;
+
+  try{
+    const [contractOut, invoiceOut] = await Promise.all([
+      callClaudeRaw('You are Jennifer Harrison, Legal Advisor.', [{role:'user',content:contractPrompt}], 2000),
+      callClaudeRaw('You are Sarah Chen, CFO.', [{role:'user',content:invoicePrompt}], 1000)
+    ]);
+
+    job.outputs['contract'] = stripMarkdown(contractOut);
+    job.outputs['invoice']  = stripMarkdown(invoiceOut);
+    job.stage       = 'ceo_sign';
+    job.stage_index = 8;
+    job.status      = 'awaiting_signature';
+    job.updated_at  = new Date().toISOString();
+    job.log.push({ stage:'contract', agent:'Jennifer+Sarah', done_at:new Date().toISOString(), summary:'Contract and invoice generated' });
+    saveJobs();
+    loadActiveJobs();
+
+    addActivity('📄 Contract + invoice ready: '+job.client);
+    queryCount += 2;
+    document.getElementById('metric-queries').textContent = queryCount;
+    localStorage.setItem('elevate_query_count', queryCount);
+
+    await notifyAshleyMessage(job, 'CEO',
+      'Contract + Invoice Ready — '+job.client,
+      `Jennifer has finalized the construction contract and Sarah has generated the invoice for ${job.client} (${job.project_type}). Both documents are ready for your review and signature. Once signed, David will set up the active project schedule.`
+    );
+  }catch(e){
+    job.status = 'error';
+    job.log.push({ stage:'contract', error:e.message, done_at:new Date().toISOString() });
+    saveJobs();
+    addActivity('❌ Contract generation error: '+e.message);
+  }
+}
+
+// ── CEO signs contract → project goes active ──────────────────
+async function signContract(jobId){
+  const job = activeJobs.find(j=>j.id===jobId);
+  if(!job) return;
+
+  job.stage       = 'active';
+  job.stage_index = 9;
+  job.status      = 'running';
+  job.updated_at  = new Date().toISOString();
+  job.log.push({ stage:'ceo_sign', agent:'CEO', done_at:new Date().toISOString(), summary:'Contract signed by CEO' });
+  saveJobs();
+
+  addActivity('✅ Contract signed — project going active: '+job.client);
+  await runActiveProjectStage(job);
+}
+
+// ── Active project setup ──────────────────────────────────────
+async function runActiveProjectStage(job){
+  const projectPrompt = `You are David Thompson, COO at Elevate Construction.
+The contract has been signed. Set up this project for active execution.
+Client: ${job.client} | Address: ${job.address} | Project: ${job.project_type}
+Timeline: ${job.timeline} | Sq Ft: ${job.sqft || 'Unknown'}
+Scope: ${job.outputs?.proposal?.slice(0,500) || 'General construction project'}
+
+Provide a complete project setup including:
+1. Crew requirements by trade and phase
+2. Weekly schedule and milestones (weeks 1-4 detailed, overall timeline)
+3. Materials procurement list and lead times
+4. Permits required in Atlanta/Georgia
+5. Equipment needs
+6. Subcontractor requirements
+7. Quality checkpoints
+8. Daily reporting requirements
+Be specific and actionable. Plain text only.`;
+
+  try{
+    const out   = await callClaudeRaw('You are David Thompson, COO.', [{role:'user',content:projectPrompt}], 1500);
+    const clean = stripMarkdown(out);
+
+    job.outputs['active_setup'] = clean;
+    job.stage       = 'active';
+    job.status      = 'active';
+    job.updated_at  = new Date().toISOString();
+    job.log.push({ stage:'active', agent:'David', done_at:new Date().toISOString(), summary:clean.slice(0,100) });
+
+    // Auto-create tasks from project setup
+    const taskList = [
+      { title:'Follow up with client re: project kickoff — '+job.client, dept:'Sales', priority:'high' },
+      { title:'Submit permit applications — '+job.address, dept:'Operations', priority:'high' },
+      { title:'Send deposit invoice to '+job.client, dept:'Accounting', priority:'high' },
+      { title:'Order materials — '+job.project_type+' for '+job.client, dept:'Operations', priority:'medium' },
+      { title:'Schedule crew for '+job.client+' — '+job.address, dept:'Operations', priority:'medium' },
+      { title:'Confirm subcontractors — '+job.project_type, dept:'Operations', priority:'medium' },
+    ];
+    taskList.forEach(t=>{
+      tasks.push({ id:Date.now()+Math.random(), ...t, done:false, created_at:new Date().toISOString(), workflow_job:job.id });
+    });
+    saveTasks();
+    renderTasks();
+    updateTaskMetric();
+
+    saveJobs();
+    loadActiveJobs();
+
+    addActivity('🏗️ Project active: '+job.client+' | '+taskList.length+' tasks created');
+    queryCount++;
+    document.getElementById('metric-queries').textContent = queryCount;
+    localStorage.setItem('elevate_query_count', queryCount);
+
+    await notifyAshleyMessage(job, 'Michael',
+      'Project Active — '+job.client,
+      `The project for ${job.client} (${job.project_type}) is now active. David has set up the schedule and ${taskList.length} tasks have been created in Task Inbox. Deposit invoice has been sent.`
+    );
+  }catch(e){
+    job.status = 'error';
+    saveJobs();
+    addActivity('❌ Project setup error: '+e.message);
+  }
+}
+
+// ── Ashley notification helper ────────────────────────────────
+async function notifyAshleyMessage(job, to, subject, body){
+  try{
+    await fetch(SERVER_URL+'/api/ashley/message', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        to, subject, body,
+        caller_name:  job.client,
+        caller_phone: job.phone || '',
+        project_type: job.project_type,
+        budget:       job.budget,
+        priority:     'normal',
+        from:         'Workflow Engine'
+      })
+    });
+  }catch(e){ console.log('[Workflow] Ashley notify failed:', e.message); }
+}
+
+// ── Render active jobs ────────────────────────────────────────
+function loadActiveJobs(){
+  const list    = document.getElementById('active-jobs-list');
+  const countEl = document.getElementById('workflow-job-count');
+  if(!list) return;
+
+  activeJobs = JSON.parse(localStorage.getItem('elevate_workflow_jobs') || '[]');
+
+  const running = activeJobs.filter(j=>j.status !== 'completed');
+  if(countEl) countEl.textContent = running.length + ' active job'+(running.length!==1?'s':'');
+
+  if(!activeJobs.length){
+    list.innerHTML = `<div style="text-align:center;padding:50px 20px;">
+      <div style="font-size:48px;margin-bottom:12px;">⚙️</div>
+      <div style="font-weight:700;font-size:14px;color:#0f172a;margin-bottom:6px;">No jobs running</div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:16px;">Start a workflow or let Ashley automatically trigger one from a call.</div>
+      <button onclick="switchTab('workflow','new-job')" class="btn-primary" style="width:auto;padding:10px 24px;">➕ Start New Job</button>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = activeJobs.map(job => renderJobCard(job)).join('');
+}
+
+function renderJobCard(job){
+  const stageIdx  = job.stage_index || 0;
+  const totalAuto = WORKFLOW_STAGES.length;
+  const pct       = Math.round((stageIdx / totalAuto) * 100);
+  const stage     = WORKFLOW_STAGES.find(s=>s.id===job.stage) || WORKFLOW_STAGES[0];
+
+  const statusColors = {
+    running:             '#4f46e5',
+    awaiting_approval:   '#f59e0b',
+    awaiting_signature:  '#f59e0b',
+    active:              '#10b981',
+    completed:           '#10b981',
+    error:               '#ef4444'
+  };
+  const statusLabels = {
+    running:             '⚙️ Running',
+    awaiting_approval:   '👑 Needs Your Approval',
+    awaiting_signature:  '✍️ Needs Your Signature',
+    active:              '🏗️ Active',
+    completed:           '✅ Complete',
+    error:               '❌ Error'
+  };
+
+  const color = statusColors[job.status] || '#64748b';
+  const label = statusLabels[job.status] || job.status;
+
+  return `<div class="panel" style="border-left:4px solid ${color};">
+    <div class="panel-header" style="display:flex;align-items:flex-start;gap:12px;">
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+          <div style="font-size:14px;font-weight:800;color:#0f172a;">${esc(job.client)}</div>
+          <span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:10px;background:${color}18;color:${color};border:1px solid ${color}28;">${label}</span>
+        </div>
+        <div style="font-size:11px;color:#64748b;">${esc(job.project_type)} · ${esc(job.budget)} · ${esc(job.timeline)}</div>
+        ${job.address?`<div style="font-size:11px;color:#94a3b8;">${esc(job.address)}</div>`:''}
+      </div>
+      <div style="font-size:10px;color:#94a3b8;text-align:right;flex-shrink:0;">
+        ${new Date(job.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+      </div>
+    </div>
+    <div class="panel-body" style="padding-top:8px;">
+
+      <!-- Progress bar -->
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <div style="font-size:11px;font-weight:600;color:#4f46e5;">${stage.icon} ${stage.label}</div>
+          <div style="font-size:11px;color:#94a3b8;">${pct}% complete</div>
+        </div>
+        <div style="height:6px;background:rgba(99,102,241,.1);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#4f46e5,#2563eb);border-radius:3px;transition:width .5s;"></div>
+        </div>
+      </div>
+
+      <!-- Stage dots -->
+      <div style="display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap;">
+        ${WORKFLOW_STAGES.map((s,i)=>`
+          <div title="${s.label}" style="width:${i<=stageIdx?'20px':'14px'};height:8px;border-radius:4px;
+            background:${i<stageIdx?'#4f46e5':i===stageIdx?color:'rgba(99,102,241,.15)'};
+            transition:all .3s;flex-shrink:0;"></div>`).join('')}
+      </div>
+
+      <!-- Action buttons based on status -->
+      ${job.status==='awaiting_approval'?`
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px;margin-bottom:12px;">
+          <div style="font-size:12px;font-weight:700;color:#b45309;margin-bottom:8px;">👑 Proposal ready for your review</div>
+          <div style="font-size:11px;color:#78350f;margin-bottom:10px;">The team has completed the pre-bid, estimate, and proposal. Review below and approve to send to the client.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="viewJobOutput(${job.id},'proposal')" class="btn-secondary btn-sm">📋 View Proposal</button>
+            <button onclick="viewJobOutput(${job.id},'prebid')" class="btn-secondary btn-sm">📐 View Estimate</button>
+            <button onclick="approveProposal(${job.id})" class="btn-gold btn-sm" style="width:auto;">✅ Approve & Send</button>
+          </div>
+        </div>`:''}
+
+      ${job.status==='awaiting_signature'&&job.stage==='signed'?`
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px;margin-bottom:12px;">
+          <div style="font-size:12px;font-weight:700;color:#b45309;margin-bottom:6px;">✍️ Upload signed estimate</div>
+          <div style="font-size:11px;color:#78350f;margin-bottom:10px;">Once the client signs the estimate, upload it here to automatically generate the contract and invoice.</div>
+          <label class="btn-primary" style="display:inline-flex;align-items:center;gap:6px;width:auto;padding:8px 16px;cursor:pointer;font-size:12px;">
+            📄 Upload Signed Estimate
+            <input type="file" accept=".pdf,.jpg,.png,.doc,.docx" style="display:none;" onchange="handleSignedEstimateUpload(${job.id},this)">
+          </label>
+        </div>`:''}
+
+      ${job.status==='awaiting_signature'&&job.stage==='ceo_sign'?`
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px;margin-bottom:12px;">
+          <div style="font-size:12px;font-weight:700;color:#b45309;margin-bottom:6px;">✅ Contract + Invoice ready</div>
+          <div style="font-size:11px;color:#78350f;margin-bottom:10px;">Jennifer has finalized the contract and Sarah has built the invoice. Review and sign to activate the project.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button onclick="viewJobOutput(${job.id},'contract')" class="btn-secondary btn-sm">⚖️ View Contract</button>
+            <button onclick="viewJobOutput(${job.id},'invoice')" class="btn-secondary btn-sm">💰 View Invoice</button>
+            <button onclick="signContract(${job.id})" class="btn-gold btn-sm" style="width:auto;">✅ Sign & Activate Project</button>
+          </div>
+        </div>`:''}
+
+      ${job.status==='active'?`
+        <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:10px 12px;margin-bottom:12px;">
+          <div style="font-size:12px;font-weight:700;color:#065f46;">🏗️ Project is active — check Task Inbox for your action items</div>
+        </div>`:''}
+
+      <!-- Output viewer buttons -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${Object.keys(job.outputs||{}).map(k=>`
+          <button onclick="viewJobOutput(${job.id},'${k}')" class="btn-secondary btn-sm" style="font-size:10px;">
+            ${WORKFLOW_STAGES.find(s=>s.id===k)?.icon||'📄'} ${k.charAt(0).toUpperCase()+k.slice(1)}
+          </button>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── View agent output in modal ────────────────────────────────
+function viewJobOutput(jobId, stageId){
+  const job   = activeJobs.find(j=>j.id===jobId);
+  if(!job) return;
+  const out   = job.outputs?.[stageId];
+  const stage = WORKFLOW_STAGES.find(s=>s.id===stageId);
+  if(!out){ alert('No output yet for this stage.'); return; }
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay show';
+  modal.style.zIndex = '9999';
+  modal.innerHTML = `
+    <div class="modal-box" style="max-width:680px;">
+      <div class="modal-header">
+        <h2>${stage?.icon||'📄'} ${stage?.label||stageId} — ${esc(job.client)}</h2>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="white-space:pre-wrap;font-size:13px;line-height:1.8;color:#374151;max-height:60vh;overflow-y:auto;
+             background:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.95);border-radius:10px;padding:16px;">
+          ${esc(out)}</div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button onclick="copyText(encodeURIComponent('${out.replace(/'/g,"\\'")}'))" class="btn-secondary" style="flex:1;">📋 Copy</button>
+          ${elKey?`<button onclick="speakText(decodeURIComponent('${encodeURIComponent(out.slice(0,1000))}'),'${(DEPARTMENTS.find(d=>d.name.toLowerCase().includes((stage?.agent||'').toLowerCase()))?.voiceId)||'nPczCjzI2devNBz1zQrb'}',null)" class="btn-secondary" style="flex:1;">🔊 Hear</button>`:''}
+          <button onclick="this.closest('.modal-overlay').remove()" class="btn-primary" style="flex:1;">Close</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+// Init on load
+setTimeout(loadActiveJobs, 800);
+</script><script>
 // =====================================================
 // SERVER CONFIG
 // =====================================================
@@ -10011,13 +11286,4 @@ function updateBroadcastBtn(){
     label.textContent = 'Broadcast to All 7';
   } else if(selectedAgents.size === 1){
     const dept = DEPARTMENTS.find(d=>selectedAgents.has(d.id));
-    label.textContent = `Send to ${dept?.name.split(' ')[0] || '1 Agent'}`;
-  } else {
-    label.textContent = `Broadcast to ${selectedAgents.size} Agents`;
-  }
-}
-
-// buildAgentSelectorChips is called from init directly
-</script>
-</body>
-</html>
+    label.textCon
