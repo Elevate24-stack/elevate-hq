@@ -426,7 +426,7 @@ label{font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;lett
 
       <!-- Login button -->
       <button onclick="checkAppPassword()" id="app-login-btn"
-        style="width:100%;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#0f172a;
+        style="width:100%;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;
                border:1px solid rgba(37,99,235,.6);border-radius:10px;padding:13px;
                font-size:14px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;
                transition:all .25s;box-shadow:0 4px 14px rgba(37,99,235,.3);"
@@ -10822,7 +10822,7 @@ function checkAppPassword(){
   const info  = document.getElementById('app-attempt-info');
   const btn   = document.getElementById('app-login-btn');
 
-  const entered = input ? input.value : '';
+  const entered = input ? input.value.trim() : '';
 
   if(entered === APP_PASSWORD){
     // Correct — animate and unlock
@@ -10836,6 +10836,7 @@ function checkAppPassword(){
     }
     // Save session so refresh doesn't re-ask (clears on tab close)
     sessionStorage.setItem('elevate_unlocked','1');
+    localStorage.setItem('elevate_unlocked','1');
     addActivity('🔐 CEO logged in successfully');
 
   } else {
@@ -10870,7 +10871,7 @@ function toggleAppPasswordVis(){
 
 // Check if already unlocked this session (survives refresh, not new tab)
 function checkAppSession(){
-  if(sessionStorage.getItem('elevate_unlocked') === '1'){
+  if(sessionStorage.getItem('elevate_unlocked')==='1' || localStorage.getItem('elevate_unlocked')==='1'){
     const screen = document.getElementById('app-login-screen');
     if(screen) screen.style.display = 'none';
   } else {
